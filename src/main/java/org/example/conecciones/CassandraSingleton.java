@@ -1,0 +1,45 @@
+package org.example.conecciones;
+
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import io.github.cdimascio.dotenv.Dotenv;
+
+import java.net.InetSocketAddress;
+
+public class CassandraSingleton {
+
+    private static CqlSession session;
+
+    private CassandraSingleton() {
+        // Evita que se creen objetos de esta clase desde afuera
+    }
+
+    public static CqlSession getInstance() {
+
+        if (session == null) {
+
+            Dotenv dotenv = Dotenv.load();
+
+            String host = dotenv.get("CASSANDRA_HOST");
+            int port = Integer.parseInt(dotenv.get("CASSANDRA_PORT"));
+            String datacenter = dotenv.get("CASSANDRA_DATACENTER");
+
+            session = new CqlSessionBuilder()
+                    .addContactPoint(
+                            new InetSocketAddress(host, port)
+                    )
+                    .withLocalDatacenter(datacenter)
+                    .build();
+        }
+
+        return session;
+    }
+
+    public static void close() {
+
+        if (session != null) {
+            session.close();
+            session = null;
+        }
+    }
+}
