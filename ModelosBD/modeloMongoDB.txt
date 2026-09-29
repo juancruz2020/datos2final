@@ -1,147 +1,158 @@
 CLIENTE
--------------------------
-id_cliente
-razon_social
-cuit
-email
-telefono
-direccion
-pais
-estado
+─────────────────────────
+_id: ObjectId
+razon_social: String
+cuit: String
+email: String
+telefono: String
 
+direccion: {
+    calle: String
+    numero: String
+    ciudad: String
+    codigo_postal: String
+}
+
+pais: String
+estado: String
 
 USUARIO
--------------------------
-id_usuario
-id_cliente
-id_rol
-nombre
-apellido
-email
-contraseña_encriptada
-estado
-fecha_registro
-
+─────────────────────────
+_id: ObjectId
+cliente_id: ObjectId
+rol_id: ObjectId
+nombre: String
+apellido: String
+email: String
+contraseña_encriptada: String
+estado: String
+fecha_registro: Date
 
 ROL
--------------------------
-id_rol
-descripcion
-nivel_permisos
-
+─────────────────────────
+_id: ObjectId
+descripcion: String
+nivel_permisos: Int
 
 CONTENEDOR
--------------------------
-id_contenedor
-codigo_internacional
-tipo
-capacidad
-estado
+─────────────────────────
+_id: ObjectId
+codigo_internacional: String
+tipo: String
+capacidad: Double
+estado: String
 
 
 SENSOR
--------------------------
-id_sensor
-id_contenedor
-tipo
-fabricante
-fecha_instalacion
-estado
-
+─────────────────────────
+_id: ObjectId
+contenedor_id: ObjectId
+tipo: String
+fabricante: String
+fecha_instalacion: Date
+estado: String
 
 ENVIO
--------------------------
-id_envio
-id_cliente
-fecha_creacion
-origen
-destino
-estado
-prioridad
+─────────────────────────
+_id: ObjectId
+cliente_id: ObjectId
+contenedores_ids: [ObjectId]
 
+fecha_creacion: Date
 
-TRAMO
--------------------------
-id_tramo
-id_envio
-medio_transporte
-origen
-destino
-fecha_salida
-fecha_llegada_estimada
+origen: {
+    ciudad: String
+    pais: String
+}
+
+destino: {
+    ciudad: String
+    pais: String
+}
+
+estado: String
+prioridad: String
+
+tramos: [
+    {
+        _id: ObjectId
+        medio_transporte: String
+        origen: String
+        destino: String
+        fecha_salida: Date
+        fecha_llegada_estimada: Date
+    }
+]
 
 
 
 EVENTO_LOGISTICO
--------------------------
-id_evento
-id_envio
-fecha_hora
-tipo_evento
-ubicacion
-descripcion
+─────────────────────────
+_id: ObjectId
+envio_id: ObjectId
+fecha_hora: Date
+tipo_evento: String
+ubicacion: String
+descripcion: String
 
 
 INCIDENTE
--------------------------
-id_incidente
-id_envio
-tipo
-fecha
-severidad
-estado
-descripcion
+─────────────────────────
+_id: ObjectId
+envio_id: ObjectId
+tipo: String
+fecha: Date
+severidad: String
+estado: String
+descripcion: String
 
 
 ALERTA
--------------------------
-id_alerta
-id_sensor
-id_evento
-tipo
-fecha
-estado
+─────────────────────────
+_id: ObjectId
+sensor_id: ObjectId
+evento_id: ObjectId
+tipo: String
+fecha: Date
+estado: String
 
 
 REPORTE
--------------------------
-id_reporte
-id_usuario
-tipo
-fecha_generacion
-formato
-estado
-
-
+─────────────────────────
+_id: ObjectId
+usuario_id: ObjectId
+tipo: String
+fecha_generacion: Date
+formato: String
+estado: String
 
 FACTURA
--------------------------
-id_factura
-id_cliente
-fecha_emision
-importe_total
-estado
-
+─────────────────────────
+_id: ObjectId
+cliente_id: ObjectId
+fecha_emision: Date
+importe_total: Decimal128
+estado: String
 
 PAGO
--------------------------
-id_pago
-id_factura
-fecha
-monto
-medio_pago
+─────────────────────────
+_id: ObjectId
+factura_id: ObjectId
+fecha: Date
+monto: Decimal128
+medio_pago: String
 
 
 CUENTA_CORRIENTE
--------------------------
-id_cuenta
-id_cliente
-saldo
-fecha_actualizacion
+─────────────────────────
+_id: ObjectId
+cliente_id: ObjectId
+saldo: Decimal128
+fecha_actualizacion: Date
 
 
 
-RELACIONES
+RELACIONES ENTRE COLECCIONES
 
 CLIENTE 1 ───── N USUARIO
 ROL     1 ───── N USUARIO
@@ -150,15 +161,111 @@ CLIENTE 1 ───── N ENVÍO
 ENVÍO   N ───── N CONTENEDOR
 CONTENEDOR 1 ── N SENSOR
 
-ENVÍO   1 ───── N TRAMO
 ENVÍO   1 ───── N EVENTO_LOGÍSTICO
 ENVÍO   1 ───── N INCIDENTE
 
 SENSOR  1 ───── N ALERTA
-EVENTO  1 ───── N ALERTA
+EVENTO_LOGÍSTICO 1 ───── N ALERTA
 
 USUARIO 1 ───── N REPORTE
 
 CLIENTE 1 ───── N FACTURA
 FACTURA 1 ───── N PAGO
 CLIENTE 1 ───── 1 CUENTA_CORRIENTE
+
+
+
+RELACIÓN EMBEBIDA
+
+ENVÍO 1 ───── N TRAMO
+
+
+
+ÍNDICES
+
+CLIENTE
+- cuit: índice único
+
+USUARIO
+- email: índice único
+- cliente_id: índice
+
+ROL
+- descripcion: índice único
+
+CONTENEDOR
+- codigo_internacional: índice único
+
+SENSOR
+- contenedor_id: índice
+
+ENVIO
+- cliente_id: índice
+- origen.pais: índice
+- destino.pais: índice
+- estado: índice
+
+EVENTO_LOGISTICO
+- envio_id + fecha_hora: índice compuesto
+
+INCIDENTE
+- envio_id: índice
+- estado: índice
+
+ALERTA
+- sensor_id: índice
+
+REPORTE
+- usuario_id: índice
+
+FACTURA
+- cliente_id: índice
+
+PAGO
+- factura_id: índice
+
+CUENTA_CORRIENTE
+- cliente_id: índice único
+
+
+RESTRICCIONES
+
+CLIENTE
+- cuit debe ser único.
+- estado puede ser ACTIVO o INACTIVO.
+
+USUARIO
+- email debe ser único.
+- estado puede ser ACTIVO o INACTIVO.
+
+ROL
+- descripcion debe ser única.
+
+CONTENEDOR
+- codigo_internacional debe ser único.
+- capacidad debe ser mayor a 0.
+
+SENSOR
+- estado puede ser ACTIVO o INACTIVO.
+
+ENVIO
+- estado puede ser:
+  CREADO, EN_TRANSITO, DEMORADO, ENTREGADO o CANCELADO.
+- prioridad puede ser:
+  BAJA, MEDIA o ALTA.
+
+INCIDENTE
+- severidad puede ser:
+  BAJA, MEDIA, ALTA o CRITICA.
+- estado puede ser:
+  ABIERTO, EN_PROCESO o RESUELTO.
+
+FACTURA
+- importe_total debe ser mayor o igual a 0.
+
+PAGO
+- monto debe ser mayor a 0.
+
+CUENTA_CORRIENTE
+- cliente_id debe ser único.
+

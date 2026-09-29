@@ -1,0 +1,33 @@
+
+
+// Seleccionamos la base de datos
+use datos2
+
+
+// CREACION DE COLECCIONES
+
+db.createCollection("clientes")
+
+db.createCollection("usuarios")
+
+db.createCollection("roles")
+
+db.createCollection("contenedores")
+
+db.createCollection("sensores")
+
+db.createCollection("envios")
+
+db.createCollection("eventos_logisticos")
+
+db.createCollection("incidentes")
+
+db.createCollection("alertas")
+
+db.createCollection("reportes")
+
+db.createCollection("facturas")
+
+db.createCollection("pagos")
+
+db.createCollection("cuentas_corrientes")
