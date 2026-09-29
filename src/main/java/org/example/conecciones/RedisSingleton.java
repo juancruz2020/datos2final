@@ -19,8 +19,11 @@ public class RedisSingleton {
 
             String host = dotenv.get("REDIS_HOST");
             int port = Integer.parseInt(dotenv.get("REDIS_PORT"));
+            String password = dotenv.get("REDIS_PASSWORD");
 
             jedis = new Jedis(host, port);
+
+            jedis.auth(password);
         }
 
         return jedis;
