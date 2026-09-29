@@ -30,9 +30,22 @@ public class CassandraSingleton {
                     )
                     .withLocalDatacenter(datacenter)
                     .build();
+
+            crearKeyspace();
         }
 
         return session;
+    }
+
+    private static void crearKeyspace() {
+
+        session.execute("""
+            CREATE KEYSPACE IF NOT EXISTS logistica
+            WITH replication = {
+                'class': 'SimpleStrategy',
+                'replication_factor': 1
+            }
+            """);
     }
 
     public static void close() {
