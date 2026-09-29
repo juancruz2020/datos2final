@@ -1,33 +1,855 @@
-
+// =====================================================
+// MONGODB - SISTEMA DE LOGISTICA INTERNACIONAL
+// =====================================================
 
 // Seleccionamos la base de datos
 use datos2
 
 
+// =====================================================
 // CREACION DE COLECCIONES
+// =====================================================
 
 db.createCollection("clientes")
-
 db.createCollection("usuarios")
-
 db.createCollection("roles")
-
 db.createCollection("contenedores")
-
 db.createCollection("sensores")
-
 db.createCollection("envios")
-
 db.createCollection("eventos_logisticos")
-
 db.createCollection("incidentes")
-
 db.createCollection("alertas")
-
 db.createCollection("reportes")
-
 db.createCollection("facturas")
-
 db.createCollection("pagos")
-
 db.createCollection("cuentas_corrientes")
+
+
+// =====================================================
+// INSERTS - CLIENTES
+// =====================================================
+
+db.clientes.insertMany([
+    {
+        razon_social: "Logistica del Sur S.A.",
+        cuit: "30-12345678-9",
+        email: "contacto@logisticadelsur.com",
+        telefono: "1140001000",
+        direccion: {
+            calle: "Av. Corrientes",
+            numero: "1500",
+            ciudad: "Buenos Aires",
+            codigo_postal: "C1042"
+        },
+        pais: "Argentina",
+        estado: "ACTIVO"
+    },
+    {
+        razon_social: "Comercio Internacional S.R.L.",
+        cuit: "30-23456789-0",
+        email: "contacto@comerciointernacional.com",
+        telefono: "1140002000",
+        direccion: {
+            calle: "Av. Santa Fe",
+            numero: "2500",
+            ciudad: "Buenos Aires",
+            codigo_postal: "C1425"
+        },
+        pais: "Argentina",
+        estado: "ACTIVO"
+    },
+    {
+        razon_social: "Importadora Global S.A.",
+        cuit: "30-34567890-1",
+        email: "contacto@importadoraglobal.com",
+        telefono: "1140003000",
+        direccion: {
+            calle: "Av. Cordoba",
+            numero: "3200",
+            ciudad: "Buenos Aires",
+            codigo_postal: "C1187"
+        },
+        pais: "Argentina",
+        estado: "ACTIVO"
+    },
+    {
+        razon_social: "Exportadora del Plata S.A.",
+        cuit: "30-45678901-2",
+        email: "contacto@exportadoradelplata.com",
+        telefono: "1140004000",
+        direccion: {
+            calle: "Defensa",
+            numero: "850",
+            ciudad: "Buenos Aires",
+            codigo_postal: "C1065"
+        },
+        pais: "Argentina",
+        estado: "ACTIVO"
+    },
+    {
+        razon_social: "Transportes Andinos S.R.L.",
+        cuit: "30-56789012-3",
+        email: "contacto@transportesandinos.com",
+        telefono: "1140005000",
+        direccion: {
+            calle: "Lavalle",
+            numero: "1800",
+            ciudad: "Buenos Aires",
+            codigo_postal: "C1048"
+        },
+        pais: "Argentina",
+        estado: "INACTIVO"
+    }
+])
+
+
+// =====================================================
+// INSERTS - ROLES
+// =====================================================
+
+db.roles.insertMany([
+    {
+        descripcion: "Administrador",
+        nivel_permisos: 5
+    },
+    {
+        descripcion: "Supervisor",
+        nivel_permisos: 4
+    },
+    {
+        descripcion: "Operador",
+        nivel_permisos: 3
+    },
+    {
+        descripcion: "Cliente",
+        nivel_permisos: 2
+    },
+    {
+        descripcion: "Consulta",
+        nivel_permisos: 1
+    }
+])
+
+
+// Obtenemos los ObjectId generados por MongoDB
+
+const cliente1 = db.clientes.findOne({ cuit: "30-12345678-9" })._id
+const cliente2 = db.clientes.findOne({ cuit: "30-23456789-0" })._id
+const cliente3 = db.clientes.findOne({ cuit: "30-34567890-1" })._id
+const cliente4 = db.clientes.findOne({ cuit: "30-45678901-2" })._id
+const cliente5 = db.clientes.findOne({ cuit: "30-56789012-3" })._id
+
+const rol1 = db.roles.findOne({ descripcion: "Administrador" })._id
+const rol2 = db.roles.findOne({ descripcion: "Supervisor" })._id
+const rol3 = db.roles.findOne({ descripcion: "Operador" })._id
+const rol4 = db.roles.findOne({ descripcion: "Cliente" })._id
+const rol5 = db.roles.findOne({ descripcion: "Consulta" })._id
+
+
+// =====================================================
+// INSERTS - USUARIOS
+// =====================================================
+
+db.usuarios.insertMany([
+    {
+        cliente_id: cliente1,
+        rol_id: rol1,
+        nombre: "Juan",
+        apellido: "Perez",
+        email: "juan.perez@logistica.com",
+        contraseña_encriptada: "hash_001",
+        estado: "ACTIVO",
+        fecha_registro: ISODate("2026-01-10T10:00:00Z")
+    },
+    {
+        cliente_id: cliente2,
+        rol_id: rol2,
+        nombre: "Maria",
+        apellido: "Gomez",
+        email: "maria.gomez@logistica.com",
+        contraseña_encriptada: "hash_002",
+        estado: "ACTIVO",
+        fecha_registro: ISODate("2026-02-15T10:00:00Z")
+    },
+    {
+        cliente_id: cliente3,
+        rol_id: rol3,
+        nombre: "Lucas",
+        apellido: "Fernandez",
+        email: "lucas.fernandez@logistica.com",
+        contraseña_encriptada: "hash_003",
+        estado: "ACTIVO",
+        fecha_registro: ISODate("2026-03-20T10:00:00Z")
+    },
+    {
+        cliente_id: cliente4,
+        rol_id: rol4,
+        nombre: "Sofia",
+        apellido: "Martinez",
+        email: "sofia.martinez@logistica.com",
+        contraseña_encriptada: "hash_004",
+        estado: "ACTIVO",
+        fecha_registro: ISODate("2026-04-25T10:00:00Z")
+    },
+    {
+        cliente_id: cliente5,
+        rol_id: rol5,
+        nombre: "Diego",
+        apellido: "Lopez",
+        email: "diego.lopez@logistica.com",
+        contraseña_encriptada: "hash_005",
+        estado: "INACTIVO",
+        fecha_registro: ISODate("2026-05-30T10:00:00Z")
+    }
+])
+
+
+// =====================================================
+// INSERTS - CONTENEDORES
+// =====================================================
+
+db.contenedores.insertMany([
+    {
+        codigo_internacional: "CONT-001",
+        tipo: "Refrigerado",
+        capacidad: 25000.0,
+        estado: "ACTIVO"
+    },
+    {
+        codigo_internacional: "CONT-002",
+        tipo: "Seco",
+        capacidad: 30000.0,
+        estado: "ACTIVO"
+    },
+    {
+        codigo_internacional: "CONT-003",
+        tipo: "Refrigerado",
+        capacidad: 22000.0,
+        estado: "ACTIVO"
+    },
+    {
+        codigo_internacional: "CONT-004",
+        tipo: "Open Top",
+        capacidad: 28000.0,
+        estado: "ACTIVO"
+    },
+    {
+        codigo_internacional: "CONT-005",
+        tipo: "Tanque",
+        capacidad: 20000.0,
+        estado: "MANTENIMIENTO"
+    }
+])
+
+
+// Obtenemos los IDs de los contenedores
+
+const contenedor1 = db.contenedores.findOne({ codigo_internacional: "CONT-001" })._id
+const contenedor2 = db.contenedores.findOne({ codigo_internacional: "CONT-002" })._id
+const contenedor3 = db.contenedores.findOne({ codigo_internacional: "CONT-003" })._id
+const contenedor4 = db.contenedores.findOne({ codigo_internacional: "CONT-004" })._id
+const contenedor5 = db.contenedores.findOne({ codigo_internacional: "CONT-005" })._id
+
+
+// =====================================================
+// INSERTS - SENSORES
+// =====================================================
+
+db.sensores.insertMany([
+    {
+        contenedor_id: contenedor1,
+        tipo: "Temperatura",
+        fabricante: "SensorTech",
+        fecha_instalacion: ISODate("2026-01-05T10:00:00Z"),
+        estado: "ACTIVO"
+    },
+    {
+        contenedor_id: contenedor2,
+        tipo: "GPS",
+        fabricante: "GeoTrack",
+        fecha_instalacion: ISODate("2026-02-10T10:00:00Z"),
+        estado: "ACTIVO"
+    },
+    {
+        contenedor_id: contenedor3,
+        tipo: "Humedad",
+        fabricante: "SensorTech",
+        fecha_instalacion: ISODate("2026-03-15T10:00:00Z"),
+        estado: "ACTIVO"
+    },
+    {
+        contenedor_id: contenedor4,
+        tipo: "GPS",
+        fabricante: "TrackGlobal",
+        fecha_instalacion: ISODate("2026-04-20T10:00:00Z"),
+        estado: "ACTIVO"
+    },
+    {
+        contenedor_id: contenedor5,
+        tipo: "Temperatura",
+        fabricante: "ThermoLog",
+        fecha_instalacion: ISODate("2026-05-25T10:00:00Z"),
+        estado: "INACTIVO"
+    }
+])
+
+
+// Obtenemos IDs de sensores
+
+const sensor1 = db.sensores.findOne({ contenedor_id: contenedor1 })._id
+const sensor2 = db.sensores.findOne({ contenedor_id: contenedor2 })._id
+const sensor3 = db.sensores.findOne({ contenedor_id: contenedor3 })._id
+const sensor4 = db.sensores.findOne({ contenedor_id: contenedor4 })._id
+const sensor5 = db.sensores.findOne({ contenedor_id: contenedor5 })._id
+
+
+// =====================================================
+// INSERTS - ENVIOS
+// =====================================================
+
+db.envios.insertMany([
+    {
+        cliente_id: cliente1,
+        contenedores_ids: [contenedor1],
+        fecha_creacion: ISODate("2026-09-01T10:00:00Z"),
+        origen: {
+            ciudad: "Buenos Aires",
+            pais: "Argentina"
+        },
+        destino: {
+            ciudad: "Montevideo",
+            pais: "Uruguay"
+        },
+        estado: "EN_TRANSITO",
+        prioridad: "ALTA",
+        tramos: [
+            {
+                medio_transporte: "Camion",
+                origen: "Buenos Aires",
+                destino: "Montevideo",
+                fecha_salida: ISODate("2026-09-02T08:00:00Z"),
+                fecha_llegada_estimada: ISODate("2026-09-04T18:00:00Z")
+            }
+        ]
+    },
+    {
+        cliente_id: cliente2,
+        contenedores_ids: [contenedor2],
+        fecha_creacion: ISODate("2026-09-05T10:00:00Z"),
+        origen: {
+            ciudad: "Buenos Aires",
+            pais: "Argentina"
+        },
+        destino: {
+            ciudad: "Santiago",
+            pais: "Chile"
+        },
+        estado: "DEMORADO",
+        prioridad: "ALTA",
+        tramos: [
+            {
+                medio_transporte: "Camion",
+                origen: "Buenos Aires",
+                destino: "Mendoza",
+                fecha_salida: ISODate("2026-09-06T08:00:00Z"),
+                fecha_llegada_estimada: ISODate("2026-09-07T18:00:00Z")
+            },
+            {
+                medio_transporte: "Camion",
+                origen: "Mendoza",
+                destino: "Santiago",
+                fecha_salida: ISODate("2026-09-08T08:00:00Z"),
+                fecha_llegada_estimada: ISODate("2026-09-09T18:00:00Z")
+            }
+        ]
+    },
+    {
+        cliente_id: cliente3,
+        contenedores_ids: [contenedor3],
+        fecha_creacion: ISODate("2026-09-10T10:00:00Z"),
+        origen: {
+            ciudad: "Buenos Aires",
+            pais: "Argentina"
+        },
+        destino: {
+            ciudad: "Sao Paulo",
+            pais: "Brasil"
+        },
+        estado: "ENTREGADO",
+        prioridad: "MEDIA",
+        tramos: [
+            {
+                medio_transporte: "Camion",
+                origen: "Buenos Aires",
+                destino: "Sao Paulo",
+                fecha_salida: ISODate("2026-09-11T08:00:00Z"),
+                fecha_llegada_estimada: ISODate("2026-09-15T18:00:00Z")
+            }
+        ]
+    },
+    {
+        cliente_id: cliente4,
+        contenedores_ids: [contenedor4],
+        fecha_creacion: ISODate("2026-09-15T10:00:00Z"),
+        origen: {
+            ciudad: "Rosario",
+            pais: "Argentina"
+        },
+        destino: {
+            ciudad: "Asuncion",
+            pais: "Paraguay"
+        },
+        estado: "DEMORADO",
+        prioridad: "MEDIA",
+        tramos: [
+            {
+                medio_transporte: "Camion",
+                origen: "Rosario",
+                destino: "Asuncion",
+                fecha_salida: ISODate("2026-09-16T08:00:00Z"),
+                fecha_llegada_estimada: ISODate("2026-09-18T18:00:00Z")
+            }
+        ]
+    },
+    {
+        cliente_id: cliente5,
+        contenedores_ids: [contenedor5],
+        fecha_creacion: ISODate("2026-09-20T10:00:00Z"),
+        origen: {
+            ciudad: "Buenos Aires",
+            pais: "Argentina"
+        },
+        destino: {
+            ciudad: "Lima",
+            pais: "Peru"
+        },
+        estado: "CREADO",
+        prioridad: "BAJA",
+        tramos: [
+            {
+                medio_transporte: "Maritimo",
+                origen: "Buenos Aires",
+                destino: "Lima",
+                fecha_salida: ISODate("2026-10-01T08:00:00Z"),
+                fecha_llegada_estimada: ISODate("2026-10-12T18:00:00Z")
+            }
+        ]
+    }
+])
+
+
+// Obtenemos IDs de envios
+
+const envio1 = db.envios.findOne({ cliente_id: cliente1 })._id
+const envio2 = db.envios.findOne({ cliente_id: cliente2 })._id
+const envio3 = db.envios.findOne({ cliente_id: cliente3 })._id
+const envio4 = db.envios.findOne({ cliente_id: cliente4 })._id
+const envio5 = db.envios.findOne({ cliente_id: cliente5 })._id
+
+
+// =====================================================
+// INSERTS - EVENTOS LOGISTICOS
+// =====================================================
+
+db.eventos_logisticos.insertMany([
+    {
+        envio_id: envio1,
+        fecha_hora: ISODate("2026-09-02T08:00:00Z"),
+        tipo_evento: "EN_TRANSITO",
+        ubicacion: "Buenos Aires",
+        descripcion: "El envio inicio su recorrido."
+    },
+    {
+        envio_id: envio2,
+        fecha_hora: ISODate("2026-09-07T15:30:00Z"),
+        tipo_evento: "RETRASO",
+        ubicacion: "Mendoza",
+        descripcion: "Retraso por condiciones climaticas."
+    },
+    {
+        envio_id: envio3,
+        fecha_hora: ISODate("2026-09-15T18:00:00Z"),
+        tipo_evento: "ENTREGADO",
+        ubicacion: "Sao Paulo",
+        descripcion: "El envio fue entregado correctamente."
+    },
+    {
+        envio_id: envio4,
+        fecha_hora: ISODate("2026-09-17T11:00:00Z"),
+        tipo_evento: "RETRASO",
+        ubicacion: "Formosa",
+        descripcion: "Demora en el cruce fronterizo."
+    },
+    {
+        envio_id: envio5,
+        fecha_hora: ISODate("2026-09-20T09:00:00Z"),
+        tipo_evento: "CARGA_INICIADA",
+        ubicacion: "Buenos Aires",
+        descripcion: "Preparacion inicial de la carga."
+    }
+])
+
+
+// Obtenemos IDs de eventos
+
+const evento1 = db.eventos_logisticos.findOne({ envio_id: envio1 })._id
+const evento2 = db.eventos_logisticos.findOne({ envio_id: envio2 })._id
+const evento3 = db.eventos_logisticos.findOne({ envio_id: envio3 })._id
+const evento4 = db.eventos_logisticos.findOne({ envio_id: envio4 })._id
+const evento5 = db.eventos_logisticos.findOne({ envio_id: envio5 })._id
+
+
+// =====================================================
+// INSERTS - INCIDENTES
+// =====================================================
+
+db.incidentes.insertMany([
+    {
+        envio_id: envio1,
+        tipo: "Temperatura",
+        fecha: ISODate("2026-09-03T12:00:00Z"),
+        severidad: "MEDIA",
+        estado: "RESUELTO",
+        descripcion: "Variacion temporal de temperatura."
+    },
+    {
+        envio_id: envio2,
+        tipo: "Demora",
+        fecha: ISODate("2026-09-07T15:30:00Z"),
+        severidad: "ALTA",
+        estado: "ABIERTO",
+        descripcion: "Demora provocada por condiciones climaticas."
+    },
+    {
+        envio_id: envio3,
+        tipo: "Documentacion",
+        fecha: ISODate("2026-09-13T10:00:00Z"),
+        severidad: "BAJA",
+        estado: "RESUELTO",
+        descripcion: "Documentacion adicional requerida."
+    },
+    {
+        envio_id: envio4,
+        tipo: "Demora",
+        fecha: ISODate("2026-09-17T11:00:00Z"),
+        severidad: "MEDIA",
+        estado: "ABIERTO",
+        descripcion: "Demora en el paso fronterizo."
+    },
+    {
+        envio_id: envio5,
+        tipo: "Mantenimiento",
+        fecha: ISODate("2026-09-21T09:00:00Z"),
+        severidad: "MEDIA",
+        estado: "EN_PROCESO",
+        descripcion: "Contenedor pendiente de mantenimiento."
+    }
+])
+
+
+// =====================================================
+// INSERTS - ALERTAS
+// =====================================================
+
+db.alertas.insertMany([
+    {
+        sensor_id: sensor1,
+        evento_id: evento1,
+        tipo: "TEMPERATURA",
+        fecha: ISODate("2026-09-03T12:00:00Z"),
+        estado: "RESUELTA"
+    },
+    {
+        sensor_id: sensor2,
+        evento_id: evento2,
+        tipo: "DEMORA",
+        fecha: ISODate("2026-09-07T15:30:00Z"),
+        estado: "ACTIVA"
+    },
+    {
+        sensor_id: sensor3,
+        evento_id: evento3,
+        tipo: "HUMEDAD",
+        fecha: ISODate("2026-09-14T10:00:00Z"),
+        estado: "RESUELTA"
+    },
+    {
+        sensor_id: sensor4,
+        evento_id: evento4,
+        tipo: "UBICACION",
+        fecha: ISODate("2026-09-17T11:00:00Z"),
+        estado: "ACTIVA"
+    },
+    {
+        sensor_id: sensor5,
+        evento_id: evento5,
+        tipo: "SENSOR_INACTIVO",
+        fecha: ISODate("2026-09-21T09:00:00Z"),
+        estado: "ACTIVA"
+    }
+])
+
+
+// Obtenemos IDs de usuarios para reportes
+
+const usuario1 = db.usuarios.findOne({ email: "juan.perez@logistica.com" })._id
+const usuario2 = db.usuarios.findOne({ email: "maria.gomez@logistica.com" })._id
+const usuario3 = db.usuarios.findOne({ email: "lucas.fernandez@logistica.com" })._id
+const usuario4 = db.usuarios.findOne({ email: "sofia.martinez@logistica.com" })._id
+const usuario5 = db.usuarios.findOne({ email: "diego.lopez@logistica.com" })._id
+
+
+// =====================================================
+// INSERTS - REPORTES
+// =====================================================
+
+db.reportes.insertMany([
+    {
+        usuario_id: usuario1,
+        tipo: "Envios por estado",
+        fecha_generacion: ISODate("2026-09-21T10:00:00Z"),
+        formato: "PDF",
+        estado: "GENERADO"
+    },
+    {
+        usuario_id: usuario2,
+        tipo: "Envios demorados",
+        fecha_generacion: ISODate("2026-09-22T10:00:00Z"),
+        formato: "CSV",
+        estado: "GENERADO"
+    },
+    {
+        usuario_id: usuario3,
+        tipo: "Incidentes abiertos",
+        fecha_generacion: ISODate("2026-09-23T10:00:00Z"),
+        formato: "PDF",
+        estado: "GENERADO"
+    },
+    {
+        usuario_id: usuario4,
+        tipo: "Envios por cliente",
+        fecha_generacion: ISODate("2026-09-24T10:00:00Z"),
+        formato: "XLSX",
+        estado: "GENERADO"
+    },
+    {
+        usuario_id: usuario5,
+        tipo: "Envios por pais",
+        fecha_generacion: ISODate("2026-09-25T10:00:00Z"),
+        formato: "PDF",
+        estado: "PENDIENTE"
+    }
+])
+
+
+// =====================================================
+// INSERTS - FACTURAS
+// =====================================================
+
+db.facturas.insertMany([
+    {
+        cliente_id: cliente1,
+        fecha_emision: ISODate("2026-09-01T10:00:00Z"),
+        importe_total: Decimal128("150000.00"),
+        estado: "PAGADA"
+    },
+    {
+        cliente_id: cliente2,
+        fecha_emision: ISODate("2026-09-05T10:00:00Z"),
+        importe_total: Decimal128("220000.00"),
+        estado: "PENDIENTE"
+    },
+    {
+        cliente_id: cliente3,
+        fecha_emision: ISODate("2026-09-10T10:00:00Z"),
+        importe_total: Decimal128("180000.00"),
+        estado: "PAGADA"
+    },
+    {
+        cliente_id: cliente4,
+        fecha_emision: ISODate("2026-09-15T10:00:00Z"),
+        importe_total: Decimal128("275000.00"),
+        estado: "VENCIDA"
+    },
+    {
+        cliente_id: cliente5,
+        fecha_emision: ISODate("2026-09-20T10:00:00Z"),
+        importe_total: Decimal128("125000.00"),
+        estado: "PENDIENTE"
+    }
+])
+
+
+// Obtenemos IDs de facturas
+
+const factura1 = db.facturas.findOne({ cliente_id: cliente1 })._id
+const factura2 = db.facturas.findOne({ cliente_id: cliente2 })._id
+const factura3 = db.facturas.findOne({ cliente_id: cliente3 })._id
+const factura4 = db.facturas.findOne({ cliente_id: cliente4 })._id
+const factura5 = db.facturas.findOne({ cliente_id: cliente5 })._id
+
+
+// =====================================================
+// INSERTS - PAGOS
+// =====================================================
+
+db.pagos.insertMany([
+    {
+        factura_id: factura1,
+        fecha: ISODate("2026-09-02T10:00:00Z"),
+        monto: Decimal128("150000.00"),
+        medio_pago: "Transferencia"
+    },
+    {
+        factura_id: factura2,
+        fecha: ISODate("2026-09-08T10:00:00Z"),
+        monto: Decimal128("100000.00"),
+        medio_pago: "Transferencia"
+    },
+    {
+        factura_id: factura2,
+        fecha: ISODate("2026-09-10T10:00:00Z"),
+        monto: Decimal128("50000.00"),
+        medio_pago: "Tarjeta"
+    },
+    {
+        factura_id: factura3,
+        fecha: ISODate("2026-09-12T10:00:00Z"),
+        monto: Decimal128("180000.00"),
+        medio_pago: "Transferencia"
+    },
+    {
+        factura_id: factura4,
+        fecha: ISODate("2026-09-18T10:00:00Z"),
+        monto: Decimal128("75000.00"),
+        medio_pago: "Transferencia"
+    }
+])
+
+
+// =====================================================
+// INSERTS - CUENTAS CORRIENTES
+// =====================================================
+
+db.cuentas_corrientes.insertMany([
+    {
+        cliente_id: cliente1,
+        saldo: Decimal128("0.00"),
+        fecha_actualizacion: ISODate("2026-09-02T10:00:00Z")
+    },
+    {
+        cliente_id: cliente2,
+        saldo: Decimal128("70000.00"),
+        fecha_actualizacion: ISODate("2026-09-10T10:00:00Z")
+    },
+    {
+        cliente_id: cliente3,
+        saldo: Decimal128("0.00"),
+        fecha_actualizacion: ISODate("2026-09-12T10:00:00Z")
+    },
+    {
+        cliente_id: cliente4,
+        saldo: Decimal128("200000.00"),
+        fecha_actualizacion: ISODate("2026-09-18T10:00:00Z")
+    },
+    {
+        cliente_id: cliente5,
+        saldo: Decimal128("125000.00"),
+        fecha_actualizacion: ISODate("2026-09-20T10:00:00Z")
+    }
+])
+
+
+// =====================================================
+// INDICES
+// =====================================================
+
+// CLIENTES
+db.clientes.createIndex(
+    { cuit: 1 },
+    { unique: true }
+)
+
+// USUARIOS
+db.usuarios.createIndex(
+    { email: 1 },
+    { unique: true }
+)
+
+db.usuarios.createIndex(
+    { cliente_id: 1 }
+)
+
+// ROLES
+db.roles.createIndex(
+    { descripcion: 1 },
+    { unique: true }
+)
+
+// CONTENEDORES
+db.contenedores.createIndex(
+    { codigo_internacional: 1 },
+    { unique: true }
+)
+
+// SENSORES
+db.sensores.createIndex(
+    { contenedor_id: 1 }
+)
+
+// ENVIOS
+db.envios.createIndex(
+    { cliente_id: 1 }
+)
+
+db.envios.createIndex(
+    { "origen.pais": 1 }
+)
+
+db.envios.createIndex(
+    { "destino.pais": 1 }
+)
+
+db.envios.createIndex(
+    { estado: 1 }
+)
+
+// EVENTOS LOGISTICOS
+db.eventos_logisticos.createIndex(
+    { envio_id: 1, fecha_hora: 1 }
+)
+
+// INCIDENTES
+db.incidentes.createIndex(
+    { envio_id: 1 }
+)
+
+db.incidentes.createIndex(
+    { estado: 1 }
+)
+
+// ALERTAS
+db.alertas.createIndex(
+    { sensor_id: 1 }
+)
+
+// REPORTES
+db.reportes.createIndex(
+    { usuario_id: 1 }
+)
+
+// FACTURAS
+db.facturas.createIndex(
+    { cliente_id: 1 }
+)
+
+// PAGOS
+db.pagos.createIndex(
+    { factura_id: 1 }
+)
+
+// CUENTAS CORRIENTES
+db.cuentas_corrientes.createIndex(
+    { cliente_id: 1 },
+    { unique: true }
+)
