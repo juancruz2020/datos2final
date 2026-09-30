@@ -8,6 +8,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Factura;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -25,7 +28,10 @@ public class FacturaMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR FACTURA
+    // =========================
+
     public void agregar(Factura factura) {
 
         Document documento = new Document()
@@ -54,7 +60,10 @@ public class FacturaMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR FACTURA
+    // =========================
+
     public void modificar(Factura factura) {
 
         coleccion.updateOne(
@@ -81,11 +90,64 @@ public class FacturaMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR FACTURA
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR FACTURA POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR FACTURAS
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR FACTURAS POR CLIENTE
+    // =========================
+
+    public List<Document> buscarPorCliente(String clienteId) {
+
+        return coleccion.find(
+                eq(
+                        "cliente_id",
+                        new ObjectId(clienteId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR FACTURAS POR ESTADO
+    // =========================
+
+    public List<Document> buscarPorEstado(String estado) {
+
+        return coleccion.find(
+                eq("estado", estado)
+        ).into(new ArrayList<>());
     }
 }

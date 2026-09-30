@@ -37,6 +37,18 @@ public class ControllerMongoDB {
         service.eliminarCliente(id);
     }
 
+    public Document buscarClientePorId(String id) {
+        return service.buscarClientePorId(id);
+    }
+
+    public List<Document> listarClientes() {
+        return service.listarClientes();
+    }
+
+    public Document buscarClientePorCuit(String cuit) {
+        return service.buscarClientePorCuit(cuit);
+    }
+
 
     // =========================
     // USUARIOS
@@ -52,6 +64,22 @@ public class ControllerMongoDB {
 
     public void eliminarUsuario(String id) {
         service.eliminarUsuario(id);
+    }
+
+    public Document buscarUsuarioPorId(String id) {
+        return service.buscarUsuarioPorId(id);
+    }
+
+    public List<Document> listarUsuarios() {
+        return service.listarUsuarios();
+    }
+
+    public Document buscarUsuarioPorEmail(String email) {
+        return service.buscarUsuarioPorEmail(email);
+    }
+
+    public List<Document> buscarUsuariosPorCliente(String clienteId) {
+        return service.buscarUsuariosPorCliente(clienteId);
     }
 
 
@@ -71,6 +99,18 @@ public class ControllerMongoDB {
         service.eliminarRol(id);
     }
 
+    public Document buscarRolPorId(String id) {
+        return service.buscarRolPorId(id);
+    }
+
+    public List<Document> listarRoles() {
+        return service.listarRoles();
+    }
+
+    public Document buscarRolPorDescripcion(String descripcion) {
+        return service.buscarRolPorDescripcion(descripcion);
+    }
+
 
     // =========================
     // CONTENEDORES
@@ -88,6 +128,22 @@ public class ControllerMongoDB {
         service.eliminarContenedor(id);
     }
 
+    public Document buscarContenedorPorId(String id) {
+        return service.buscarContenedorPorId(id);
+    }
+
+    public List<Document> listarContenedores() {
+        return service.listarContenedores();
+    }
+
+    public Document buscarContenedorPorCodigo(String codigo) {
+        return service.buscarContenedorPorCodigo(codigo);
+    }
+
+    public List<Document> buscarContenedoresPorEstado(String estado) {
+        return service.buscarContenedoresPorEstado(estado);
+    }
+
 
     // =========================
     // SENSORES
@@ -103,6 +159,22 @@ public class ControllerMongoDB {
 
     public void eliminarSensor(String id) {
         service.eliminarSensor(id);
+    }
+
+    public Document buscarSensorPorId(String id) {
+        return service.buscarSensorPorId(id);
+    }
+
+    public List<Document> listarSensores() {
+        return service.listarSensores();
+    }
+
+    public List<Document> buscarSensoresPorContenedor(String contenedorId) {
+        return service.buscarSensoresPorContenedor(contenedorId);
+    }
+
+    public List<Document> buscarSensoresPorEstado(String estado) {
+        return service.buscarSensoresPorEstado(estado);
     }
 
 
@@ -163,6 +235,22 @@ public class ControllerMongoDB {
         service.eliminarEventoLogistico(id);
     }
 
+    public Document buscarEventoLogisticoPorId(String id) {
+        return service.buscarEventoLogisticoPorId(id);
+    }
+
+    public List<Document> listarEventosLogisticos() {
+        return service.listarEventosLogisticos();
+    }
+
+    public List<Document> buscarEventosLogisticosPorEnvio(String envioId) {
+        return service.buscarEventosLogisticosPorEnvio(envioId);
+    }
+
+    public List<Document> buscarEventosLogisticosPorTipo(String tipoEvento) {
+        return service.buscarEventosLogisticosPorTipo(tipoEvento);
+    }
+
 
     // =========================
     // INCIDENTES
@@ -213,6 +301,26 @@ public class ControllerMongoDB {
         service.eliminarAlerta(id);
     }
 
+    public Document buscarAlertaPorId(String id) {
+        return service.buscarAlertaPorId(id);
+    }
+
+    public List<Document> listarAlertas() {
+        return service.listarAlertas();
+    }
+
+    public List<Document> buscarAlertasPorSensor(String sensorId) {
+        return service.buscarAlertasPorSensor(sensorId);
+    }
+
+    public List<Document> buscarAlertasPorEvento(String eventoId) {
+        return service.buscarAlertasPorEvento(eventoId);
+    }
+
+    public List<Document> buscarAlertasPorEstado(String estado) {
+        return service.buscarAlertasPorEstado(estado);
+    }
+
 
     // =========================
     // REPORTES
@@ -228,6 +336,26 @@ public class ControllerMongoDB {
 
     public void eliminarReporte(String id) {
         service.eliminarReporte(id);
+    }
+
+    public Document buscarReportePorId(String id) {
+        return service.buscarReportePorId(id);
+    }
+
+    public List<Document> listarReportes() {
+        return service.listarReportes();
+    }
+
+    public List<Document> buscarReportesPorUsuario(String usuarioId) {
+        return service.buscarReportesPorUsuario(usuarioId);
+    }
+
+    public List<Document> buscarReportesPorTipo(String tipo) {
+        return service.buscarReportesPorTipo(tipo);
+    }
+
+    public List<Document> buscarReportesPorEstado(String estado) {
+        return service.buscarReportesPorEstado(estado);
     }
 
 
@@ -247,6 +375,22 @@ public class ControllerMongoDB {
         service.eliminarFactura(id);
     }
 
+    public Document buscarFacturaPorId(String id) {
+        return service.buscarFacturaPorId(id);
+    }
+
+    public List<Document> listarFacturas() {
+        return service.listarFacturas();
+    }
+
+    public List<Document> buscarFacturasPorCliente(String clienteId) {
+        return service.buscarFacturasPorCliente(clienteId);
+    }
+
+    public List<Document> buscarFacturasPorEstado(String estado) {
+        return service.buscarFacturasPorEstado(estado);
+    }
+
 
     // =========================
     // PAGOS
@@ -264,6 +408,22 @@ public class ControllerMongoDB {
         service.eliminarPago(id);
     }
 
+    public Document buscarPagoPorId(String id) {
+        return service.buscarPagoPorId(id);
+    }
+
+    public List<Document> listarPagos() {
+        return service.listarPagos();
+    }
+
+    public List<Document> buscarPagosPorFactura(String facturaId) {
+        return service.buscarPagosPorFactura(facturaId);
+    }
+
+    public List<Document> buscarPagosPorMedioPago(String medioPago) {
+        return service.buscarPagosPorMedioPago(medioPago);
+    }
+
 
     // =========================
     // CUENTAS CORRIENTES
@@ -279,6 +439,18 @@ public class ControllerMongoDB {
 
     public void eliminarCuentaCorriente(String id) {
         service.eliminarCuentaCorriente(id);
+    }
+
+    public Document buscarCuentaCorrientePorId(String id) {
+        return service.buscarCuentaCorrientePorId(id);
+    }
+
+    public List<Document> listarCuentasCorrientes() {
+        return service.listarCuentasCorrientes();
+    }
+
+    public Document buscarCuentaCorrientePorCliente(String clienteId) {
+        return service.buscarCuentaCorrientePorCliente(clienteId);
     }
 
 

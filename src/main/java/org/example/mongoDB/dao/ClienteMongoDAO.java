@@ -7,6 +7,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Cliente;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -24,7 +27,10 @@ public class ClienteMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR CLIENTE
+    // =========================
+
     public void agregar(Cliente cliente) {
 
         Document direccion = new Document()
@@ -44,15 +50,16 @@ public class ClienteMongoDAO {
 
         coleccion.insertOne(documento);
 
-        // Mongo genera el ObjectId automáticamente.
-        // Lo guardamos también en el objeto Java.
         cliente.setId(
                 documento.getObjectId("_id").toHexString()
         );
     }
 
 
+    // =========================
     // MODIFICAR CLIENTE
+    // =========================
+
     public void modificar(Cliente cliente) {
 
         coleccion.updateOne(
@@ -87,11 +94,49 @@ public class ClienteMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR CLIENTE
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR CLIENTE POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR TODOS LOS CLIENTES
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR CLIENTE POR CUIT
+    // =========================
+
+    public Document buscarPorCuit(String cuit) {
+
+        return coleccion.find(
+                eq("cuit", cuit)
+        ).first();
     }
 }

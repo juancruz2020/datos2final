@@ -7,6 +7,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Usuario;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -24,7 +27,10 @@ public class UsuarioMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR USUARIO
+    // =========================
+
     public void agregar(Usuario usuario) {
 
         Document documento = new Document()
@@ -54,7 +60,10 @@ public class UsuarioMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR USUARIO
+    // =========================
+
     public void modificar(Usuario usuario) {
 
         coleccion.updateOne(
@@ -85,11 +94,64 @@ public class UsuarioMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR USUARIO
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR USUARIO POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR USUARIOS
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR USUARIO POR EMAIL
+    // =========================
+
+    public Document buscarPorEmail(String email) {
+
+        return coleccion.find(
+                eq("email", email)
+        ).first();
+    }
+
+
+    // =========================
+    // BUSCAR USUARIOS POR CLIENTE
+    // =========================
+
+    public List<Document> buscarPorCliente(String clienteId) {
+
+        return coleccion.find(
+                eq(
+                        "cliente_id",
+                        new ObjectId(clienteId)
+                )
+        ).into(new ArrayList<>());
     }
 }

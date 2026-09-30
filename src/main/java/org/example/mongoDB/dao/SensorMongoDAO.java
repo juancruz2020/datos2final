@@ -7,6 +7,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Sensor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -24,7 +27,10 @@ public class SensorMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR SENSOR
+    // =========================
+
     public void agregar(Sensor sensor) {
 
         Document documento = new Document()
@@ -45,7 +51,10 @@ public class SensorMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR SENSOR
+    // =========================
+
     public void modificar(Sensor sensor) {
 
         coleccion.updateOne(
@@ -67,11 +76,64 @@ public class SensorMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR SENSOR
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR SENSOR POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR SENSORES
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR SENSORES POR CONTENEDOR
+    // =========================
+
+    public List<Document> buscarPorContenedor(String contenedorId) {
+
+        return coleccion.find(
+                eq(
+                        "contenedor_id",
+                        new ObjectId(contenedorId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR SENSORES POR ESTADO
+    // =========================
+
+    public List<Document> buscarPorEstado(String estado) {
+
+        return coleccion.find(
+                eq("estado", estado)
+        ).into(new ArrayList<>());
     }
 }

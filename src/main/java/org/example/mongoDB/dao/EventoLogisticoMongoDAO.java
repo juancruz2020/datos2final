@@ -7,6 +7,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.EventoLogistico;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -24,7 +27,10 @@ public class EventoLogisticoMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR EVENTO LOGISTICO
+    // =========================
+
     public void agregar(EventoLogistico evento) {
 
         Document documento = new Document()
@@ -45,7 +51,10 @@ public class EventoLogisticoMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR EVENTO LOGISTICO
+    // =========================
+
     public void modificar(EventoLogistico evento) {
 
         coleccion.updateOne(
@@ -64,11 +73,64 @@ public class EventoLogisticoMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR EVENTO LOGISTICO
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR EVENTO POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR EVENTOS
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR EVENTOS POR ENVIO
+    // =========================
+
+    public List<Document> buscarPorEnvio(String envioId) {
+
+        return coleccion.find(
+                eq(
+                        "envio_id",
+                        new ObjectId(envioId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR EVENTOS POR TIPO
+    // =========================
+
+    public List<Document> buscarPorTipo(String tipoEvento) {
+
+        return coleccion.find(
+                eq("tipo_evento", tipoEvento)
+        ).into(new ArrayList<>());
     }
 }

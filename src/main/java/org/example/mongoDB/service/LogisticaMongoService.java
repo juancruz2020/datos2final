@@ -61,6 +61,18 @@ public class LogisticaMongoService {
         clienteDAO.eliminar(id);
     }
 
+    public Document buscarClientePorId(String id) {
+        return clienteDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarClientes() {
+        return clienteDAO.listarTodos();
+    }
+
+    public Document buscarClientePorCuit(String cuit) {
+        return clienteDAO.buscarPorCuit(cuit);
+    }
+
 
     // =========================
     // USUARIOS
@@ -76,6 +88,22 @@ public class LogisticaMongoService {
 
     public void eliminarUsuario(String id) {
         usuarioDAO.eliminar(id);
+    }
+
+    public Document buscarUsuarioPorId(String id) {
+        return usuarioDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarUsuarios() {
+        return usuarioDAO.listarTodos();
+    }
+
+    public Document buscarUsuarioPorEmail(String email) {
+        return usuarioDAO.buscarPorEmail(email);
+    }
+
+    public List<Document> buscarUsuariosPorCliente(String clienteId) {
+        return usuarioDAO.buscarPorCliente(clienteId);
     }
 
 
@@ -95,6 +123,18 @@ public class LogisticaMongoService {
         rolDAO.eliminar(id);
     }
 
+    public Document buscarRolPorId(String id) {
+        return rolDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarRoles() {
+        return rolDAO.listarTodos();
+    }
+
+    public Document buscarRolPorDescripcion(String descripcion) {
+        return rolDAO.buscarPorDescripcion(descripcion);
+    }
+
 
     // =========================
     // CONTENEDORES
@@ -112,6 +152,22 @@ public class LogisticaMongoService {
         contenedorDAO.eliminar(id);
     }
 
+    public Document buscarContenedorPorId(String id) {
+        return contenedorDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarContenedores() {
+        return contenedorDAO.listarTodos();
+    }
+
+    public Document buscarContenedorPorCodigo(String codigo) {
+        return contenedorDAO.buscarPorCodigo(codigo);
+    }
+
+    public List<Document> buscarContenedoresPorEstado(String estado) {
+        return contenedorDAO.buscarPorEstado(estado);
+    }
+
 
     // =========================
     // SENSORES
@@ -127,6 +183,22 @@ public class LogisticaMongoService {
 
     public void eliminarSensor(String id) {
         sensorDAO.eliminar(id);
+    }
+
+    public Document buscarSensorPorId(String id) {
+        return sensorDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarSensores() {
+        return sensorDAO.listarTodos();
+    }
+
+    public List<Document> buscarSensoresPorContenedor(String contenedorId) {
+        return sensorDAO.buscarPorContenedor(contenedorId);
+    }
+
+    public List<Document> buscarSensoresPorEstado(String estado) {
+        return sensorDAO.buscarPorEstado(estado);
     }
 
 
@@ -187,6 +259,22 @@ public class LogisticaMongoService {
         eventoLogisticoDAO.eliminar(id);
     }
 
+    public Document buscarEventoLogisticoPorId(String id) {
+        return eventoLogisticoDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarEventosLogisticos() {
+        return eventoLogisticoDAO.listarTodos();
+    }
+
+    public List<Document> buscarEventosLogisticosPorEnvio(String envioId) {
+        return eventoLogisticoDAO.buscarPorEnvio(envioId);
+    }
+
+    public List<Document> buscarEventosLogisticosPorTipo(String tipoEvento) {
+        return eventoLogisticoDAO.buscarPorTipo(tipoEvento);
+    }
+
 
     // =========================
     // INCIDENTES
@@ -237,6 +325,26 @@ public class LogisticaMongoService {
         alertaDAO.eliminar(id);
     }
 
+    public Document buscarAlertaPorId(String id) {
+        return alertaDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarAlertas() {
+        return alertaDAO.listarTodos();
+    }
+
+    public List<Document> buscarAlertasPorSensor(String sensorId) {
+        return alertaDAO.buscarPorSensor(sensorId);
+    }
+
+    public List<Document> buscarAlertasPorEvento(String eventoId) {
+        return alertaDAO.buscarPorEvento(eventoId);
+    }
+
+    public List<Document> buscarAlertasPorEstado(String estado) {
+        return alertaDAO.buscarPorEstado(estado);
+    }
+
 
     // =========================
     // REPORTES
@@ -252,6 +360,26 @@ public class LogisticaMongoService {
 
     public void eliminarReporte(String id) {
         reporteDAO.eliminar(id);
+    }
+
+    public Document buscarReportePorId(String id) {
+        return reporteDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarReportes() {
+        return reporteDAO.listarTodos();
+    }
+
+    public List<Document> buscarReportesPorUsuario(String usuarioId) {
+        return reporteDAO.buscarPorUsuario(usuarioId);
+    }
+
+    public List<Document> buscarReportesPorTipo(String tipo) {
+        return reporteDAO.buscarPorTipo(tipo);
+    }
+
+    public List<Document> buscarReportesPorEstado(String estado) {
+        return reporteDAO.buscarPorEstado(estado);
     }
 
 
@@ -271,6 +399,22 @@ public class LogisticaMongoService {
         facturaDAO.eliminar(id);
     }
 
+    public Document buscarFacturaPorId(String id) {
+        return facturaDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarFacturas() {
+        return facturaDAO.listarTodos();
+    }
+
+    public List<Document> buscarFacturasPorCliente(String clienteId) {
+        return facturaDAO.buscarPorCliente(clienteId);
+    }
+
+    public List<Document> buscarFacturasPorEstado(String estado) {
+        return facturaDAO.buscarPorEstado(estado);
+    }
+
 
     // =========================
     // PAGOS
@@ -288,6 +432,22 @@ public class LogisticaMongoService {
         pagoDAO.eliminar(id);
     }
 
+    public Document buscarPagoPorId(String id) {
+        return pagoDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarPagos() {
+        return pagoDAO.listarTodos();
+    }
+
+    public List<Document> buscarPagosPorFactura(String facturaId) {
+        return pagoDAO.buscarPorFactura(facturaId);
+    }
+
+    public List<Document> buscarPagosPorMedioPago(String medioPago) {
+        return pagoDAO.buscarPorMedioPago(medioPago);
+    }
+
 
     // =========================
     // CUENTAS CORRIENTES
@@ -303,5 +463,17 @@ public class LogisticaMongoService {
 
     public void eliminarCuentaCorriente(String id) {
         cuentaCorrienteDAO.eliminar(id);
+    }
+
+    public Document buscarCuentaCorrientePorId(String id) {
+        return cuentaCorrienteDAO.buscarPorId(id);
+    }
+
+    public List<Document> listarCuentasCorrientes() {
+        return cuentaCorrienteDAO.listarTodos();
+    }
+
+    public Document buscarCuentaCorrientePorCliente(String clienteId) {
+        return cuentaCorrienteDAO.buscarPorCliente(clienteId);
     }
 }

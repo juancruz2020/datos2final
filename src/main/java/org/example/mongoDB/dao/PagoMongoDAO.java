@@ -8,6 +8,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Pago;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -25,7 +28,10 @@ public class PagoMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR PAGO
+    // =========================
+
     public void agregar(Pago pago) {
 
         Document documento = new Document()
@@ -54,7 +60,10 @@ public class PagoMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR PAGO
+    // =========================
+
     public void modificar(Pago pago) {
 
         coleccion.updateOne(
@@ -81,11 +90,64 @@ public class PagoMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR PAGO
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR PAGO POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR PAGOS
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR PAGOS POR FACTURA
+    // =========================
+
+    public List<Document> buscarPorFactura(String facturaId) {
+
+        return coleccion.find(
+                eq(
+                        "factura_id",
+                        new ObjectId(facturaId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR PAGOS POR MEDIO DE PAGO
+    // =========================
+
+    public List<Document> buscarPorMedioPago(String medioPago) {
+
+        return coleccion.find(
+                eq("medio_pago", medioPago)
+        ).into(new ArrayList<>());
     }
 }

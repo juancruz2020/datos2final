@@ -7,6 +7,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Reporte;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -24,7 +27,10 @@ public class ReporteMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR REPORTE
+    // =========================
+
     public void agregar(Reporte reporte) {
 
         Document documento = new Document()
@@ -45,7 +51,10 @@ public class ReporteMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR REPORTE
+    // =========================
+
     public void modificar(Reporte reporte) {
 
         coleccion.updateOne(
@@ -64,11 +73,76 @@ public class ReporteMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR REPORTE
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR REPORTE POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR REPORTES
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR REPORTES POR USUARIO
+    // =========================
+
+    public List<Document> buscarPorUsuario(String usuarioId) {
+
+        return coleccion.find(
+                eq(
+                        "usuario_id",
+                        new ObjectId(usuarioId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR REPORTES POR TIPO
+    // =========================
+
+    public List<Document> buscarPorTipo(String tipo) {
+
+        return coleccion.find(
+                eq("tipo", tipo)
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR REPORTES POR ESTADO
+    // =========================
+
+    public List<Document> buscarPorEstado(String estado) {
+
+        return coleccion.find(
+                eq("estado", estado)
+        ).into(new ArrayList<>());
     }
 }

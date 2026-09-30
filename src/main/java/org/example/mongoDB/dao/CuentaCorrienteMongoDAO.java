@@ -8,6 +8,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.CuentaCorriente;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -25,7 +28,10 @@ public class CuentaCorrienteMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR CUENTA CORRIENTE
+    // =========================
+
     public void agregar(CuentaCorriente cuentaCorriente) {
 
         Document documento = new Document()
@@ -50,7 +56,10 @@ public class CuentaCorrienteMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR CUENTA CORRIENTE
+    // =========================
+
     public void modificar(CuentaCorriente cuentaCorriente) {
 
         coleccion.updateOne(
@@ -73,11 +82,52 @@ public class CuentaCorrienteMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR CUENTA CORRIENTE
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR CUENTA CORRIENTE POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR CUENTAS CORRIENTES
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR CUENTA CORRIENTE POR CLIENTE
+    // =========================
+
+    public Document buscarPorCliente(String clienteId) {
+
+        return coleccion.find(
+                eq(
+                        "cliente_id",
+                        new ObjectId(clienteId)
+                )
+        ).first();
     }
 }
