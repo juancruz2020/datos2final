@@ -3,8 +3,8 @@ package org.example.interfaz.principal.vistas;
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.example.interfaz.componentes.CampoFecha;
 import org.example.interfaz.componentes.CampoFechaHora;
-import org.example.monitoreo.controller.ControllerMonitoreo;
-import org.example.monitoreo.controller.ControllerMonitoreoInsert;
+import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
+import org.example.cassandra.monitoreo.controller.ControllerMonitoreoInsert;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

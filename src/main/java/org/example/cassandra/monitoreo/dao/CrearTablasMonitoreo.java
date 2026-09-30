@@ -1,8 +1,8 @@
-package org.example.monitoreo.dao;
+package org.example.cassandra.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 
-public class CrearTablas {
+public class CrearTablasMonitoreo {
 
     public static void crearTablas(CqlSession session) {
 

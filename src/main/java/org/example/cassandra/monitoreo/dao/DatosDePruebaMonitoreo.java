@@ -1,8 +1,8 @@
-package org.example.monitoreo.dao;
+package org.example.cassandra.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 
-public class DatosDePrueba {
+public class DatosDePruebaMonitoreo {
 
     public void insertarDatos(CqlSession session) {
 
@@ -10,7 +10,7 @@ public class DatosDePrueba {
         // LECTURAS DE SENSORES
         // =====================================================
 
-        InsertarCassandra.insertarLecturaSensor(
+        InsertarCassandraMonitoreo.insertarLecturaSensor(
                 session,
                 java.util.UUID.fromString(
                         "11111111-1111-1111-1111-111111111111"
@@ -33,7 +33,7 @@ public class DatosDePrueba {
         );
 
 
-        InsertarCassandra.insertarLecturaSensor(
+        InsertarCassandraMonitoreo.insertarLecturaSensor(
                 session,
                 java.util.UUID.fromString(
                         "22222222-2222-2222-2222-222222222222"

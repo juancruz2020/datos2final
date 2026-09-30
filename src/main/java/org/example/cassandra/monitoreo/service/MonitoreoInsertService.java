@@ -1,8 +1,8 @@
-package org.example.monitoreo.service;
+package org.example.cassandra.monitoreo.service;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.example.conecciones.CassandraSingleton;
-import org.example.monitoreo.dao.InsertarCassandra;
+import org.example.cassandra.monitoreo.dao.InsertarCassandraMonitoreo;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -53,7 +53,7 @@ public class MonitoreoInsertService {
         );
 
 
-        InsertarCassandra.insertarLecturaSensor(
+        InsertarCassandraMonitoreo.insertarLecturaSensor(
                 session,
                 sensorId,
                 fechaDia,

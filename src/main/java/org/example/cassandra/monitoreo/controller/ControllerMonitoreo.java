@@ -1,7 +1,7 @@
-package org.example.monitoreo.controller;
+package org.example.cassandra.monitoreo.controller;
 
 import com.datastax.oss.driver.api.core.cql.Row;
-import org.example.monitoreo.service.MonitoreoService;
+import org.example.cassandra.monitoreo.service.MonitoreoService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
-package org.example.monitoreo.controller;
+package org.example.cassandra.monitoreo.controller;
 
-import org.example.monitoreo.service.MonitoreoInsertService;
+import org.example.cassandra.monitoreo.service.MonitoreoInsertService;
 
 import java.math.BigDecimal;
 import java.time.Instant;

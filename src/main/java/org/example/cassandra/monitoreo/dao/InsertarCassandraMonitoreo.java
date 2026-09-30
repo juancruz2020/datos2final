@@ -1,4 +1,4 @@
-package org.example.monitoreo.dao;
+package org.example.cassandra.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class InsertarCassandra {
+public class InsertarCassandraMonitoreo {
 
     // =====================================================
     // INSERTAR LECTURA DE SENSOR

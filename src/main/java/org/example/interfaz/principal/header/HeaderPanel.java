@@ -10,9 +10,19 @@ public class HeaderPanel extends JPanel {
 
     private final String usuario;
 
+    private final JButton btnCerrarSesion;
+
+    private final JLabel lblTiempoSesion;
+
     public HeaderPanel(String usuario) {
 
         this.usuario = usuario;
+
+        this.btnCerrarSesion =
+                new JButton("Salir");
+
+        this.lblTiempoSesion =
+                new JLabel("Sesión: --:--");
 
         construir();
     }
@@ -44,6 +54,10 @@ public class HeaderPanel extends JPanel {
                 )
         );
 
+        // =====================================================
+        // TÍTULO
+        // =====================================================
+
         JLabel titulo =
                 new JLabel(
                         "  Dashboard"
@@ -62,14 +76,24 @@ public class HeaderPanel extends JPanel {
                 BorderLayout.WEST
         );
 
+        // =====================================================
+        // USUARIO + TTL + SALIR
+        // =====================================================
+
         JPanel usuarioPanel =
                 new JPanel(
                         new FlowLayout(
-                                FlowLayout.RIGHT
+                                FlowLayout.RIGHT,
+                                12,
+                                15
                         )
                 );
 
         usuarioPanel.setOpaque(false);
+
+        // -----------------------------------------------------
+        // USUARIO
+        // -----------------------------------------------------
 
         JLabel lblUsuario =
                 new JLabel(
@@ -84,15 +108,36 @@ public class HeaderPanel extends JPanel {
                 Colores.TEXTO
         );
 
-        JButton btnCerrarSesion =
-                new JButton(
-                        "Salir"
-                );
+        // -----------------------------------------------------
+        // TTL
+        // -----------------------------------------------------
 
-        btnCerrarSesion.setFocusPainted(false);
+        lblTiempoSesion.setFont(
+                Fuentes.NORMAL
+        );
+
+        lblTiempoSesion.setForeground(
+                Colores.TEXTO
+        );
+
+        // -----------------------------------------------------
+        // BOTÓN SALIR
+        // -----------------------------------------------------
+
+        btnCerrarSesion.setFocusPainted(
+                false
+        );
+
+        // -----------------------------------------------------
+        // AGREGAR COMPONENTES
+        // -----------------------------------------------------
 
         usuarioPanel.add(
                 lblUsuario
+        );
+
+        usuarioPanel.add(
+                lblTiempoSesion
         );
 
         usuarioPanel.add(
@@ -103,5 +148,19 @@ public class HeaderPanel extends JPanel {
                 usuarioPanel,
                 BorderLayout.EAST
         );
+    }
+
+    // =========================================================
+    // GETTERS
+    // =========================================================
+
+    public JButton getBtnCerrarSesion() {
+
+        return btnCerrarSesion;
+    }
+
+    public JLabel getLblTiempoSesion() {
+
+        return lblTiempoSesion;
     }
 }

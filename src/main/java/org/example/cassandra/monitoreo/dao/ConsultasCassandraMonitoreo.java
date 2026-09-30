@@ -1,4 +1,4 @@
-package org.example.monitoreo.dao;
+package org.example.cassandra.monitoreo.dao;
 
 
 import com.datastax.oss.driver.api.core.CqlSession;
@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class ConsultasCassandra {
+public class ConsultasCassandraMonitoreo {
 
     private final CqlSession session;
 
-    public ConsultasCassandra(CqlSession session) {
+    public ConsultasCassandraMonitoreo(CqlSession session) {
         this.session = session;
     }
 

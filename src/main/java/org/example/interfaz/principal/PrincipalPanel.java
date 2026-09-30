@@ -7,6 +7,8 @@ import org.example.interfaz.principal.vistas.MonitoreoPanel;
 import org.example.interfaz.principal.vistas.MonitoreoPanelController;
 import org.example.interfaz.principal.vistas.VistaVaciaPanel;
 import org.example.interfaz.tema.Colores;
+import org.example.interfaz.principal.vistas.AdministracionPanel;
+import org.example.interfaz.principal.vistas.AdministracionPanelController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -254,15 +256,20 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-        // -----------------------------------------------------
-        // ADMINISTRACIÓN
-        // -----------------------------------------------------
+// -----------------------------------------------------
+// ADMINISTRACIÓN
+// -----------------------------------------------------
+
+        AdministracionPanel administracionPanel =
+                new AdministracionPanel();
 
         contenido.add(
-                new VistaVaciaPanel(
-                        "Administración"
-                ),
+                administracionPanel,
                 "ADMINISTRACION"
+        );
+
+        new AdministracionPanelController(
+                administracionPanel
         );
 
 

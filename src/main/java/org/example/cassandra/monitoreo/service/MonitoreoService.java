@@ -1,12 +1,12 @@
-package org.example.monitoreo.service;
+package org.example.cassandra.monitoreo.service;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import org.example.conecciones.CassandraSingleton;
-import org.example.monitoreo.dao.CrearTablas;
-import org.example.monitoreo.dao.DatosDePrueba;
-import org.example.monitoreo.dao.ConsultasCassandra;
+import org.example.cassandra.monitoreo.dao.CrearTablasMonitoreo;
+import org.example.cassandra.monitoreo.dao.DatosDePruebaMonitoreo;
+import org.example.cassandra.monitoreo.dao.ConsultasCassandraMonitoreo;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,24 +15,24 @@ import java.util.UUID;
 
 public class MonitoreoService {
 
-    private final CrearTablas crearTablas;
-    private final DatosDePrueba datosDePrueba;
-    private final ConsultasCassandra monitoreoDAO;
+    private final CrearTablasMonitoreo crearTablasMonitoreo;
+    private final DatosDePruebaMonitoreo datosDePruebaMonitoreo;
+    private final ConsultasCassandraMonitoreo monitoreoDAO;
 
 
     public MonitoreoService() {
 
-        this.crearTablas =
-                new CrearTablas();
+        this.crearTablasMonitoreo =
+                new CrearTablasMonitoreo();
 
-        this.datosDePrueba =
-                new DatosDePrueba();
+        this.datosDePruebaMonitoreo =
+                new DatosDePruebaMonitoreo();
 
         CqlSession session =
                 CassandraSingleton.getInstance();
 
         this.monitoreoDAO =
-                new ConsultasCassandra(session);
+                new ConsultasCassandraMonitoreo(session);
     }
 
 
@@ -45,7 +45,7 @@ public class MonitoreoService {
         CqlSession session =
                 CassandraSingleton.getInstance();
 
-        crearTablas.crearTablas(session);
+        crearTablasMonitoreo.crearTablas(session);
     }
 
 
@@ -58,7 +58,7 @@ public class MonitoreoService {
         CqlSession session =
                 CassandraSingleton.getInstance();
 
-        datosDePrueba.insertarDatos(session);
+        datosDePruebaMonitoreo.insertarDatos(session);
     }
 
 
