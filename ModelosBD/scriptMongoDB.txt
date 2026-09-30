@@ -131,7 +131,9 @@ db.roles.insertMany([
 ])
 
 
-// Obtenemos los ObjectId generados por MongoDB
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE CLIENTES Y ROLES
+// =====================================================
 
 const cliente1 = db.clientes.findOne({ cuit: "30-12345678-9" })._id
 const cliente2 = db.clientes.findOne({ cuit: "30-23456789-0" })._id
@@ -242,7 +244,9 @@ db.contenedores.insertMany([
 ])
 
 
-// Obtenemos los IDs de los contenedores
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE CONTENEDORES
+// =====================================================
 
 const contenedor1 = db.contenedores.findOne({ codigo_internacional: "CONT-001" })._id
 const contenedor2 = db.contenedores.findOne({ codigo_internacional: "CONT-002" })._id
@@ -294,7 +298,9 @@ db.sensores.insertMany([
 ])
 
 
-// Obtenemos IDs de sensores
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE SENSORES
+// =====================================================
 
 const sensor1 = db.sensores.findOne({ contenedor_id: contenedor1 })._id
 const sensor2 = db.sensores.findOne({ contenedor_id: contenedor2 })._id
@@ -438,7 +444,9 @@ db.envios.insertMany([
 ])
 
 
-// Obtenemos IDs de envios
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE ENVIOS
+// =====================================================
 
 const envio1 = db.envios.findOne({ cliente_id: cliente1 })._id
 const envio2 = db.envios.findOne({ cliente_id: cliente2 })._id
@@ -490,7 +498,9 @@ db.eventos_logisticos.insertMany([
 ])
 
 
-// Obtenemos IDs de eventos
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE EVENTOS
+// =====================================================
 
 const evento1 = db.eventos_logisticos.findOne({ envio_id: envio1 })._id
 const evento2 = db.eventos_logisticos.findOne({ envio_id: envio2 })._id
@@ -590,7 +600,9 @@ db.alertas.insertMany([
 ])
 
 
-// Obtenemos IDs de usuarios para reportes
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE USUARIOS
+// =====================================================
 
 const usuario1 = db.usuarios.findOne({ email: "juan.perez@logistica.com" })._id
 const usuario2 = db.usuarios.findOne({ email: "maria.gomez@logistica.com" })._id
@@ -680,7 +692,9 @@ db.facturas.insertMany([
 ])
 
 
-// Obtenemos IDs de facturas
+// =====================================================
+// OBTENEMOS LOS OBJECTID DE FACTURAS
+// =====================================================
 
 const factura1 = db.facturas.findOne({ cliente_id: cliente1 })._id
 const factura2 = db.facturas.findOne({ cliente_id: cliente2 })._id
@@ -770,6 +784,7 @@ db.clientes.createIndex(
     { unique: true }
 )
 
+
 // USUARIOS
 db.usuarios.createIndex(
     { email: 1 },
@@ -780,11 +795,13 @@ db.usuarios.createIndex(
     { cliente_id: 1 }
 )
 
+
 // ROLES
 db.roles.createIndex(
     { descripcion: 1 },
     { unique: true }
 )
+
 
 // CONTENEDORES
 db.contenedores.createIndex(
@@ -792,14 +809,20 @@ db.contenedores.createIndex(
     { unique: true }
 )
 
+
 // SENSORES
 db.sensores.createIndex(
     { contenedor_id: 1 }
 )
 
+
 // ENVIOS
 db.envios.createIndex(
     { cliente_id: 1 }
+)
+
+db.envios.createIndex(
+    { contenedores_ids: 1 }
 )
 
 db.envios.createIndex(
@@ -814,10 +837,12 @@ db.envios.createIndex(
     { estado: 1 }
 )
 
+
 // EVENTOS LOGISTICOS
 db.eventos_logisticos.createIndex(
     { envio_id: 1, fecha_hora: 1 }
 )
+
 
 // INCIDENTES
 db.incidentes.createIndex(
@@ -828,25 +853,30 @@ db.incidentes.createIndex(
     { estado: 1 }
 )
 
+
 // ALERTAS
 db.alertas.createIndex(
     { sensor_id: 1 }
 )
+
 
 // REPORTES
 db.reportes.createIndex(
     { usuario_id: 1 }
 )
 
+
 // FACTURAS
 db.facturas.createIndex(
     { cliente_id: 1 }
 )
 
+
 // PAGOS
 db.pagos.createIndex(
     { factura_id: 1 }
 )
+
 
 // CUENTAS CORRIENTES
 db.cuentas_corrientes.createIndex(
