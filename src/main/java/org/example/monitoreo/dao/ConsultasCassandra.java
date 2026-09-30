@@ -283,5 +283,76 @@ public class ConsultasCassandra {
 
         return metricas;
     }
+
+    // ============================================================
+// 8. TABLA COMPLETA DE LECTURAS
+// ============================================================
+
+    public List<Row> obtenerTodasLasLecturas() {
+
+        String cql = """
+        SELECT *
+        FROM logistica.lecturas_sensor
+        """;
+
+        ResultSet result =
+                session.execute(cql);
+
+        List<Row> lecturas = new ArrayList<>();
+
+        for (Row row : result) {
+            lecturas.add(row);
+        }
+
+        return lecturas;
+    }
+
+
+// ============================================================
+// 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
+// ============================================================
+
+    public List<Row> obtenerTodasLasMetricasRegion() {
+
+        String cql = """
+        SELECT *
+        FROM logistica.metricas_iot_region_dia
+        """;
+
+        ResultSet result =
+                session.execute(cql);
+
+        List<Row> metricas = new ArrayList<>();
+
+        for (Row row : result) {
+            metricas.add(row);
+        }
+
+        return metricas;
+    }
+
+
+// ============================================================
+// 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
+// ============================================================
+
+    public List<Row> obtenerTodasLasMetricasPais() {
+
+        String cql = """
+        SELECT *
+        FROM logistica.metricas_iot_pais_dia
+        """;
+
+        ResultSet result =
+                session.execute(cql);
+
+        List<Row> metricas = new ArrayList<>();
+
+        for (Row row : result) {
+            metricas.add(row);
+        }
+
+        return metricas;
+    }
 }
 

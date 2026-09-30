@@ -1,6 +1,7 @@
 package org.example.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -10,7 +11,7 @@ import java.util.UUID;
 public class InsertarCassandra {
 
     // =====================================================
-    // INSERTAR LECTURAS DE SENSORES
+    // INSERTAR LECTURA DE SENSOR
     // =====================================================
 
     public static void insertarLecturaSensor(
@@ -62,23 +63,118 @@ public class InsertarCassandra {
                         region
                 )
         );
+
+        // Después de guardar la lectura,
+        // actualizamos automáticamente las métricas.
+        actualizarMetricaRegion(
+                session,
+                region,
+                fechaDia,
+                temperatura,
+                humedad
+        );
+
+        actualizarMetricaPais(
+                session,
+                pais,
+                fechaDia,
+                temperatura,
+                humedad
+        );
     }
 
 
     // =====================================================
-    // INSERTAR MÉTRICA IoT POR REGIÓN
+    // ACTUALIZAR MÉTRICA DE REGIÓN
     // =====================================================
 
-    public static void insertarMetricaRegion(
+    private static void actualizarMetricaRegion(
             CqlSession session,
             String region,
             LocalDate fechaDia,
-            BigDecimal temperaturaMin,
-            BigDecimal temperaturaMax,
-            BigDecimal humedadPromedio,
-            long cantidadLecturas) {
+            BigDecimal temperatura,
+            BigDecimal humedad) {
 
-        String cql = """
+        String select = """
+            SELECT temperatura_min,
+                   temperatura_max,
+                   humedad_promedio,
+                   cantidad_lecturas
+            FROM logistica.metricas_iot_region_dia
+            WHERE region = ?
+            AND fecha_dia = ?
+            """;
+
+        Row existente = session.execute(
+                session.prepare(select).bind(
+                        region,
+                        fechaDia
+                )
+        ).one();
+
+
+        BigDecimal temperaturaMin;
+        BigDecimal temperaturaMax;
+        BigDecimal humedadPromedio;
+        long cantidadLecturas;
+
+
+        // -------------------------------------------------
+        // PRIMERA LECTURA DE ESA REGIÓN EN ESE DÍA
+        // -------------------------------------------------
+
+        if (existente == null) {
+
+            temperaturaMin = temperatura;
+            temperaturaMax = temperatura;
+            humedadPromedio = humedad;
+            cantidadLecturas = 1;
+
+        } else {
+
+            // -------------------------------------------------
+            // YA EXISTEN LECTURAS
+            // -------------------------------------------------
+
+            BigDecimal minAnterior =
+                    existente.getBigDecimal("temperatura_min");
+
+            BigDecimal maxAnterior =
+                    existente.getBigDecimal("temperatura_max");
+
+            BigDecimal promedioAnterior =
+                    existente.getBigDecimal("humedad_promedio");
+
+            long cantidadAnterior =
+                    existente.getLong("cantidad_lecturas");
+
+
+            temperaturaMin =
+                    temperatura.compareTo(minAnterior) < 0
+                            ? temperatura
+                            : minAnterior;
+
+            temperaturaMax =
+                    temperatura.compareTo(maxAnterior) > 0
+                            ? temperatura
+                            : maxAnterior;
+
+
+            humedadPromedio =
+                    promedioAnterior
+                            .multiply(BigDecimal.valueOf(cantidadAnterior))
+                            .add(humedad)
+                            .divide(
+                                    BigDecimal.valueOf(cantidadAnterior + 1),
+                                    4,
+                                    java.math.RoundingMode.HALF_UP
+                            );
+
+            cantidadLecturas = cantidadAnterior + 1;
+        }
+
+
+        String update = """
             INSERT INTO logistica.metricas_iot_region_dia (
                 region,
                 fecha_dia,
@@ -91,7 +187,7 @@ public class InsertarCassandra {
             """;
 
         session.execute(
-                session.prepare(cql).bind(
+                session.prepare(update).bind(
                         region,
                         fechaDia,
                         temperaturaMin,
@@ -104,18 +200,87 @@ public class InsertarCassandra {
 
 
     // =====================================================
-    // INSERTAR MÉTRICA IoT POR PAÍS
+    // ACTUALIZAR MÉTRICA DE PAÍS
     // =====================================================
 
-    public static void insertarMetricaPais(
+    private static void actualizarMetricaPais(
             CqlSession session,
             String pais,
             LocalDate fechaDia,
-            BigDecimal humedadPromedio,
-            BigDecimal temperaturaPromedio,
-            long cantidadLecturas) {
+            BigDecimal temperatura,
+            BigDecimal humedad) {
 
-        String cql = """
+        String select = """
+            SELECT humedad_promedio,
+                   temperatura_promedio,
+                   cantidad_lecturas
+            FROM logistica.metricas_iot_pais_dia
+            WHERE pais = ?
+            AND fecha_dia = ?
+            """;
+
+        Row existente = session.execute(
+                session.prepare(select).bind(
+                        pais,
+                        fechaDia
+                )
+        ).one();
+
+
+        BigDecimal humedadPromedio;
+        BigDecimal temperaturaPromedio;
+        long cantidadLecturas;
+
+
+        // -------------------------------------------------
+        // PRIMERA LECTURA DEL PAÍS EN ESE DÍA
+        // -------------------------------------------------
+
+        if (existente == null) {
+
+            humedadPromedio = humedad;
+            temperaturaPromedio = temperatura;
+            cantidadLecturas = 1;
+
+        } else {
+
+            BigDecimal humedadAnterior =
+                    existente.getBigDecimal("humedad_promedio");
+
+            BigDecimal temperaturaAnterior =
+                    existente.getBigDecimal("temperatura_promedio");
+
+            long cantidadAnterior =
+                    existente.getLong("cantidad_lecturas");
+
+
+            humedadPromedio =
+                    humedadAnterior
+                            .multiply(BigDecimal.valueOf(cantidadAnterior))
+                            .add(humedad)
+                            .divide(
+                                    BigDecimal.valueOf(cantidadAnterior + 1),
+                                    4,
+                                    java.math.RoundingMode.HALF_UP
+                            );
+
+
+            temperaturaPromedio =
+                    temperaturaAnterior
+                            .multiply(BigDecimal.valueOf(cantidadAnterior))
+                            .add(temperatura)
+                            .divide(
+                                    BigDecimal.valueOf(cantidadAnterior + 1),
+                                    4,
+                                    java.math.RoundingMode.HALF_UP
+                            );
+
+
+            cantidadLecturas = cantidadAnterior + 1;
+        }
+
+
+        String update = """
             INSERT INTO logistica.metricas_iot_pais_dia (
                 pais,
                 fecha_dia,
@@ -127,7 +292,7 @@ public class InsertarCassandra {
             """;
 
         session.execute(
-                session.prepare(cql).bind(
+                session.prepare(update).bind(
                         pais,
                         fechaDia,
                         humedadPromedio,

@@ -7,439 +7,60 @@ public class DatosDePrueba {
     public void insertarDatos(CqlSession session) {
 
         // =====================================================
-        // 10 LECTURAS DE SENSORES
+        // LECTURAS DE SENSORES
         // =====================================================
 
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                11111111-1111-1111-1111-111111111111,
-                '2026-09-29',
-                '2026-09-29 09:00:00',
-                21111111-1111-1111-1111-111111111111,
-                24.5, 63.2, 0.12,
-                -34.6037, -58.3816, 87.5,
-                'Argentina', 'Buenos Aires'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                22222222-2222-2222-2222-222222222222,
-                '2026-09-29',
-                '2026-09-29 10:00:00',
-                22222222-2222-2222-2222-222222222222,
-                28.7, 58.4, 0.21,
-                -32.8895, -68.8458, 92.1,
-                'Argentina', 'Mendoza'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                33333333-3333-3333-3333-333333333333,
-                '2026-09-29',
-                '2026-09-29 11:00:00',
-                23333333-3333-3333-3333-333333333333,
-                19.8, 71.6, 0.08,
-                -23.5505, -46.6333, 76.3,
-                'Brasil', 'Sao Paulo'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                44444444-4444-4444-4444-444444444444,
-                '2026-09-29',
-                '2026-09-29 12:00:00',
-                24444444-4444-4444-4444-444444444444,
-                31.2, 45.7, 0.34,
-                -33.4489, -70.6693, 81.4,
-                'Chile', 'Santiago'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                55555555-5555-5555-5555-555555555555,
-                '2026-09-29',
-                '2026-09-29 13:00:00',
-                25555555-5555-5555-5555-555555555555,
-                16.4, 82.3, 0.05,
-                -34.9011, -56.1645, 65.8,
-                'Uruguay', 'Montevideo'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                66666666-6666-6666-6666-666666666666,
-                '2026-09-28',
-                '2026-09-28 14:00:00',
-                26666666-6666-6666-6666-666666666666,
-                22.1, 67.9, 0.17,
-                -34.6037, -58.3816, 73.2,
-                'Argentina', 'Buenos Aires'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                77777777-7777-7777-7777-777777777777,
-                '2026-09-28',
-                '2026-09-28 15:00:00',
-                27777777-7777-7777-7777-777777777777,
-                35.6, 42.8, 0.43,
-                -12.0464, -77.0428, 54.6,
-                'Peru', 'Lima'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                88888888-8888-8888-8888-888888888888,
-                '2026-09-27',
-                '2026-09-27 16:00:00',
-                28888888-8888-8888-8888-888888888888,
-                27.3, 60.5, 0.19,
-                -22.9068, -43.1729, 89.7,
-                'Brasil', 'Rio de Janeiro'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                99999999-9999-9999-9999-999999999999,
-                '2026-09-27',
-                '2026-09-27 17:00:00',
-                29999999-9999-9999-9999-999999999999,
-                12.9, 88.1, 0.03,
-                -33.8688, 151.2093, 41.5,
-                'Australia', 'Nueva Gales del Sur'
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.lecturas_sensor (
-                sensor_id, fecha_dia, fecha_hora, contenedor_id,
-                temperatura, humedad, vibracion,
-                latitud, longitud, bateria,
-                pais, region
-            )
-            VALUES (
-                aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,
-                '2026-09-26',
-                '2026-09-26 18:00:00',
-                2aaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa,
-                29.8, 51.3, 0.27,
-                40.4168, -3.7038, 68.9,
-                'España', 'Madrid'
-            )
-            """);
+        InsertarCassandra.insertarLecturaSensor(
+                session,
+                java.util.UUID.fromString(
+                        "11111111-1111-1111-1111-111111111111"
+                ),
+                java.time.LocalDate.of(2026, 9, 29),
+                java.time.Instant.parse(
+                        "2026-09-29T09:00:00Z"
+                ),
+                java.util.UUID.fromString(
+                        "21111111-1111-1111-1111-111111111111"
+                ),
+                new java.math.BigDecimal("24.5"),
+                new java.math.BigDecimal("63.2"),
+                new java.math.BigDecimal("0.12"),
+                new java.math.BigDecimal("-34.6037"),
+                new java.math.BigDecimal("-58.3816"),
+                new java.math.BigDecimal("87.5"),
+                "Argentina",
+                "Buenos Aires"
+        );
 
 
-        // =====================================================
-        // 10 MÉTRICAS POR REGIÓN
-        // =====================================================
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Buenos Aires', '2026-09-29',
-                18.2, 31.7, 64.5, 18540
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Buenos Aires', '2026-09-28',
-                17.4, 29.8, 61.2, 17230
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Mendoza', '2026-09-29',
-                11.5, 28.7, 48.3, 14220
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Mendoza', '2026-09-28',
-                10.8, 27.9, 46.7, 13890
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Sao Paulo', '2026-09-29',
-                16.2, 29.4, 72.1, 22100
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Sao Paulo', '2026-09-28',
-                15.8, 28.6, 70.5, 21450
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Santiago', '2026-09-29',
-                8.9, 31.2, 43.6, 11980
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Santiago', '2026-09-28',
-                9.4, 30.1, 45.2, 11560
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Montevideo', '2026-09-29',
-                12.7, 25.9, 76.4, 13570
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_region_dia (
-                region, fecha_dia,
-                temperatura_min, temperatura_max,
-                humedad_promedio, cantidad_lecturas
-            )
-            VALUES (
-                'Montevideo', '2026-09-28',
-                11.9, 24.8, 74.8, 12980
-            )
-            """);
+        InsertarCassandra.insertarLecturaSensor(
+                session,
+                java.util.UUID.fromString(
+                        "22222222-2222-2222-2222-222222222222"
+                ),
+                java.time.LocalDate.of(2026, 9, 29),
+                java.time.Instant.parse(
+                        "2026-09-29T10:00:00Z"
+                ),
+                java.util.UUID.fromString(
+                        "22222222-2222-2222-2222-222222222222"
+                ),
+                new java.math.BigDecimal("28.7"),
+                new java.math.BigDecimal("58.4"),
+                new java.math.BigDecimal("0.21"),
+                new java.math.BigDecimal("-32.8895"),
+                new java.math.BigDecimal("-68.8458"),
+                new java.math.BigDecimal("92.1"),
+                "Argentina",
+                "Mendoza"
+        );
 
 
-        // =====================================================
-        // 10 MÉTRICAS POR PAÍS
-        // =====================================================
+        // Las demás lecturas se insertan
+        // de la misma manera.
 
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Argentina', '2026-09-29',
-                63.8, 24.7, 52340
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Argentina', '2026-09-28',
-                61.4, 23.9, 49820
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Brasil', '2026-09-29',
-                71.6, 25.8, 68450
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Brasil', '2026-09-28',
-                69.9, 24.9, 65120
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Chile', '2026-09-29',
-                44.7, 21.6, 32780
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Chile', '2026-09-28',
-                46.2, 20.9, 31150
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Uruguay', '2026-09-29',
-                75.6, 20.8, 28400
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'Uruguay', '2026-09-28',
-                73.9, 19.7, 27120
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'España', '2026-09-29',
-                51.8, 26.4, 41900
-            )
-            """);
-
-        session.execute("""
-            INSERT INTO logistica.metricas_iot_pais_dia (
-                pais, fecha_dia,
-                humedad_promedio, temperatura_promedio,
-                cantidad_lecturas
-            )
-            VALUES (
-                'España', '2026-09-28',
-                49.6, 25.7, 39750
-            )
-            """);
-
-        System.out.println("Datos de prueba cargados correctamente.");
+        System.out.println(
+                "Lecturas de prueba cargadas correctamente."
+        );
     }
 }

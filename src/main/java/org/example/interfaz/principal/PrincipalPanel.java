@@ -3,56 +3,106 @@ package org.example.interfaz.principal;
 import org.example.interfaz.principal.header.HeaderPanel;
 import org.example.interfaz.principal.menu.MenuLateralPanel;
 import org.example.interfaz.principal.vistas.DashboardPanel;
+import org.example.interfaz.principal.vistas.MonitoreoPanel;
+import org.example.interfaz.principal.vistas.MonitoreoPanelController;
 import org.example.interfaz.principal.vistas.VistaVaciaPanel;
 import org.example.interfaz.tema.Colores;
 
 import javax.swing.*;
 import java.awt.*;
 
+
 public class PrincipalPanel extends JPanel {
 
     private final String usuario;
 
     private final CardLayout cardLayout;
+
     private final JPanel contenido;
 
     private final MenuLateralPanel menuLateral;
+
     private final HeaderPanel header;
 
-    public PrincipalPanel(String usuario) {
 
-        this.usuario = usuario;
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
 
-        cardLayout = new CardLayout();
+    public PrincipalPanel(
+            String usuario
+    ) {
 
-        contenido = new JPanel(cardLayout);
+        this.usuario =
+                usuario;
 
-        menuLateral = new MenuLateralPanel();
-        header = new HeaderPanel(usuario);
+
+        cardLayout =
+                new CardLayout();
+
+
+        contenido =
+                new JPanel(
+                        cardLayout
+                );
+
+
+        menuLateral =
+                new MenuLateralPanel();
+
+
+        header =
+                new HeaderPanel(
+                        usuario
+                );
+
 
         construir();
     }
 
+
+    // =========================================================
+    // CONSTRUIR
+    // =========================================================
+
     private void construir() {
 
-        setLayout(new BorderLayout());
+        setLayout(
+                new BorderLayout()
+        );
 
-        setBackground(Colores.FONDO);
 
+        setBackground(
+                Colores.FONDO
+        );
+
+
+        // =====================================================
         // HEADER
+        // =====================================================
+
         add(
                 header,
                 BorderLayout.NORTH
         );
 
+
+        // =====================================================
         // MENÚ
+        // =====================================================
+
         add(
                 menuLateral,
                 BorderLayout.WEST
         );
 
+
+        // =====================================================
         // CONTENIDO
+        // =====================================================
+
         construirContenido();
+
 
         add(
                 contenido,
@@ -60,67 +110,165 @@ public class PrincipalPanel extends JPanel {
         );
     }
 
+
+    // =========================================================
+    // VISTAS
+    // =========================================================
+
     private void construirContenido() {
+
+        // -----------------------------------------------------
+        // DASHBOARD
+        // -----------------------------------------------------
 
         contenido.add(
                 new DashboardPanel(),
                 "DASHBOARD"
         );
 
+
+        // -----------------------------------------------------
+        // CLIENTES
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Clientes"),
+                new VistaVaciaPanel(
+                        "Clientes"
+                ),
                 "CLIENTES"
         );
 
+
+        // -----------------------------------------------------
+        // ENVÍOS
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Envíos"),
+                new VistaVaciaPanel(
+                        "Envíos"
+                ),
                 "ENVIOS"
         );
 
+
+        // -----------------------------------------------------
+        // CONTENEDORES
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Contenedores"),
+                new VistaVaciaPanel(
+                        "Contenedores"
+                ),
                 "CONTENEDORES"
         );
 
+
+        // -----------------------------------------------------
+        // SENSORES
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Sensores"),
+                new VistaVaciaPanel(
+                        "Sensores"
+                ),
                 "SENSORES"
         );
 
+
+        // -----------------------------------------------------
+        // MONITOREO
+        // -----------------------------------------------------
+
+        MonitoreoPanel monitoreoPanel =
+                new MonitoreoPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel("Monitoreo IoT"),
+                monitoreoPanel,
                 "MONITOREO"
         );
 
+
+        new MonitoreoPanelController(
+                monitoreoPanel
+        );
+
+
+        // -----------------------------------------------------
+        // TRAZABILIDAD
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Trazabilidad"),
+                new VistaVaciaPanel(
+                        "Trazabilidad"
+                ),
                 "TRAZABILIDAD"
         );
 
+
+        // -----------------------------------------------------
+        // COMUNICACIONES
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Comunicaciones"),
+                new VistaVaciaPanel(
+                        "Comunicaciones"
+                ),
                 "COMUNICACIONES"
         );
 
+
+        // -----------------------------------------------------
+        // FACTURACIÓN
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Facturación"),
+                new VistaVaciaPanel(
+                        "Facturación"
+                ),
                 "FACTURACION"
         );
 
+
+        // -----------------------------------------------------
+        // REPORTES
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Reportes"),
+                new VistaVaciaPanel(
+                        "Reportes"
+                ),
                 "REPORTES"
         );
 
+
+        // -----------------------------------------------------
+        // RIESGOS
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Riesgos"),
+                new VistaVaciaPanel(
+                        "Riesgos"
+                ),
                 "RIESGOS"
         );
 
+
+        // -----------------------------------------------------
+        // ADMINISTRACIÓN
+        // -----------------------------------------------------
+
         contenido.add(
-                new VistaVaciaPanel("Administración"),
+                new VistaVaciaPanel(
+                        "Administración"
+                ),
                 "ADMINISTRACION"
         );
+
+
+        // =====================================================
+        // VISTA INICIAL
+        // =====================================================
 
         cardLayout.show(
                 contenido,
@@ -128,7 +276,14 @@ public class PrincipalPanel extends JPanel {
         );
     }
 
-    public void mostrarVista(String nombre) {
+
+    // =========================================================
+    // NAVEGACIÓN
+    // =========================================================
+
+    public void mostrarVista(
+            String nombre
+    ) {
 
         cardLayout.show(
                 contenido,
@@ -136,15 +291,25 @@ public class PrincipalPanel extends JPanel {
         );
     }
 
+
+    // =========================================================
+    // GETTERS
+    // =========================================================
+
     public MenuLateralPanel getMenuLateral() {
+
         return menuLateral;
     }
 
+
     public HeaderPanel getHeader() {
+
         return header;
     }
 
+
     public String getUsuario() {
+
         return usuario;
     }
 }

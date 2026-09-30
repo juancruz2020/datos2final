@@ -22,12 +22,17 @@ public class MonitoreoService {
 
     public MonitoreoService() {
 
-        this.crearTablas = new CrearTablas();
-        this.datosDePrueba = new DatosDePrueba();
+        this.crearTablas =
+                new CrearTablas();
 
-        CqlSession session = CassandraSingleton.getInstance();
+        this.datosDePrueba =
+                new DatosDePrueba();
 
-        this.monitoreoDAO = new ConsultasCassandra(session);
+        CqlSession session =
+                CassandraSingleton.getInstance();
+
+        this.monitoreoDAO =
+                new ConsultasCassandra(session);
     }
 
 
@@ -37,7 +42,8 @@ public class MonitoreoService {
 
     public void crearTablas() {
 
-        CqlSession session = CassandraSingleton.getInstance();
+        CqlSession session =
+                CassandraSingleton.getInstance();
 
         crearTablas.crearTablas(session);
     }
@@ -49,14 +55,15 @@ public class MonitoreoService {
 
     public void cargarDatosDePrueba() {
 
-        CqlSession session = CassandraSingleton.getInstance();
+        CqlSession session =
+                CassandraSingleton.getInstance();
 
         datosDePrueba.insertarDatos(session);
     }
 
 
     // ============================================================
-    // 1. HISTORIAL DE LECTURAS DE UN SENSOR
+    // 1. HISTORIAL DE LECTURAS
     // ============================================================
 
     public List<Row> obtenerHistorialSensor(
@@ -172,5 +179,34 @@ public class MonitoreoService {
                 desde,
                 hasta
         );
+    }
+
+    // ============================================================
+// 8. TODAS LAS LECTURAS
+// ============================================================
+
+    public List<Row> obtenerTodasLasLecturas() {
+
+        return monitoreoDAO.obtenerTodasLasLecturas();
+    }
+
+
+// ============================================================
+// 9. TODAS LAS MÉTRICAS POR REGIÓN
+// ============================================================
+
+    public List<Row> obtenerTodasLasMetricasRegion() {
+
+        return monitoreoDAO.obtenerTodasLasMetricasRegion();
+    }
+
+
+// ============================================================
+// 10. TODAS LAS MÉTRICAS POR PAÍS
+// ============================================================
+
+    public List<Row> obtenerTodasLasMetricasPais() {
+
+        return monitoreoDAO.obtenerTodasLasMetricasPais();
     }
 }

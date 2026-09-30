@@ -11,8 +11,8 @@ public class ControllerMonitoreoInsert {
 
     private final MonitoreoInsertService insertService;
 
-    public ControllerMonitoreoInsert() {
 
+    public ControllerMonitoreoInsert() {
         this.insertService =
                 new MonitoreoInsertService();
     }
@@ -36,6 +36,7 @@ public class ControllerMonitoreoInsert {
             String pais,
             String region) {
 
+
         insertService.insertarLecturaSensor(
                 sensorId,
                 fechaDia,
@@ -51,60 +52,13 @@ public class ControllerMonitoreoInsert {
                 region
         );
 
+
         System.out.println(
                 "Lectura del sensor insertada correctamente."
         );
-    }
-
-
-    // =====================================================
-    // INSERTAR MÉTRICA POR REGIÓN
-    // =====================================================
-
-    public void insertarMetricaRegion(
-            String region,
-            LocalDate fechaDia,
-            BigDecimal temperaturaMin,
-            BigDecimal temperaturaMax,
-            BigDecimal humedadPromedio,
-            long cantidadLecturas) {
-
-        insertService.insertarMetricaRegion(
-                region,
-                fechaDia,
-                temperaturaMin,
-                temperaturaMax,
-                humedadPromedio,
-                cantidadLecturas
-        );
 
         System.out.println(
-                "Métrica de región insertada correctamente."
-        );
-    }
-
-
-    // =====================================================
-    // INSERTAR MÉTRICA POR PAÍS
-    // =====================================================
-
-    public void insertarMetricaPais(
-            String pais,
-            LocalDate fechaDia,
-            BigDecimal humedadPromedio,
-            BigDecimal temperaturaPromedio,
-            long cantidadLecturas) {
-
-        insertService.insertarMetricaPais(
-                pais,
-                fechaDia,
-                humedadPromedio,
-                temperaturaPromedio,
-                cantidadLecturas
-        );
-
-        System.out.println(
-                "Métrica de país insertada correctamente."
+                "Métricas de región y país actualizadas automáticamente."
         );
     }
 }

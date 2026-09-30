@@ -12,8 +12,10 @@ public class ControllerMonitoreo {
 
     private final MonitoreoService serviceMonitoreo;
 
+
     public ControllerMonitoreo() {
-        this.serviceMonitoreo = new MonitoreoService();
+        this.serviceMonitoreo =
+                new MonitoreoService();
     }
 
 
@@ -155,5 +157,33 @@ public class ControllerMonitoreo {
                 desde,
                 hasta
         );
+    }
+    // ============================================================
+// 8. TABLA COMPLETA DE LECTURAS
+// ============================================================
+
+    public List<Row> obtenerTodasLasLecturas() {
+
+        return serviceMonitoreo.obtenerTodasLasLecturas();
+    }
+
+
+// ============================================================
+// 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
+// ============================================================
+
+    public List<Row> obtenerTodasLasMetricasRegion() {
+
+        return serviceMonitoreo.obtenerTodasLasMetricasRegion();
+    }
+
+
+// ============================================================
+// 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
+// ============================================================
+
+    public List<Row> obtenerTodasLasMetricasPais() {
+
+        return serviceMonitoreo.obtenerTodasLasMetricasPais();
     }
 }
