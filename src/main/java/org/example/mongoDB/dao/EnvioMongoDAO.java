@@ -11,7 +11,7 @@ import org.example.mongoDB.model.Tramo;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
@@ -28,7 +28,10 @@ public class EnvioMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR ENVIO
+    // =========================
+
     public void agregar(Envio envio) {
 
         Document origen = new Document()
@@ -74,7 +77,10 @@ public class EnvioMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR ENVIO
+    // =========================
+
     public void modificar(Envio envio) {
 
         Document origen = new Document()
@@ -118,7 +124,10 @@ public class EnvioMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR ENVIO
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
@@ -127,7 +136,87 @@ public class EnvioMongoDAO {
     }
 
 
-    // CONVERTIR LOS TRAMOS DE JAVA A DOCUMENTOS MONGO
+    // =========================
+    // BUSCAR ENVIO POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR TODOS LOS ENVIOS
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR ENVIOS POR CLIENTE
+    // =========================
+
+    public List<Document> buscarPorCliente(String clienteId) {
+
+        return coleccion.find(
+                eq(
+                        "cliente_id",
+                        new ObjectId(clienteId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR ENVIOS POR ESTADO
+    // =========================
+
+    public List<Document> buscarPorEstado(String estado) {
+
+        return coleccion.find(
+                eq("estado", estado)
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR ENVIOS POR PAIS
+    // =========================
+
+    public List<Document> buscarPorPais(String pais) {
+
+        return coleccion.find(
+                or(
+                        eq("origen.pais", pais),
+                        eq("destino.pais", pais)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR ENVIOS DEMORADOS
+    // =========================
+
+    public List<Document> buscarDemorados() {
+
+        return coleccion.find(
+                eq("estado", "DEMORADO")
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // CONVERTIR TRAMOS
+    // =========================
+
     private List<Document> convertirTramos(List<Tramo> listaTramos) {
 
         List<Document> documentos = new ArrayList<>();
@@ -143,8 +232,14 @@ public class EnvioMongoDAO {
                             "medio_transporte",
                             tramo.getMedioTransporte()
                     )
-                    .append("origen", tramo.getOrigen())
-                    .append("destino", tramo.getDestino())
+                    .append(
+                            "origen",
+                            tramo.getOrigen()
+                    )
+                    .append(
+                            "destino",
+                            tramo.getDestino()
+                    )
                     .append(
                             "fecha_salida",
                             tramo.getFechaSalida()

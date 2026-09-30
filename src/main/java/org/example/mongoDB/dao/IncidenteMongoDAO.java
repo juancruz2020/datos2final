@@ -7,6 +7,9 @@ import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Incidente;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -24,7 +27,10 @@ public class IncidenteMongoDAO {
     }
 
 
+    // =========================
     // AGREGAR INCIDENTE
+    // =========================
+
     public void agregar(Incidente incidente) {
 
         Document documento = new Document()
@@ -46,7 +52,10 @@ public class IncidenteMongoDAO {
     }
 
 
+    // =========================
     // MODIFICAR INCIDENTE
+    // =========================
+
     public void modificar(Incidente incidente) {
 
         coleccion.updateOne(
@@ -66,11 +75,64 @@ public class IncidenteMongoDAO {
     }
 
 
+    // =========================
     // ELIMINAR INCIDENTE
+    // =========================
+
     public void eliminar(String id) {
 
         coleccion.deleteOne(
                 eq("_id", new ObjectId(id))
         );
+    }
+
+
+    // =========================
+    // BUSCAR INCIDENTE POR ID
+    // =========================
+
+    public Document buscarPorId(String id) {
+
+        return coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+    }
+
+
+    // =========================
+    // LISTAR TODOS
+    // =========================
+
+    public List<Document> listarTodos() {
+
+        return coleccion.find()
+                .into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR POR ENVIO
+    // =========================
+
+    public List<Document> buscarPorEnvio(String envioId) {
+
+        return coleccion.find(
+                eq(
+                        "envio_id",
+                        new ObjectId(envioId)
+                )
+        ).into(new ArrayList<>());
+    }
+
+
+    // =========================
+    // BUSCAR INCIDENTES ABIERTOS
+    // =========================
+
+    public List<Document> buscarAbiertos() {
+
+        return coleccion.find(
+                eq("estado", "ABIERTO")
+        ).into(new ArrayList<>());
     }
 }

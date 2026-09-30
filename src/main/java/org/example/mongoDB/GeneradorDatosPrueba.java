@@ -797,7 +797,6 @@ public class GeneradorDatosPrueba {
         cuentaCorrienteDAO.agregar(cuenta4);
         cuentaCorrienteDAO.agregar(cuenta5);
 
-
         // =====================================================
         // MOSTRAR IDS GENERADOS
         // =====================================================
@@ -820,15 +819,26 @@ public class GeneradorDatosPrueba {
         System.out.println("Envio 4: " + envio4.getId());
         System.out.println("Envio 5: " + envio5.getId());
 
-
         System.out.println("------------------------------------");
         System.out.println("Generacion finalizada correctamente.");
     }
 
+
+    // =====================================================
+    // GENERAR DATOS DE PRUEBA
+    // =====================================================
+
+    public static void generar() {
+        GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
+        generador.generarDatos();
+    }
+
+
+    // =====================================================
+    // MAIN
+    // =====================================================
+
     public static void main(String[] args) {
-
-    GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
-    generador.generarDatos();
-}
-
+        generar();
+    }
 }
