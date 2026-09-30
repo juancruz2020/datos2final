@@ -1,5 +1,6 @@
 package org.example.interfaz.login;
 
+import org.example.interfaz.principal.PrincipalFrame;
 import org.example.usuarios.controller.SesionController;
 
 import javax.swing.*;
@@ -41,10 +42,6 @@ public class LoginController {
                                 .getPassword()
                 );
 
-        // =============================================
-        // VALIDACIONES
-        // =============================================
-
         if (usuario.isEmpty()) {
 
             mostrarError(
@@ -67,19 +64,7 @@ public class LoginController {
             return;
         }
 
-        // =============================================
-        // SESIÓN
-        // =============================================
-
         try {
-
-            /*
-             * Por ahora SesionController recibe
-             * únicamente el ID del usuario.
-             *
-             * La validación de usuario y contraseña
-             * la conectaremos posteriormente.
-             */
 
             sesionController.iniciarSesion(usuario);
 
@@ -89,15 +74,7 @@ public class LoginController {
 
             if (activa) {
 
-                JOptionPane.showMessageDialog(
-                        view,
-                        "Inicio de sesión exitoso.",
-                        "Bienvenido",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-
-                // Próximamente:
-                // abrir PrincipalFrame
+                abrirPrincipal(usuario);
 
             } else {
 
@@ -113,6 +90,21 @@ public class LoginController {
                             + e.getMessage()
             );
         }
+    }
+
+    private void abrirPrincipal(String usuario) {
+
+        SwingUtilities.invokeLater(() -> {
+
+            PrincipalFrame frame =
+                    new PrincipalFrame(usuario);
+
+            frame.setVisible(true);
+
+            SwingUtilities
+                    .getWindowAncestor(view)
+                    .dispose();
+        });
     }
 
     private void mostrarError(String mensaje) {

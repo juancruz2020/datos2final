@@ -1,0 +1,54 @@
+services:
+
+  mongodb:
+    image: mongo:8
+    container_name: datos2-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  cassandra:
+    image: cassandra:5.0
+    container_name: datos2-cassandra
+    restart: unless-stopped
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    environment:
+      CASSANDRA_CLUSTER_NAME: datos2
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_RACK: rack1
+      CASSANDRA_ENDPOINT_SNITCH: SimpleSnitch
+
+  neo4j:
+    image: neo4j:5
+    container_name: datos2-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/tu_password
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+
+  redis:
+    image: redis:7
+    container_name: datos2-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass TuPasswordRedis123
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongodb_data:
+  cassandra_data:
+  neo4j_data:
+  neo4j_logs:
+  redis_data:
