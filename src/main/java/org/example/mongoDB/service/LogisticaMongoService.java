@@ -69,6 +69,14 @@ public class LogisticaMongoService {
         return clienteDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsClientes() {
+        return clienteDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeClientePorId(String id) {
+        return clienteDAO.existePorId(id);
+    }
+
     public Document buscarClientePorCuit(String cuit) {
         return clienteDAO.buscarPorCuit(cuit);
     }
@@ -96,6 +104,14 @@ public class LogisticaMongoService {
 
     public List<Document> listarUsuarios() {
         return usuarioDAO.listarTodos();
+    }
+
+    public List<String> obtenerIdsUsuarios() {
+        return usuarioDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeUsuarioPorId(String id) {
+        return usuarioDAO.existePorId(id);
     }
 
     public Document buscarUsuarioPorEmail(String email) {
@@ -131,6 +147,14 @@ public class LogisticaMongoService {
         return rolDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsRoles() {
+        return rolDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeRolPorId(String id) {
+        return rolDAO.existePorId(id);
+    }
+
     public Document buscarRolPorDescripcion(String descripcion) {
         return rolDAO.buscarPorDescripcion(descripcion);
     }
@@ -158,6 +182,14 @@ public class LogisticaMongoService {
 
     public List<Document> listarContenedores() {
         return contenedorDAO.listarTodos();
+    }
+
+    public List<String> obtenerIdsContenedores() {
+        return contenedorDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeContenedorPorId(String id) {
+        return contenedorDAO.existePorId(id);
     }
 
     public Document buscarContenedorPorCodigo(String codigo) {
@@ -193,6 +225,14 @@ public class LogisticaMongoService {
         return sensorDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsSensores() {
+        return sensorDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeSensorPorId(String id) {
+        return sensorDAO.existePorId(id);
+    }
+
     public List<Document> buscarSensoresPorContenedor(String contenedorId) {
         return sensorDAO.buscarPorContenedor(contenedorId);
     }
@@ -224,6 +264,14 @@ public class LogisticaMongoService {
 
     public List<Document> listarEnvios() {
         return envioDAO.listarTodos();
+    }
+
+    public List<String> obtenerIdsEnvios() {
+        return envioDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeEnvioPorId(String id) {
+        return envioDAO.existePorId(id);
     }
 
     public List<Document> buscarEnviosPorCliente(String clienteId) {
@@ -267,6 +315,14 @@ public class LogisticaMongoService {
         return eventoLogisticoDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsEventosLogisticos() {
+        return eventoLogisticoDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeEventoLogisticoPorId(String id) {
+        return eventoLogisticoDAO.existePorId(id);
+    }
+
     public List<Document> buscarEventosLogisticosPorEnvio(String envioId) {
         return eventoLogisticoDAO.buscarPorEnvio(envioId);
     }
@@ -300,6 +356,14 @@ public class LogisticaMongoService {
         return incidenteDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsIncidentes() {
+        return incidenteDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeIncidentePorId(String id) {
+        return incidenteDAO.existePorId(id);
+    }
+
     public List<Document> buscarIncidentesPorEnvio(String envioId) {
         return incidenteDAO.buscarPorEnvio(envioId);
     }
@@ -331,6 +395,14 @@ public class LogisticaMongoService {
 
     public List<Document> listarAlertas() {
         return alertaDAO.listarTodos();
+    }
+
+    public List<String> obtenerIdsAlertas() {
+        return alertaDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeAlertaPorId(String id) {
+        return alertaDAO.existePorId(id);
     }
 
     public List<Document> buscarAlertasPorSensor(String sensorId) {
@@ -370,6 +442,14 @@ public class LogisticaMongoService {
         return reporteDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsReportes() {
+        return reporteDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeReportePorId(String id) {
+        return reporteDAO.existePorId(id);
+    }
+
     public List<Document> buscarReportesPorUsuario(String usuarioId) {
         return reporteDAO.buscarPorUsuario(usuarioId);
     }
@@ -407,6 +487,14 @@ public class LogisticaMongoService {
         return facturaDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsFacturas() {
+        return facturaDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeFacturaPorId(String id) {
+        return facturaDAO.existePorId(id);
+    }
+
     public List<Document> buscarFacturasPorCliente(String clienteId) {
         return facturaDAO.buscarPorCliente(clienteId);
     }
@@ -440,6 +528,14 @@ public class LogisticaMongoService {
         return pagoDAO.listarTodos();
     }
 
+    public List<String> obtenerIdsPagos() {
+        return pagoDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existePagoPorId(String id) {
+        return pagoDAO.existePorId(id);
+    }
+
     public List<Document> buscarPagosPorFactura(String facturaId) {
         return pagoDAO.buscarPorFactura(facturaId);
     }
@@ -471,6 +567,14 @@ public class LogisticaMongoService {
 
     public List<Document> listarCuentasCorrientes() {
         return cuentaCorrienteDAO.listarTodos();
+    }
+
+    public List<String> obtenerIdsCuentasCorrientes() {
+        return cuentaCorrienteDAO.obtenerTodosLosIds();
+    }
+
+    public boolean existeCuentaCorrientePorId(String id) {
+        return cuentaCorrienteDAO.existePorId(id);
     }
 
     public Document buscarCuentaCorrientePorCliente(String clienteId) {

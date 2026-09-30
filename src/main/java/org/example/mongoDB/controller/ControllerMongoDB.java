@@ -45,6 +45,14 @@ public class ControllerMongoDB {
         return service.listarClientes();
     }
 
+    public List<String> obtenerIdsClientes() {
+        return service.obtenerIdsClientes();
+    }
+
+    public boolean existeClientePorId(String id) {
+        return service.existeClientePorId(id);
+    }
+
     public Document buscarClientePorCuit(String cuit) {
         return service.buscarClientePorCuit(cuit);
     }
@@ -72,6 +80,14 @@ public class ControllerMongoDB {
 
     public List<Document> listarUsuarios() {
         return service.listarUsuarios();
+    }
+
+    public List<String> obtenerIdsUsuarios() {
+        return service.obtenerIdsUsuarios();
+    }
+
+    public boolean existeUsuarioPorId(String id) {
+        return service.existeUsuarioPorId(id);
     }
 
     public Document buscarUsuarioPorEmail(String email) {
@@ -107,6 +123,14 @@ public class ControllerMongoDB {
         return service.listarRoles();
     }
 
+    public List<String> obtenerIdsRoles() {
+        return service.obtenerIdsRoles();
+    }
+
+    public boolean existeRolPorId(String id) {
+        return service.existeRolPorId(id);
+    }
+
     public Document buscarRolPorDescripcion(String descripcion) {
         return service.buscarRolPorDescripcion(descripcion);
     }
@@ -134,6 +158,14 @@ public class ControllerMongoDB {
 
     public List<Document> listarContenedores() {
         return service.listarContenedores();
+    }
+
+    public List<String> obtenerIdsContenedores() {
+        return service.obtenerIdsContenedores();
+    }
+
+    public boolean existeContenedorPorId(String id) {
+        return service.existeContenedorPorId(id);
     }
 
     public Document buscarContenedorPorCodigo(String codigo) {
@@ -169,6 +201,14 @@ public class ControllerMongoDB {
         return service.listarSensores();
     }
 
+    public List<String> obtenerIdsSensores() {
+        return service.obtenerIdsSensores();
+    }
+
+    public boolean existeSensorPorId(String id) {
+        return service.existeSensorPorId(id);
+    }
+
     public List<Document> buscarSensoresPorContenedor(String contenedorId) {
         return service.buscarSensoresPorContenedor(contenedorId);
     }
@@ -200,6 +240,14 @@ public class ControllerMongoDB {
 
     public List<Document> listarEnvios() {
         return service.listarEnvios();
+    }
+
+    public List<String> obtenerIdsEnvios() {
+        return service.obtenerIdsEnvios();
+    }
+
+    public boolean existeEnvioPorId(String id) {
+        return service.existeEnvioPorId(id);
     }
 
     public List<Document> buscarEnviosPorCliente(String clienteId) {
@@ -243,6 +291,14 @@ public class ControllerMongoDB {
         return service.listarEventosLogisticos();
     }
 
+    public List<String> obtenerIdsEventosLogisticos() {
+        return service.obtenerIdsEventosLogisticos();
+    }
+
+    public boolean existeEventoLogisticoPorId(String id) {
+        return service.existeEventoLogisticoPorId(id);
+    }
+
     public List<Document> buscarEventosLogisticosPorEnvio(String envioId) {
         return service.buscarEventosLogisticosPorEnvio(envioId);
     }
@@ -276,6 +332,14 @@ public class ControllerMongoDB {
         return service.listarIncidentes();
     }
 
+    public List<String> obtenerIdsIncidentes() {
+        return service.obtenerIdsIncidentes();
+    }
+
+    public boolean existeIncidentePorId(String id) {
+        return service.existeIncidentePorId(id);
+    }
+
     public List<Document> buscarIncidentesPorEnvio(String envioId) {
         return service.buscarIncidentesPorEnvio(envioId);
     }
@@ -307,6 +371,14 @@ public class ControllerMongoDB {
 
     public List<Document> listarAlertas() {
         return service.listarAlertas();
+    }
+
+    public List<String> obtenerIdsAlertas() {
+        return service.obtenerIdsAlertas();
+    }
+
+    public boolean existeAlertaPorId(String id) {
+        return service.existeAlertaPorId(id);
     }
 
     public List<Document> buscarAlertasPorSensor(String sensorId) {
@@ -346,6 +418,14 @@ public class ControllerMongoDB {
         return service.listarReportes();
     }
 
+    public List<String> obtenerIdsReportes() {
+        return service.obtenerIdsReportes();
+    }
+
+    public boolean existeReportePorId(String id) {
+        return service.existeReportePorId(id);
+    }
+
     public List<Document> buscarReportesPorUsuario(String usuarioId) {
         return service.buscarReportesPorUsuario(usuarioId);
     }
@@ -383,6 +463,14 @@ public class ControllerMongoDB {
         return service.listarFacturas();
     }
 
+    public List<String> obtenerIdsFacturas() {
+        return service.obtenerIdsFacturas();
+    }
+
+    public boolean existeFacturaPorId(String id) {
+        return service.existeFacturaPorId(id);
+    }
+
     public List<Document> buscarFacturasPorCliente(String clienteId) {
         return service.buscarFacturasPorCliente(clienteId);
     }
@@ -416,6 +504,14 @@ public class ControllerMongoDB {
         return service.listarPagos();
     }
 
+    public List<String> obtenerIdsPagos() {
+        return service.obtenerIdsPagos();
+    }
+
+    public boolean existePagoPorId(String id) {
+        return service.existePagoPorId(id);
+    }
+
     public List<Document> buscarPagosPorFactura(String facturaId) {
         return service.buscarPagosPorFactura(facturaId);
     }
@@ -447,6 +543,14 @@ public class ControllerMongoDB {
 
     public List<Document> listarCuentasCorrientes() {
         return service.listarCuentasCorrientes();
+    }
+
+    public List<String> obtenerIdsCuentasCorrientes() {
+        return service.obtenerIdsCuentasCorrientes();
+    }
+
+    public boolean existeCuentaCorrientePorId(String id) {
+        return service.existeCuentaCorrientePorId(id);
     }
 
     public Document buscarCuentaCorrientePorCliente(String clienteId) {

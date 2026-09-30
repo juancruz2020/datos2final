@@ -126,6 +126,41 @@ public class PagoMongoDAO {
 
 
     // =========================
+    // OBTENER TODOS LOS IDS
+    // =========================
+
+    public List<String> obtenerTodosLosIds() {
+
+        List<String> ids = new ArrayList<>();
+
+        for (Document documento : coleccion.find()) {
+
+            ObjectId id = documento.getObjectId("_id");
+
+            if (id != null) {
+                ids.add(id.toHexString());
+            }
+        }
+
+        return ids;
+    }
+
+
+    // =========================
+    // VERIFICAR SI EXISTE POR ID
+    // =========================
+
+    public boolean existePorId(String id) {
+
+        Document documento = coleccion.find(
+                eq("_id", new ObjectId(id))
+        ).first();
+
+        return documento != null;
+    }
+
+
+    // =========================
     // BUSCAR PAGOS POR FACTURA
     // =========================
 
