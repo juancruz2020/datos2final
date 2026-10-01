@@ -1,6 +1,7 @@
 package org.example.mongoDB.service;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.*;
 import org.example.mongoDB.model.*;
 
@@ -120,6 +121,90 @@ public class LogisticaMongoService {
 
     public List<Document> buscarUsuariosPorCliente(String clienteId) {
         return usuarioDAO.buscarPorCliente(clienteId);
+    }
+
+
+    // =========================
+    // BUSCAR USUARIOS POR ROL
+    // =========================
+
+    public List<Document> buscarUsuariosPorRol(String rolId) {
+
+        if (!ObjectId.isValid(rolId)) {
+            throw new IllegalArgumentException("El ID del rol no es válido");
+        }
+
+        if (!rolDAO.existePorId(rolId)) {
+            throw new IllegalArgumentException("El rol no existe");
+        }
+
+        return usuarioDAO.buscarPorRol(rolId);
+    }
+
+
+    // =========================
+    // CAMBIAR ROL DE USUARIO
+    // =========================
+
+    public void cambiarRolUsuario(String usuarioId, String rolId) {
+
+        if (!ObjectId.isValid(usuarioId)) {
+            throw new IllegalArgumentException(
+                    "El ID del usuario no es válido"
+            );
+        }
+
+        if (!ObjectId.isValid(rolId)) {
+            throw new IllegalArgumentException(
+                    "El ID del rol no es válido"
+            );
+        }
+
+        if (!usuarioDAO.existePorId(usuarioId)) {
+            throw new IllegalArgumentException(
+                    "El usuario no existe"
+            );
+        }
+
+        if (!rolDAO.existePorId(rolId)) {
+            throw new IllegalArgumentException(
+                    "El rol no existe"
+            );
+        }
+
+        usuarioDAO.cambiarRol(usuarioId, rolId);
+    }
+
+
+    // =========================
+    // BUSCAR ROL DE UN USUARIO
+    // =========================
+
+    public Document buscarRolDeUsuario(String usuarioId) {
+
+        if (!ObjectId.isValid(usuarioId)) {
+            throw new IllegalArgumentException(
+                    "El ID del usuario no es válido"
+            );
+        }
+
+        Document usuario = usuarioDAO.buscarPorId(usuarioId);
+
+        if (usuario == null) {
+            throw new IllegalArgumentException(
+                    "El usuario no existe"
+            );
+        }
+
+        ObjectId rolId = usuario.getObjectId("rol_id");
+
+        if (rolId == null) {
+            return null;
+        }
+
+        return rolDAO.buscarPorId(
+                rolId.toHexString()
+        );
     }
 
 

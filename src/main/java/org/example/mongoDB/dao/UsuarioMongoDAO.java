@@ -18,12 +18,20 @@ public class UsuarioMongoDAO {
 
     private final MongoCollection<Document> coleccion;
 
-    public UsuarioMongoDAO() {
-        MongoDatabase database = MongoSingleton
-                .getInstance()
-                .getDatabase("datos2");
 
-        this.coleccion = database.getCollection("usuarios");
+    // =========================
+    // CONSTRUCTOR
+    // =========================
+
+    public UsuarioMongoDAO() {
+
+        MongoDatabase database =
+                MongoSingleton
+                        .getInstance()
+                        .getDatabase("datos2");
+
+        this.coleccion =
+                database.getCollection("usuarios");
     }
 
 
@@ -33,29 +41,76 @@ public class UsuarioMongoDAO {
 
     public void agregar(Usuario usuario) {
 
-        Document documento = new Document()
-                .append(
-                        "cliente_id",
-                        new ObjectId(usuario.getClienteId())
-                )
+        Document documento =
+                new Document();
+
+
+        // CLIENTE PUEDE SER NULL
+
+        if (
+                usuario.getClienteId() != null
+                        &&
+                !usuario.getClienteId().isBlank()
+        ) {
+
+            documento.append(
+                    "cliente_id",
+                    new ObjectId(
+                            usuario.getClienteId()
+                    )
+            );
+
+        } else {
+
+            documento.append(
+                    "cliente_id",
+                    null
+            );
+        }
+
+
+        documento
                 .append(
                         "rol_id",
-                        new ObjectId(usuario.getRolId())
+                        new ObjectId(
+                                usuario.getRolId()
+                        )
                 )
-                .append("nombre", usuario.getNombre())
-                .append("apellido", usuario.getApellido())
-                .append("email", usuario.getEmail())
+                .append(
+                        "nombre",
+                        usuario.getNombre()
+                )
+                .append(
+                        "apellido",
+                        usuario.getApellido()
+                )
+                .append(
+                        "email",
+                        usuario.getEmail()
+                )
                 .append(
                         "contraseña_encriptada",
                         usuario.getContraseñaEncriptada()
                 )
-                .append("estado", usuario.getEstado())
-                .append("fecha_registro", usuario.getFechaRegistro());
+                .append(
+                        "estado",
+                        usuario.getEstado()
+                )
+                .append(
+                        "fecha_registro",
+                        usuario.getFechaRegistro()
+                );
 
-        coleccion.insertOne(documento);
+
+        coleccion.insertOne(
+                documento
+        );
+
 
         usuario.setId(
-                documento.getObjectId("_id").toHexString()
+                documento
+                        .getObjectId("_id")
+                        .toHexString()
         );
     }
 
@@ -66,25 +121,74 @@ public class UsuarioMongoDAO {
 
     public void modificar(Usuario usuario) {
 
+        Object clienteIdMongo;
+
+
+        if (
+                usuario.getClienteId() != null
+                        &&
+                !usuario.getClienteId().isBlank()
+        ) {
+
+            clienteIdMongo =
+                    new ObjectId(
+                            usuario.getClienteId()
+                    );
+
+        } else {
+
+            clienteIdMongo = null;
+        }
+
+
         coleccion.updateOne(
-                eq("_id", new ObjectId(usuario.getId())),
+
+                eq(
+                        "_id",
+                        new ObjectId(
+                                usuario.getId()
+                        )
+                ),
+
                 combine(
+
                         set(
                                 "cliente_id",
-                                new ObjectId(usuario.getClienteId())
+                                clienteIdMongo
                         ),
+
                         set(
                                 "rol_id",
-                                new ObjectId(usuario.getRolId())
+                                new ObjectId(
+                                        usuario.getRolId()
+                                )
                         ),
-                        set("nombre", usuario.getNombre()),
-                        set("apellido", usuario.getApellido()),
-                        set("email", usuario.getEmail()),
+
+                        set(
+                                "nombre",
+                                usuario.getNombre()
+                        ),
+
+                        set(
+                                "apellido",
+                                usuario.getApellido()
+                        ),
+
+                        set(
+                                "email",
+                                usuario.getEmail()
+                        ),
+
                         set(
                                 "contraseña_encriptada",
                                 usuario.getContraseñaEncriptada()
                         ),
-                        set("estado", usuario.getEstado()),
+
+                        set(
+                                "estado",
+                                usuario.getEstado()
+                        ),
+
                         set(
                                 "fecha_registro",
                                 usuario.getFechaRegistro()
@@ -101,7 +205,10 @@ public class UsuarioMongoDAO {
     public void eliminar(String id) {
 
         coleccion.deleteOne(
-                eq("_id", new ObjectId(id))
+                eq(
+                        "_id",
+                        new ObjectId(id)
+                )
         );
     }
 
@@ -110,11 +217,18 @@ public class UsuarioMongoDAO {
     // BUSCAR USUARIO POR ID
     // =========================
 
-    public Document buscarPorId(String id) {
+    public Document buscarPorId(
+            String id
+    ) {
 
-        return coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
+        return coleccion
+                .find(
+                        eq(
+                                "_id",
+                                new ObjectId(id)
+                        )
+                )
+                .first();
     }
 
 
@@ -124,8 +238,11 @@ public class UsuarioMongoDAO {
 
     public List<Document> listarTodos() {
 
-        return coleccion.find()
-                .into(new ArrayList<>());
+        return coleccion
+                .find()
+                .into(
+                        new ArrayList<>()
+                );
     }
 
 
@@ -135,16 +252,29 @@ public class UsuarioMongoDAO {
 
     public List<String> obtenerTodosLosIds() {
 
-        List<String> ids = new ArrayList<>();
+        List<String> ids =
+                new ArrayList<>();
 
-        for (Document documento : coleccion.find()) {
 
-            ObjectId id = documento.getObjectId("_id");
+        for (
+                Document documento :
+                coleccion.find()
+        ) {
+
+            ObjectId id =
+                    documento.getObjectId(
+                            "_id"
+                    );
+
 
             if (id != null) {
-                ids.add(id.toHexString());
+
+                ids.add(
+                        id.toHexString()
+                );
             }
         }
+
 
         return ids;
     }
@@ -154,11 +284,20 @@ public class UsuarioMongoDAO {
     // VERIFICAR SI EXISTE POR ID
     // =========================
 
-    public boolean existePorId(String id) {
+    public boolean existePorId(
+            String id
+    ) {
 
-        Document documento = coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
+        Document documento =
+                coleccion
+                        .find(
+                                eq(
+                                        "_id",
+                                        new ObjectId(id)
+                                )
+                        )
+                        .first();
+
 
         return documento != null;
     }
@@ -168,11 +307,18 @@ public class UsuarioMongoDAO {
     // BUSCAR USUARIO POR EMAIL
     // =========================
 
-    public Document buscarPorEmail(String email) {
+    public Document buscarPorEmail(
+            String email
+    ) {
 
-        return coleccion.find(
-                eq("email", email)
-        ).first();
+        return coleccion
+                .find(
+                        eq(
+                                "email",
+                                email
+                        )
+                )
+                .first();
     }
 
 
@@ -180,13 +326,124 @@ public class UsuarioMongoDAO {
     // BUSCAR USUARIOS POR CLIENTE
     // =========================
 
-    public List<Document> buscarPorCliente(String clienteId) {
+    public List<Document> buscarPorCliente(
+            String clienteId
+    ) {
 
-        return coleccion.find(
-                eq(
-                        "cliente_id",
-                        new ObjectId(clienteId)
+        return coleccion
+                .find(
+                        eq(
+                                "cliente_id",
+                                new ObjectId(
+                                        clienteId
+                                )
+                        )
                 )
-        ).into(new ArrayList<>());
+                .into(
+                        new ArrayList<>()
+                );
+    }
+
+
+    // =========================
+    // BUSCAR USUARIOS POR ROL
+    // =========================
+
+    public List<Document> buscarPorRol(
+            String rolId
+    ) {
+
+        return coleccion
+                .find(
+                        eq(
+                                "rol_id",
+                                new ObjectId(
+                                        rolId
+                                )
+                        )
+                )
+                .into(
+                        new ArrayList<>()
+                );
+    }
+
+
+    // =========================
+    // CAMBIAR ROL DE USUARIO
+    // =========================
+
+    public void cambiarRol(
+            String usuarioId,
+            String rolId
+    ) {
+
+        coleccion.updateOne(
+
+                eq(
+                        "_id",
+                        new ObjectId(
+                                usuarioId
+                        )
+                ),
+
+                set(
+                        "rol_id",
+                        new ObjectId(
+                                rolId
+                        )
+                )
+        );
+    }
+
+
+    // =========================
+    // CAMBIAR CONTRASEÑA
+    // =========================
+
+    public void cambiarContraseña(
+            String usuarioId,
+            String contraseñaEncriptada
+    ) {
+
+        coleccion.updateOne(
+
+                eq(
+                        "_id",
+                        new ObjectId(
+                                usuarioId
+                        )
+                ),
+
+                set(
+                        "contraseña_encriptada",
+                        contraseñaEncriptada
+                )
+        );
+    }
+
+
+    // =========================
+    // CAMBIAR ESTADO
+    // =========================
+
+    public void cambiarEstado(
+            String usuarioId,
+            String estado
+    ) {
+
+        coleccion.updateOne(
+
+                eq(
+                        "_id",
+                        new ObjectId(
+                                usuarioId
+                        )
+                ),
+
+                set(
+                        "estado",
+                        estado
+                )
+        );
     }
 }

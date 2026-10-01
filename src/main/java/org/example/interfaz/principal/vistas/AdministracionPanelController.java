@@ -1,18 +1,53 @@
 package org.example.interfaz.principal.vistas;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
+import org.example.mongoDB.controller.ClienteController;
+import org.example.mongoDB.controller.RolController;
+import org.example.mongoDB.controller.UsuarioController;
 import org.example.usuarios.controller.AdministracionController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdministracionPanelController {
 
     private final AdministracionPanel view;
 
-    private final AdministracionController controller;
+    private final AdministracionController administracionController;
+
+    private final UsuarioController usuarioController;
+
+    private final RolController rolController;
+
+    private final ClienteController clienteController;
+
+
+    /*
+     * Guardamos la relación:
+     *
+     * descripción del rol -> ObjectId
+     *
+     * Así el usuario ve "Administrador",
+     * "Operador" o "Cliente",
+     * pero Mongo recibe el ID real.
+     */
+    private final Map<String, String> roles;
+
+
+    /*
+     * Guardamos la relación:
+     *
+     * razón social -> ObjectId
+     */
+    private final Map<String, String> clientes;
+
 
     private Timer timer;
+
 
     // =========================================================
     // CONSTRUCTOR
@@ -22,17 +57,41 @@ public class AdministracionPanelController {
             AdministracionPanel view
     ) {
 
-        this.view = view;
+        this.view =
+                view;
 
-        this.controller =
+        this.administracionController =
                 new AdministracionController();
 
+        this.usuarioController =
+                new UsuarioController();
+
+        this.rolController =
+                new RolController();
+
+        this.clienteController =
+                new ClienteController();
+
+        this.roles =
+                new HashMap<>();
+
+        this.clientes =
+                new HashMap<>();
+
+
         configurarEventos();
+
+        cargarRoles();
+
+        cargarClientes();
+
+        actualizarEstadoCliente();
 
         cargarSesiones();
 
         iniciarActualizacionAutomatica();
     }
+
 
     // =========================================================
     // EVENTOS
@@ -59,7 +118,422 @@ public class AdministracionPanelController {
                 .addActionListener(
                         e -> eliminarUsuario()
                 );
+
+        view.getCmbRol()
+                .addActionListener(
+                        e -> actualizarEstadoCliente()
+                );
     }
+
+
+    // =========================================================
+    // CARGAR ROLES
+    // =========================================================
+
+    private void cargarRoles() {
+
+        try {
+
+            List<Document> listaRoles =
+                    rolController.listarRoles();
+
+            roles.clear();
+
+            view.getCmbRol()
+                    .removeAllItems();
+
+
+            for (Document rol : listaRoles) {
+
+                ObjectId id =
+                        rol.getObjectId(
+                                "_id"
+                        );
+
+                String descripcion =
+                        rol.getString(
+                                "descripcion"
+                        );
+
+
+                if (id == null
+                        || descripcion == null
+                        || descripcion.isBlank()) {
+
+                    continue;
+                }
+
+
+                roles.put(
+                        descripcion,
+                        id.toHexString()
+                );
+
+
+                view.getCmbRol()
+                        .addItem(
+                                descripcion
+                        );
+            }
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudieron cargar los roles.",
+                    e
+            );
+        }
+    }
+
+
+    // =========================================================
+    // CARGAR CLIENTES
+    // =========================================================
+
+    private void cargarClientes() {
+
+        try {
+
+            List<Document> listaClientes =
+                    clienteController
+                            .listarClientes();
+
+            clientes.clear();
+
+            view.getCmbCliente()
+                    .removeAllItems();
+
+
+            // Opción vacía para ADMIN / OPERADOR
+
+            view.getCmbCliente()
+                    .addItem(
+                            "Sin cliente"
+                    );
+
+
+            for (Document cliente : listaClientes) {
+
+                ObjectId id =
+                        cliente.getObjectId(
+                                "_id"
+                        );
+
+                String razonSocial =
+                        cliente.getString(
+                                "razon_social"
+                        );
+
+
+                if (id == null
+                        || razonSocial == null
+                        || razonSocial.isBlank()) {
+
+                    continue;
+                }
+
+
+                clientes.put(
+                        razonSocial,
+                        id.toHexString()
+                );
+
+
+                view.getCmbCliente()
+                        .addItem(
+                                razonSocial
+                        );
+            }
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudieron cargar los clientes.",
+                    e
+            );
+        }
+    }
+
+
+    // =========================================================
+    // HABILITAR CLIENTE SEGÚN ROL
+    // =========================================================
+
+    private void actualizarEstadoCliente() {
+
+        Object seleccionado =
+                view.getCmbRol()
+                        .getSelectedItem();
+
+
+        boolean esCliente =
+                seleccionado != null
+                        &&
+                "Cliente".equalsIgnoreCase(
+                        seleccionado.toString()
+                );
+
+
+        view.getCmbCliente()
+                .setEnabled(
+                        esCliente
+                );
+
+
+        if (!esCliente
+                && view.getCmbCliente()
+                .getItemCount() > 0) {
+
+            view.getCmbCliente()
+                    .setSelectedIndex(0);
+        }
+    }
+
+
+    // =========================================================
+    // REGISTRAR USUARIO
+    // =========================================================
+
+    private void registrarUsuario() {
+
+        String nombre =
+                view.getTxtNombre()
+                        .getText()
+                        .trim();
+
+        String apellido =
+                view.getTxtApellido()
+                        .getText()
+                        .trim();
+
+        String email =
+                view.getTxtEmail()
+                        .getText()
+                        .trim();
+
+        String contraseña =
+                new String(
+                        view.getTxtPassword()
+                                .getPassword()
+                );
+
+
+        Object rolSeleccionado =
+                view.getCmbRol()
+                        .getSelectedItem();
+
+
+        if (rolSeleccionado == null) {
+
+            mostrarValidacion(
+                    "Seleccioná un rol."
+            );
+
+            return;
+        }
+
+
+        String descripcionRol =
+                rolSeleccionado.toString();
+
+
+        String rolId =
+                roles.get(
+                        descripcionRol
+                );
+
+
+        if (rolId == null) {
+
+            mostrarValidacion(
+                    "El rol seleccionado no es válido."
+            );
+
+            return;
+        }
+
+
+        String clienteId = null;
+
+
+        // -----------------------------------------------------
+        // CLIENTE OBLIGATORIO PARA ROL CLIENTE
+        // -----------------------------------------------------
+
+        if ("Cliente".equalsIgnoreCase(
+                descripcionRol
+        )) {
+
+            Object clienteSeleccionado =
+                    view.getCmbCliente()
+                            .getSelectedItem();
+
+
+            if (clienteSeleccionado == null
+                    ||
+                    "Sin cliente".equals(
+                            clienteSeleccionado.toString()
+                    )) {
+
+                mostrarValidacion(
+                        "Seleccioná el cliente al que pertenece el usuario."
+                );
+
+                return;
+            }
+
+
+            clienteId =
+                    clientes.get(
+                            clienteSeleccionado.toString()
+                    );
+
+
+            if (clienteId == null) {
+
+                mostrarValidacion(
+                        "El cliente seleccionado no es válido."
+                );
+
+                return;
+            }
+        }
+
+
+        try {
+
+            usuarioController.crearUsuario(
+                    clienteId,
+                    rolId,
+                    nombre,
+                    apellido,
+                    email,
+                    contraseña
+            );
+
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Usuario registrado correctamente.",
+                    "Administración",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+
+            view.limpiarFormulario();
+
+            actualizarEstadoCliente();
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo registrar el usuario.",
+                    e
+            );
+        }
+    }
+
+
+    // =========================================================
+    // ELIMINAR USUARIO
+    // =========================================================
+
+    private void eliminarUsuario() {
+
+        String email =
+                view.getTxtEmail()
+                        .getText()
+                        .trim();
+
+
+        if (email.isEmpty()) {
+
+            mostrarValidacion(
+                    "Ingresá el email del usuario que querés eliminar."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            Document usuario =
+                    usuarioController
+                            .buscarPorEmail(
+                                    email
+                            );
+
+
+            if (usuario == null) {
+
+                mostrarValidacion(
+                        "No existe un usuario con ese email."
+                );
+
+                return;
+            }
+
+
+            ObjectId usuarioId =
+                    usuario.getObjectId(
+                            "_id"
+                    );
+
+
+            if (usuarioId == null) {
+
+                throw new IllegalStateException(
+                        "El usuario no tiene un ID válido."
+                );
+            }
+
+
+            int respuesta =
+                    JOptionPane.showConfirmDialog(
+                            view,
+                            "¿Querés eliminar al usuario "
+                                    + email
+                                    + "?",
+                            "Eliminar usuario",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                    );
+
+
+            if (respuesta
+                    != JOptionPane.YES_OPTION) {
+
+                return;
+            }
+
+
+            usuarioController.eliminarUsuario(
+                    usuarioId.toHexString()
+            );
+
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Usuario eliminado correctamente.",
+                    "Administración",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+
+            view.limpiarFormulario();
+
+            actualizarEstadoCliente();
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo eliminar el usuario.",
+                    e
+            );
+        }
+    }
+
 
     // =========================================================
     // CARGAR SESIONES
@@ -70,14 +544,18 @@ public class AdministracionPanelController {
         try {
 
             Map<String, Long> sesiones =
-                    controller.obtenerSesionesActivas();
+                    administracionController
+                            .obtenerSesionesActivas();
+
 
             DefaultTableModel modelo =
                     (DefaultTableModel)
                             view.getTablaSesiones()
                                     .getModel();
 
+
             modelo.setRowCount(0);
+
 
             for (
                     Map.Entry<String, Long> entrada :
@@ -94,6 +572,7 @@ public class AdministracionPanelController {
                 );
             }
 
+
             view.getLblEstado()
                     .setText(
                             "Sesiones activas: "
@@ -109,6 +588,7 @@ public class AdministracionPanelController {
         }
     }
 
+
     // =========================================================
     // CERRAR SESIÓN SELECCIONADA
     // =========================================================
@@ -119,17 +599,16 @@ public class AdministracionPanelController {
                 view.getTablaSesiones()
                         .getSelectedRow();
 
+
         if (fila == -1) {
 
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná una sesión.",
-                    "Administración",
-                    JOptionPane.WARNING_MESSAGE
+            mostrarValidacion(
+                    "Seleccioná una sesión."
             );
 
             return;
         }
+
 
         String usuario =
                 String.valueOf(
@@ -139,6 +618,7 @@ public class AdministracionPanelController {
                                         0
                                 )
                 );
+
 
         int respuesta =
                 JOptionPane.showConfirmDialog(
@@ -151,21 +631,24 @@ public class AdministracionPanelController {
                         JOptionPane.WARNING_MESSAGE
                 );
 
-        if (
-                respuesta !=
-                        JOptionPane.YES_OPTION
-        ) {
+
+        if (respuesta
+                != JOptionPane.YES_OPTION) {
 
             return;
         }
 
+
         try {
 
-            controller.cerrarSesion(
-                    usuario
-            );
+            administracionController
+                    .cerrarSesion(
+                            usuario
+                    );
+
 
             cargarSesiones();
+
 
             JOptionPane.showMessageDialog(
                     view,
@@ -185,6 +668,7 @@ public class AdministracionPanelController {
         }
     }
 
+
     // =========================================================
     // ACTUALIZACIÓN AUTOMÁTICA
     // =========================================================
@@ -197,8 +681,10 @@ public class AdministracionPanelController {
                         e -> cargarSesiones()
                 );
 
+
         timer.start();
     }
+
 
     // =========================================================
     // FORMATEAR TTL
@@ -213,11 +699,14 @@ public class AdministracionPanelController {
             return "Expirada";
         }
 
+
         long minutos =
                 segundos / 60;
 
+
         long segundosRestantes =
                 segundos % 60;
+
 
         return String.format(
                 "%02d:%02d",
@@ -226,56 +715,23 @@ public class AdministracionPanelController {
         );
     }
 
+
     // =========================================================
-    // REGISTRAR USUARIO
+    // VALIDACIÓN
     // =========================================================
 
-    private void registrarUsuario() {
+    private void mostrarValidacion(
+            String mensaje
+    ) {
 
         JOptionPane.showMessageDialog(
                 view,
-                "La registración de usuarios todavía "
-                        + "no está implementada.\n"
-                        + "El formulario ya está preparado "
-                        + "para conectar la persistencia.",
-                "Próximamente",
-                JOptionPane.INFORMATION_MESSAGE
+                mensaje,
+                "Validación",
+                JOptionPane.WARNING_MESSAGE
         );
     }
 
-    // =========================================================
-    // ELIMINAR USUARIO
-    // =========================================================
-
-    private void eliminarUsuario() {
-
-        String usuario =
-                view.getTxtUsuario()
-                        .getText()
-                        .trim();
-
-        if (usuario.isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Ingresá el usuario que querés eliminar.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        JOptionPane.showMessageDialog(
-                view,
-                "La eliminación de usuarios todavía "
-                        + "no está implementada.\n"
-                        + "Más adelante se conectará con "
-                        + "la base de usuarios.",
-                "Próximamente",
-                JOptionPane.INFORMATION_MESSAGE
-        );
-    }
 
     // =========================================================
     // ERROR

@@ -19,6 +19,7 @@ public class AdministracionPanel extends JPanel {
 
     private final JButton btnCerrarSesion;
 
+
     // =========================================================
     // USUARIOS
     // =========================================================
@@ -27,21 +28,27 @@ public class AdministracionPanel extends JPanel {
 
     private final JTextField txtApellido;
 
-    private final JTextField txtUsuario;
-
     private final JTextField txtEmail;
 
     private final JPasswordField txtPassword;
 
+    private final JComboBox<String> cmbRol;
+
+    private final JComboBox<String> cmbCliente;
+
+    private final JLabel lblCliente;
+
     private final JButton btnRegistrar;
 
     private final JButton btnEliminar;
+
 
     // =========================================================
     // ESTADO
     // =========================================================
 
     private final JLabel lblEstado;
+
 
     // =========================================================
     // CONSTRUCTOR
@@ -64,14 +71,24 @@ public class AdministracionPanel extends JPanel {
         txtApellido =
                 new JTextField();
 
-        txtUsuario =
-                new JTextField();
-
         txtEmail =
                 new JTextField();
 
         txtPassword =
                 new JPasswordField();
+
+        cmbRol =
+                new JComboBox<>();
+
+        cmbCliente =
+                new JComboBox<>();
+
+        lblCliente =
+                new JLabel("Cliente:");
+
+        lblCliente.setForeground(
+                Colores.TEXTO
+        );
 
         btnRegistrar =
                 new JButton("Registrar usuario");
@@ -84,6 +101,7 @@ public class AdministracionPanel extends JPanel {
 
         construir();
     }
+
 
     // =========================================================
     // CONSTRUIR
@@ -111,6 +129,7 @@ public class AdministracionPanel extends JPanel {
                 )
         );
 
+
         // =====================================================
         // TÍTULO
         // =====================================================
@@ -133,6 +152,7 @@ public class AdministracionPanel extends JPanel {
                 BorderLayout.NORTH
         );
 
+
         // =====================================================
         // CONTENIDO
         // =====================================================
@@ -149,6 +169,7 @@ public class AdministracionPanel extends JPanel {
 
         contenido.setOpaque(false);
 
+
         // =====================================================
         // SESIONES
         // =====================================================
@@ -157,6 +178,7 @@ public class AdministracionPanel extends JPanel {
                 crearPanelSesiones(),
                 BorderLayout.CENTER
         );
+
 
         // =====================================================
         // USUARIOS
@@ -172,6 +194,7 @@ public class AdministracionPanel extends JPanel {
                 BorderLayout.CENTER
         );
 
+
         // =====================================================
         // ESTADO
         // =====================================================
@@ -185,6 +208,7 @@ public class AdministracionPanel extends JPanel {
                 BorderLayout.SOUTH
         );
     }
+
 
     // =========================================================
     // PANEL SESIONES
@@ -220,6 +244,7 @@ public class AdministracionPanel extends JPanel {
                 BorderLayout.NORTH
         );
 
+
         // =====================================================
         // TABLA
         // =====================================================
@@ -238,6 +263,7 @@ public class AdministracionPanel extends JPanel {
                             int row,
                             int column
                     ) {
+
                         return false;
                     }
                 }
@@ -251,7 +277,8 @@ public class AdministracionPanel extends JPanel {
                 ListSelectionModel.SINGLE_SELECTION
         );
 
-        tablaSesiones.getTableHeader()
+        tablaSesiones
+                .getTableHeader()
                 .setReorderingAllowed(false);
 
         JScrollPane scroll =
@@ -263,6 +290,7 @@ public class AdministracionPanel extends JPanel {
                 scroll,
                 BorderLayout.CENTER
         );
+
 
         // =====================================================
         // BOTONES
@@ -301,6 +329,7 @@ public class AdministracionPanel extends JPanel {
         return panel;
     }
 
+
     // =========================================================
     // PANEL USUARIOS
     // =========================================================
@@ -335,6 +364,7 @@ public class AdministracionPanel extends JPanel {
                 BorderLayout.NORTH
         );
 
+
         // =====================================================
         // FORMULARIO
         // =====================================================
@@ -362,6 +392,7 @@ public class AdministracionPanel extends JPanel {
 
         gbc.weightx = 1;
 
+
         // -----------------------------------------------------
         // NOMBRE
         // -----------------------------------------------------
@@ -373,6 +404,7 @@ public class AdministracionPanel extends JPanel {
                 "Nombre:",
                 txtNombre
         );
+
 
         // -----------------------------------------------------
         // APELLIDO
@@ -386,17 +418,6 @@ public class AdministracionPanel extends JPanel {
                 txtApellido
         );
 
-        // -----------------------------------------------------
-        // USUARIO
-        // -----------------------------------------------------
-
-        agregarCampo(
-                formulario,
-                gbc,
-                2,
-                "Usuario:",
-                txtUsuario
-        );
 
         // -----------------------------------------------------
         // EMAIL
@@ -405,27 +426,77 @@ public class AdministracionPanel extends JPanel {
         agregarCampo(
                 formulario,
                 gbc,
-                3,
+                2,
                 "Email:",
                 txtEmail
         );
 
+
         // -----------------------------------------------------
-        // PASSWORD
+        // CONTRASEÑA
+        // -----------------------------------------------------
+
+        agregarCampo(
+                formulario,
+                gbc,
+                3,
+                "Contraseña:",
+                txtPassword
+        );
+
+
+        // -----------------------------------------------------
+        // ROL
         // -----------------------------------------------------
 
         agregarCampo(
                 formulario,
                 gbc,
                 4,
-                "Contraseña:",
-                txtPassword
+                "Rol:",
+                cmbRol
         );
+
+
+        // -----------------------------------------------------
+        // CLIENTE
+        // -----------------------------------------------------
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weightx = 0;
+
+        formulario.add(
+                lblCliente,
+                gbc
+        );
+
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        formulario.add(
+                cmbCliente,
+                gbc
+        );
+
+
+        /*
+         * Por defecto ocultamos el campo Cliente.
+         *
+         * El AdministracionPanelController lo mostrará
+         * únicamente cuando se seleccione el rol Cliente.
+         */
+
+        lblCliente.setVisible(false);
+
+        cmbCliente.setVisible(false);
+
 
         panel.add(
                 formulario,
                 BorderLayout.CENTER
         );
+
 
         // =====================================================
         // BOTONES
@@ -464,6 +535,7 @@ public class AdministracionPanel extends JPanel {
         return panel;
     }
 
+
     // =========================================================
     // AGREGAR CAMPO
     // =========================================================
@@ -477,8 +549,11 @@ public class AdministracionPanel extends JPanel {
     ) {
 
         gbc.gridx = 0;
+
         gbc.gridy = fila;
+
         gbc.weightx = 0;
+
 
         JLabel label =
                 new JLabel(
@@ -494,7 +569,9 @@ public class AdministracionPanel extends JPanel {
                 gbc
         );
 
+
         gbc.gridx = 1;
+
         gbc.weightx = 1;
 
         panel.add(
@@ -502,6 +579,7 @@ public class AdministracionPanel extends JPanel {
                 gbc
         );
     }
+
 
     // =========================================================
     // PANEL BASE
@@ -533,6 +611,55 @@ public class AdministracionPanel extends JPanel {
         return panel;
     }
 
+
+    // =========================================================
+    // MOSTRAR / OCULTAR CLIENTE
+    // =========================================================
+
+    public void mostrarCampoCliente(
+            boolean mostrar
+    ) {
+
+        lblCliente.setVisible(
+                mostrar
+        );
+
+        cmbCliente.setVisible(
+                mostrar
+        );
+
+        revalidate();
+
+        repaint();
+    }
+
+
+    // =========================================================
+    // LIMPIAR FORMULARIO
+    // =========================================================
+
+    public void limpiarFormulario() {
+
+        txtNombre.setText("");
+
+        txtApellido.setText("");
+
+        txtEmail.setText("");
+
+        txtPassword.setText("");
+
+        if (cmbRol.getItemCount() > 0) {
+
+            cmbRol.setSelectedIndex(0);
+        }
+
+        if (cmbCliente.getItemCount() > 0) {
+
+            cmbCliente.setSelectedIndex(0);
+        }
+    }
+
+
     // =========================================================
     // GETTERS
     // =========================================================
@@ -542,50 +669,66 @@ public class AdministracionPanel extends JPanel {
         return tablaSesiones;
     }
 
+
     public JButton getBtnActualizarSesiones() {
 
         return btnActualizarSesiones;
     }
+
 
     public JButton getBtnCerrarSesion() {
 
         return btnCerrarSesion;
     }
 
+
     public JTextField getTxtNombre() {
 
         return txtNombre;
     }
+
 
     public JTextField getTxtApellido() {
 
         return txtApellido;
     }
 
-    public JTextField getTxtUsuario() {
-
-        return txtUsuario;
-    }
 
     public JTextField getTxtEmail() {
 
         return txtEmail;
     }
 
+
     public JPasswordField getTxtPassword() {
 
         return txtPassword;
     }
+
+
+    public JComboBox<String> getCmbRol() {
+
+        return cmbRol;
+    }
+
+
+    public JComboBox<String> getCmbCliente() {
+
+        return cmbCliente;
+    }
+
 
     public JButton getBtnRegistrar() {
 
         return btnRegistrar;
     }
 
+
     public JButton getBtnEliminar() {
 
         return btnEliminar;
     }
+
 
     public JLabel getLblEstado() {
 

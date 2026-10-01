@@ -13,10 +13,11 @@ import org.example.interfaz.principal.vistas.AdministracionPanelController;
 import javax.swing.*;
 import java.awt.*;
 
-
 public class PrincipalPanel extends JPanel {
 
-    private final String usuario;
+    private final String usuarioId;
+
+    private final String nombreUsuario;
 
     private final CardLayout cardLayout;
 
@@ -32,11 +33,15 @@ public class PrincipalPanel extends JPanel {
     // =========================================================
 
     public PrincipalPanel(
-            String usuario
+            String usuarioId,
+            String nombreUsuario
     ) {
 
-        this.usuario =
-                usuario;
+        this.usuarioId =
+                usuarioId;
+
+        this.nombreUsuario =
+                nombreUsuario;
 
 
         cardLayout =
@@ -55,7 +60,7 @@ public class PrincipalPanel extends JPanel {
 
         header =
                 new HeaderPanel(
-                        usuario
+                        nombreUsuario
                 );
 
 
@@ -119,19 +124,11 @@ public class PrincipalPanel extends JPanel {
 
     private void construirContenido() {
 
-        // -----------------------------------------------------
-        // DASHBOARD
-        // -----------------------------------------------------
-
         contenido.add(
                 new DashboardPanel(),
                 "DASHBOARD"
         );
 
-
-        // -----------------------------------------------------
-        // CLIENTES
-        // -----------------------------------------------------
 
         contenido.add(
                 new VistaVaciaPanel(
@@ -141,10 +138,6 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-        // -----------------------------------------------------
-        // ENVÍOS
-        // -----------------------------------------------------
-
         contenido.add(
                 new VistaVaciaPanel(
                         "Envíos"
@@ -152,10 +145,6 @@ public class PrincipalPanel extends JPanel {
                 "ENVIOS"
         );
 
-
-        // -----------------------------------------------------
-        // CONTENEDORES
-        // -----------------------------------------------------
 
         contenido.add(
                 new VistaVaciaPanel(
@@ -165,10 +154,6 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-        // -----------------------------------------------------
-        // SENSORES
-        // -----------------------------------------------------
-
         contenido.add(
                 new VistaVaciaPanel(
                         "Sensores"
@@ -176,10 +161,6 @@ public class PrincipalPanel extends JPanel {
                 "SENSORES"
         );
 
-
-        // -----------------------------------------------------
-        // MONITOREO
-        // -----------------------------------------------------
 
         MonitoreoPanel monitoreoPanel =
                 new MonitoreoPanel();
@@ -196,10 +177,6 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-        // -----------------------------------------------------
-        // TRAZABILIDAD
-        // -----------------------------------------------------
-
         contenido.add(
                 new VistaVaciaPanel(
                         "Trazabilidad"
@@ -207,10 +184,6 @@ public class PrincipalPanel extends JPanel {
                 "TRAZABILIDAD"
         );
 
-
-        // -----------------------------------------------------
-        // COMUNICACIONES
-        // -----------------------------------------------------
 
         contenido.add(
                 new VistaVaciaPanel(
@@ -220,10 +193,6 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-        // -----------------------------------------------------
-        // FACTURACIÓN
-        // -----------------------------------------------------
-
         contenido.add(
                 new VistaVaciaPanel(
                         "Facturación"
@@ -231,10 +200,6 @@ public class PrincipalPanel extends JPanel {
                 "FACTURACION"
         );
 
-
-        // -----------------------------------------------------
-        // REPORTES
-        // -----------------------------------------------------
 
         contenido.add(
                 new VistaVaciaPanel(
@@ -244,10 +209,6 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-        // -----------------------------------------------------
-        // RIESGOS
-        // -----------------------------------------------------
-
         contenido.add(
                 new VistaVaciaPanel(
                         "Riesgos"
@@ -256,17 +217,19 @@ public class PrincipalPanel extends JPanel {
         );
 
 
-// -----------------------------------------------------
-// ADMINISTRACIÓN
-// -----------------------------------------------------
+        // =====================================================
+        // ADMINISTRACIÓN
+        // =====================================================
 
         AdministracionPanel administracionPanel =
                 new AdministracionPanel();
+
 
         contenido.add(
                 administracionPanel,
                 "ADMINISTRACION"
         );
+
 
         new AdministracionPanelController(
                 administracionPanel
@@ -315,8 +278,14 @@ public class PrincipalPanel extends JPanel {
     }
 
 
-    public String getUsuario() {
+    public String getUsuarioId() {
 
-        return usuario;
+        return usuarioId;
+    }
+
+
+    public String getNombreUsuario() {
+
+        return nombreUsuario;
     }
 }

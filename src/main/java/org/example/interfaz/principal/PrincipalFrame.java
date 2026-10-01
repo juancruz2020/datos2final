@@ -10,22 +10,37 @@ public class PrincipalFrame extends JFrame {
 
     private final PrincipalPanel panel;
 
-    private final String usuario;
+    private final String usuarioId;
+
+    private final String nombreUsuario;
 
     private final SesionController sesionController;
 
     private Timer timerSesion;
 
-    public PrincipalFrame(String usuario) {
 
-        this.usuario = usuario;
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
+
+    public PrincipalFrame(
+            String usuarioId,
+            String nombreUsuario
+    ) {
+
+        this.usuarioId =
+                usuarioId;
+
+        this.nombreUsuario =
+                nombreUsuario;
 
         this.sesionController =
                 new SesionController();
 
         this.panel =
                 new PrincipalPanel(
-                        usuario
+                        usuarioId,
+                        nombreUsuario
                 );
 
         configurarVentana();
@@ -42,6 +57,7 @@ public class PrincipalFrame extends JFrame {
 
         iniciarControlSesion();
     }
+
 
     // =========================================================
     // CONFIGURACIÓN DE LA VENTANA
@@ -78,6 +94,7 @@ public class PrincipalFrame extends JFrame {
         );
     }
 
+
     // =========================================================
     // BOTÓN CERRAR SESIÓN
     // =========================================================
@@ -90,6 +107,7 @@ public class PrincipalFrame extends JFrame {
                         e -> cerrarSesion()
                 );
     }
+
 
     private void cerrarSesion() {
 
@@ -108,29 +126,13 @@ public class PrincipalFrame extends JFrame {
 
         try {
 
-            // -------------------------------------------------
-            // ELIMINAR SESIÓN DE REDIS
-            // -------------------------------------------------
-
             sesionController.cerrarSesion(
-                    usuario
+                    usuarioId
             );
-
-            // -------------------------------------------------
-            // DETENER TIMER
-            // -------------------------------------------------
 
             detenerTimerSesion();
 
-            // -------------------------------------------------
-            // CERRAR VENTANA
-            // -------------------------------------------------
-
             dispose();
-
-            // -------------------------------------------------
-            // VOLVER AL LOGIN
-            // -------------------------------------------------
 
             volverAlLogin();
 
@@ -146,16 +148,13 @@ public class PrincipalFrame extends JFrame {
         }
     }
 
+
     // =========================================================
     // CONTROL DE SESIÓN
     // =========================================================
 
     private void iniciarControlSesion() {
 
-        /*
-         * Consultamos el TTL de Redis
-         * cada segundo.
-         */
         timerSesion =
                 new Timer(
                         1000,
@@ -165,6 +164,7 @@ public class PrincipalFrame extends JFrame {
         timerSesion.start();
     }
 
+
     private void actualizarSesion() {
 
         try {
@@ -172,12 +172,8 @@ public class PrincipalFrame extends JFrame {
             long segundosRestantes =
                     sesionController
                             .obtenerTiempoRestante(
-                                    usuario
+                                    usuarioId
                             );
-
-            // -------------------------------------------------
-            // SESIÓN EXPIRADA
-            // -------------------------------------------------
 
             if (segundosRestantes == -1) {
 
@@ -185,10 +181,6 @@ public class PrincipalFrame extends JFrame {
 
                 return;
             }
-
-            // -------------------------------------------------
-            // ACTUALIZAR CONTADOR VISUAL
-            // -------------------------------------------------
 
             actualizarContador(
                     segundosRestantes
@@ -202,6 +194,7 @@ public class PrincipalFrame extends JFrame {
             );
         }
     }
+
 
     // =========================================================
     // CONTADOR VISUAL
@@ -231,6 +224,7 @@ public class PrincipalFrame extends JFrame {
                 );
     }
 
+
     // =========================================================
     // SESIÓN EXPIRADA
     // =========================================================
@@ -251,6 +245,7 @@ public class PrincipalFrame extends JFrame {
         volverAlLogin();
     }
 
+
     // =========================================================
     // DETENER TIMER
     // =========================================================
@@ -265,20 +260,16 @@ public class PrincipalFrame extends JFrame {
         }
     }
 
+
     // =========================================================
     // VOLVER AL LOGIN
     // =========================================================
 
     private void volverAlLogin() {
 
-        /*
-         * Acá debe ir la misma lógica que actualmente
-         * utilizás para abrir tu Login.
-         *
-         * No invento esa parte porque todavía no vimos
-         * cómo estás creando tu ventana de Login.
-         */
+        // Lo conectaremos con el LoginFrame.
     }
+
 
     // =========================================================
     // CERRAR FRAME

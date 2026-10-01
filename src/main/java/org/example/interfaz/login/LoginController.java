@@ -1,6 +1,8 @@
 package org.example.interfaz.login;
 
+import org.bson.Document;
 import org.example.interfaz.principal.PrincipalFrame;
+import org.example.usuarios.controller.AutenticacionController;
 import org.example.usuarios.controller.SesionController;
 
 import javax.swing.*;
@@ -10,6 +12,12 @@ public class LoginController {
     private final LoginPanel view;
 
     private final SesionController sesionController;
+    private final AutenticacionController autenticacionController;
+
+
+    // =========================
+    // CONSTRUCTOR
+    // =========================
 
     public LoginController(LoginPanel view) {
 
@@ -18,8 +26,16 @@ public class LoginController {
         this.sesionController =
                 new SesionController();
 
+        this.autenticacionController =
+                new AutenticacionController();
+
         configurarEventos();
     }
+
+
+    // =========================
+    // CONFIGURAR EVENTOS
+    // =========================
 
     private void configurarEventos() {
 
@@ -29,9 +45,14 @@ public class LoginController {
                 );
     }
 
+
+    // =========================
+    // INICIAR SESIÓN
+    // =========================
+
     private void iniciarSesion() {
 
-        String usuario =
+        String email =
                 view.getTxtUsuario()
                         .getText()
                         .trim();
@@ -42,13 +63,14 @@ public class LoginController {
                                 .getPassword()
                 );
 
-        if (usuario.isEmpty()) {
+        if (email.isEmpty()) {
 
             mostrarError(
                     "Ingresá tu usuario."
             );
 
-            view.getTxtUsuario().requestFocus();
+            view.getTxtUsuario()
+                    .requestFocus();
 
             return;
         }
@@ -59,22 +81,79 @@ public class LoginController {
                     "Ingresá tu contraseña."
             );
 
-            view.getTxtPassword().requestFocus();
+            view.getTxtPassword()
+                    .requestFocus();
 
             return;
         }
 
         try {
 
-            sesionController.iniciarSesion(usuario);
+            Document usuario =
+                    autenticacionController.autenticar(
+                            email,
+                            password
+                    );
+
+            if (usuario == null) {
+
+                mostrarError(
+                        "Usuario o contraseña incorrectos."
+                );
+
+                view.getTxtPassword()
+                        .setText("");
+
+                view.getTxtPassword()
+                        .requestFocus();
+
+                return;
+            }
+
+
+            // =============================================
+            // ID INTERNO DEL USUARIO
+            // =============================================
+
+            String usuarioId =
+                    usuario
+                            .getObjectId("_id")
+                            .toHexString();
+
+
+            // =============================================
+            // NOMBRE PARA MOSTRAR
+            // =============================================
+
+            String nombre =
+                    usuario.getString("nombre");
+
+            String apellido =
+                    usuario.getString("apellido");
+
+            String nombreUsuario =
+                    (nombre + " " + apellido).trim();
+
+
+            // =============================================
+            // CREAR SESIÓN EN REDIS
+            // =============================================
+
+            sesionController
+                    .iniciarSesion(usuarioId);
+
 
             boolean activa =
                     sesionController
-                            .verificarSesion(usuario);
+                            .verificarSesion(usuarioId);
+
 
             if (activa) {
 
-                abrirPrincipal(usuario);
+                abrirPrincipal(
+                        usuarioId,
+                        nombreUsuario
+                );
 
             } else {
 
@@ -82,6 +161,18 @@ public class LoginController {
                         "No se pudo iniciar la sesión."
                 );
             }
+
+        } catch (SecurityException e) {
+
+            mostrarError(
+                    e.getMessage()
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            mostrarError(
+                    e.getMessage()
+            );
 
         } catch (Exception e) {
 
@@ -92,12 +183,23 @@ public class LoginController {
         }
     }
 
-    private void abrirPrincipal(String usuario) {
+
+    // =========================
+    // ABRIR PRINCIPAL
+    // =========================
+
+    private void abrirPrincipal(
+            String usuarioId,
+            String nombreUsuario
+    ) {
 
         SwingUtilities.invokeLater(() -> {
 
             PrincipalFrame frame =
-                    new PrincipalFrame(usuario);
+                    new PrincipalFrame(
+                            usuarioId,
+                            nombreUsuario
+                    );
 
             frame.setVisible(true);
 
@@ -107,7 +209,14 @@ public class LoginController {
         });
     }
 
-    private void mostrarError(String mensaje) {
+
+    // =========================
+    // MOSTRAR ERROR
+    // =========================
+
+    private void mostrarError(
+            String mensaje
+    ) {
 
         JOptionPane.showMessageDialog(
                 view,

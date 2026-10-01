@@ -17,6 +17,11 @@ public class LoginPanel extends JPanel {
     private final CampoPassword txtPassword;
     private final BotonPrincipal btnIngresar;
 
+
+    // =============================================
+    // CONSTRUCTOR
+    // =============================================
+
     public LoginPanel() {
 
         txtUsuario = new CampoTexto();
@@ -26,21 +31,51 @@ public class LoginPanel extends JPanel {
         btnIngresar =
                 new BotonPrincipal("Iniciar sesión");
 
+
+        // Alinear componentes
+        txtUsuario.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        txtPassword.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+        btnIngresar.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+
         construir();
     }
 
+
+    // =============================================
+    // CONSTRUIR PANEL
+    // =============================================
+
     private void construir() {
 
-        setLayout(new GridBagLayout());
+        setLayout(
+                new GridBagLayout()
+        );
 
-        setBackground(Colores.FONDO);
+        setBackground(
+                Colores.FONDO
+        );
 
         add(crearTarjeta());
     }
 
+
+    // =============================================
+    // CREAR TARJETA LOGIN
+    // =============================================
+
     private JPanel crearTarjeta() {
 
-        JPanel tarjeta = new JPanel();
+        JPanel tarjeta =
+                new JPanel();
 
         tarjeta.setLayout(
                 new BoxLayout(
@@ -62,16 +97,27 @@ public class LoginPanel extends JPanel {
                 )
         );
 
+        tarjeta.setAlignmentX(
+                Component.CENTER_ALIGNMENT
+        );
+
+
         // =============================================
         // TÍTULO
         // =============================================
 
         JLabel titulo =
-                new JLabel("Iniciar sesión");
+                new JLabel(
+                        "Iniciar sesión"
+                );
 
-        titulo.setFont(Fuentes.TITULO);
+        titulo.setFont(
+                Fuentes.TITULO
+        );
 
-        titulo.setForeground(Colores.TEXTO);
+        titulo.setForeground(
+                Colores.TEXTO
+        );
 
         titulo.setAlignmentX(
                 Component.CENTER_ALIGNMENT
@@ -79,11 +125,13 @@ public class LoginPanel extends JPanel {
 
         tarjeta.add(titulo);
 
+
         tarjeta.add(
                 Box.createVerticalStrut(
                         Dimensiones.ESPACIO_PEQUENO
                 )
         );
+
 
         // =============================================
         // SUBTÍTULO
@@ -108,11 +156,13 @@ public class LoginPanel extends JPanel {
 
         tarjeta.add(subtitulo);
 
+
         tarjeta.add(
                 Box.createVerticalStrut(
                         Dimensiones.ESPACIO_GRANDE
                 )
         );
+
 
         // =============================================
         // USUARIO
@@ -122,19 +172,25 @@ public class LoginPanel extends JPanel {
                 crearLabel("Usuario")
         );
 
+
         tarjeta.add(
                 Box.createVerticalStrut(
                         Dimensiones.ESPACIO_PEQUENO
                 )
         );
 
-        tarjeta.add(txtUsuario);
+
+        tarjeta.add(
+                txtUsuario
+        );
+
 
         tarjeta.add(
                 Box.createVerticalStrut(
                         Dimensiones.ESPACIO_MEDIO
                 )
         );
+
 
         // =============================================
         // CONTRASEÑA
@@ -144,13 +200,18 @@ public class LoginPanel extends JPanel {
                 crearLabel("Contraseña")
         );
 
+
         tarjeta.add(
                 Box.createVerticalStrut(
                         Dimensiones.ESPACIO_PEQUENO
                 )
         );
 
-        tarjeta.add(txtPassword);
+
+        tarjeta.add(
+                txtPassword
+        );
+
 
         tarjeta.add(
                 Box.createVerticalStrut(
@@ -158,44 +219,92 @@ public class LoginPanel extends JPanel {
                 )
         );
 
+
         // =============================================
         // BOTÓN
         // =============================================
 
-        tarjeta.add(btnIngresar);
+        tarjeta.add(
+                btnIngresar
+        );
+
 
         return tarjeta;
     }
 
-    private JLabel crearLabel(String texto) {
+
+    // =============================================
+    // CREAR LABEL
+    // =============================================
+
+    private JLabel crearLabel(
+            String texto
+    ) {
 
         JLabel label =
-                new JLabel(texto);
+                new JLabel(
+                        texto,
+                        SwingConstants.CENTER
+                );
 
-        label.setFont(Fuentes.LABEL);
+        label.setFont(
+                Fuentes.LABEL
+        );
 
-        label.setForeground(Colores.TEXTO);
+        label.setForeground(
+                Colores.TEXTO
+        );
+
+
+        Dimension tamaño =
+                new Dimension(
+                        300,
+                        label
+                                .getPreferredSize()
+                                .height
+                );
+
+
+        label.setPreferredSize(
+                tamaño
+        );
+
+        label.setMinimumSize(
+                tamaño
+        );
+
+        label.setMaximumSize(
+                tamaño
+        );
+
 
         label.setAlignmentX(
-                Component.LEFT_ALIGNMENT
+                Component.CENTER_ALIGNMENT
         );
+
 
         return label;
     }
+
 
     // =============================================
     // GETTERS
     // =============================================
 
     public CampoTexto getTxtUsuario() {
+
         return txtUsuario;
     }
 
+
     public CampoPassword getTxtPassword() {
+
         return txtPassword;
     }
 
+
     public BotonPrincipal getBtnIngresar() {
+
         return btnIngresar;
     }
 }

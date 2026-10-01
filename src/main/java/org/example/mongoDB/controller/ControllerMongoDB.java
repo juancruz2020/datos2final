@@ -100,6 +100,33 @@ public class ControllerMongoDB {
 
 
     // =========================
+    // BUSCAR USUARIOS POR ROL
+    // =========================
+
+    public List<Document> buscarUsuariosPorRol(String rolId) {
+        return service.buscarUsuariosPorRol(rolId);
+    }
+
+
+    // =========================
+    // CAMBIAR ROL DE USUARIO
+    // =========================
+
+    public void cambiarRolUsuario(String usuarioId, String rolId) {
+        service.cambiarRolUsuario(usuarioId, rolId);
+    }
+
+
+    // =========================
+    // BUSCAR ROL DE UN USUARIO
+    // =========================
+
+    public Document buscarRolDeUsuario(String usuarioId) {
+        return service.buscarRolDeUsuario(usuarioId);
+    }
+
+
+    // =========================
     // ROLES
     // =========================
 

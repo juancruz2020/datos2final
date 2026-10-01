@@ -23,15 +23,23 @@ public class BotonPrincipal extends JButton {
 
         setBorderPainted(false);
 
+        setOpaque(true);
+
         setCursor(
                 new Cursor(Cursor.HAND_CURSOR)
         );
 
-        setPreferredSize(
-                new Dimension(
-                        300,
-                        Dimensiones.BOTON_ALTO
-                )
+        Dimension tamaño = new Dimension(
+                300,
+                Dimensiones.BOTON_ALTO
+        );
+
+        setPreferredSize(tamaño);
+        setMinimumSize(tamaño);
+        setMaximumSize(tamaño);
+
+        setAlignmentX(
+                Component.CENTER_ALIGNMENT
         );
     }
 }
