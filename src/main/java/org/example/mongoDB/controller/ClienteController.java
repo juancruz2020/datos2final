@@ -22,6 +22,36 @@ public class ClienteController {
 
 
     // =========================================================
+    // CREAR CLIENTE
+    // =========================================================
+
+    public void crearCliente(
+            String razonSocial,
+            String cuit,
+            String email,
+            String telefono,
+            String calle,
+            String numero,
+            String ciudad,
+            String codigoPostal,
+            String pais
+    ) {
+
+        clienteService.crearCliente(
+                razonSocial,
+                cuit,
+                email,
+                telefono,
+                calle,
+                numero,
+                ciudad,
+                codigoPostal,
+                pais
+        );
+    }
+
+
+    // =========================================================
     // LISTAR CLIENTES
     // =========================================================
 

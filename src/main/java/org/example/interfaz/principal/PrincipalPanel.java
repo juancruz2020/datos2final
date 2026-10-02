@@ -2,13 +2,36 @@ package org.example.interfaz.principal;
 
 import org.example.interfaz.principal.header.HeaderPanel;
 import org.example.interfaz.principal.menu.MenuLateralPanel;
+
 import org.example.interfaz.principal.vistas.DashboardPanel;
+
 import org.example.interfaz.principal.vistas.MonitoreoPanel;
 import org.example.interfaz.principal.vistas.MonitoreoPanelController;
+
 import org.example.interfaz.principal.vistas.VistaVaciaPanel;
-import org.example.interfaz.tema.Colores;
+
 import org.example.interfaz.principal.vistas.AdministracionPanel;
 import org.example.interfaz.principal.vistas.AdministracionPanelController;
+
+import org.example.interfaz.principal.vistas.ClientesPanel;
+import org.example.interfaz.principal.vistas.ClientesPanelController;
+
+import org.example.interfaz.principal.vistas.EnviosPanel;
+import org.example.interfaz.principal.vistas.EnviosPanelController;
+
+import org.example.interfaz.principal.vistas.ContenedoresPanel;
+import org.example.interfaz.principal.vistas.ContenedoresPanelController;
+
+import org.example.interfaz.principal.vistas.SensoresPanel;
+import org.example.interfaz.principal.vistas.SensoresPanelController;
+
+import org.example.interfaz.principal.vistas.FacturacionPanel;
+import org.example.interfaz.principal.vistas.FacturacionPanelController;
+
+import org.example.interfaz.principal.vistas.TrazabilidadPanel;
+import org.example.interfaz.principal.vistas.TrazabilidadPanelController;
+
+import org.example.interfaz.tema.Colores;
 
 import javax.swing.*;
 import java.awt.*;
@@ -124,43 +147,95 @@ public class PrincipalPanel extends JPanel {
 
     private void construirContenido() {
 
+        // =====================================================
+        // DASHBOARD
+        // =====================================================
+
         contenido.add(
                 new DashboardPanel(),
                 "DASHBOARD"
         );
 
 
+        // =====================================================
+        // CLIENTES
+        // =====================================================
+
+        ClientesPanel clientesPanel =
+                new ClientesPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Clientes"
-                ),
+                clientesPanel,
                 "CLIENTES"
         );
 
 
+        new ClientesPanelController(
+                clientesPanel
+        );
+
+
+        // =====================================================
+        // ENVÍOS
+        // =====================================================
+
+        EnviosPanel enviosPanel =
+                new EnviosPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Envíos"
-                ),
+                enviosPanel,
                 "ENVIOS"
         );
 
 
+        new EnviosPanelController(
+                enviosPanel
+        );
+
+
+        // =====================================================
+        // CONTENEDORES
+        // =====================================================
+
+        ContenedoresPanel contenedoresPanel =
+                new ContenedoresPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Contenedores"
-                ),
+                contenedoresPanel,
                 "CONTENEDORES"
         );
 
 
+        new ContenedoresPanelController(
+                contenedoresPanel
+        );
+
+
+        // =====================================================
+        // SENSORES
+        // =====================================================
+
+        SensoresPanel sensoresPanel =
+                new SensoresPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Sensores"
-                ),
+                sensoresPanel,
                 "SENSORES"
         );
 
+
+        new SensoresPanelController(
+                sensoresPanel
+        );
+
+
+        // =====================================================
+        // MONITOREO
+        // =====================================================
 
         MonitoreoPanel monitoreoPanel =
                 new MonitoreoPanel();
@@ -177,13 +252,28 @@ public class PrincipalPanel extends JPanel {
         );
 
 
+        // =====================================================
+        // TRAZABILIDAD
+        // =====================================================
+
+        TrazabilidadPanel trazabilidadPanel =
+                new TrazabilidadPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Trazabilidad"
-                ),
+                trazabilidadPanel,
                 "TRAZABILIDAD"
         );
 
+
+        new TrazabilidadPanelController(
+                trazabilidadPanel
+        );
+
+
+        // =====================================================
+        // COMUNICACIONES
+        // =====================================================
 
         contenido.add(
                 new VistaVaciaPanel(
@@ -193,13 +283,28 @@ public class PrincipalPanel extends JPanel {
         );
 
 
+        // =====================================================
+        // FACTURACIÓN
+        // =====================================================
+
+        FacturacionPanel facturacionPanel =
+                new FacturacionPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Facturación"
-                ),
+                facturacionPanel,
                 "FACTURACION"
         );
 
+
+        new FacturacionPanelController(
+                facturacionPanel
+        );
+
+
+        // =====================================================
+        // REPORTES
+        // =====================================================
 
         contenido.add(
                 new VistaVaciaPanel(
@@ -208,6 +313,10 @@ public class PrincipalPanel extends JPanel {
                 "REPORTES"
         );
 
+
+        // =====================================================
+        // RIESGOS
+        // =====================================================
 
         contenido.add(
                 new VistaVaciaPanel(

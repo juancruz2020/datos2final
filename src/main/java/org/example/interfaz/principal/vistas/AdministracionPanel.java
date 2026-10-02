@@ -5,6 +5,7 @@ import org.example.interfaz.tema.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class AdministracionPanel extends JPanel {
@@ -21,7 +22,7 @@ public class AdministracionPanel extends JPanel {
 
 
     // =========================================================
-    // USUARIOS
+    // USUARIO
     // =========================================================
 
     private final JTextField txtNombre;
@@ -30,17 +31,38 @@ public class AdministracionPanel extends JPanel {
 
     private final JTextField txtEmail;
 
-    private final JPasswordField txtPassword;
+    private final JPasswordField txtContrasena;
 
     private final JComboBox<String> cmbRol;
-
-    private final JComboBox<String> cmbCliente;
-
-    private final JLabel lblCliente;
 
     private final JButton btnRegistrar;
 
     private final JButton btnEliminar;
+
+
+    // =========================================================
+    // DATOS DEL CLIENTE
+    // =========================================================
+
+    private JPanel panelDatosCliente;
+
+    private final JTextField txtRazonSocialCliente;
+
+    private final JTextField txtCuitCliente;
+
+    private final JTextField txtEmailCliente;
+
+    private final JTextField txtTelefonoCliente;
+
+    private final JTextField txtCalleCliente;
+
+    private final JTextField txtNumeroCliente;
+
+    private final JTextField txtCiudadCliente;
+
+    private final JTextField txtCodigoPostalCliente;
+
+    private final JTextField txtPaisCliente;
 
 
     // =========================================================
@@ -65,6 +87,7 @@ public class AdministracionPanel extends JPanel {
         btnCerrarSesion =
                 new JButton("Cerrar sesión");
 
+
         txtNombre =
                 new JTextField();
 
@@ -74,30 +97,55 @@ public class AdministracionPanel extends JPanel {
         txtEmail =
                 new JTextField();
 
-        txtPassword =
+        txtContrasena =
                 new JPasswordField();
 
         cmbRol =
                 new JComboBox<>();
 
-        cmbCliente =
-                new JComboBox<>();
 
-        lblCliente =
-                new JLabel("Cliente:");
+        txtRazonSocialCliente =
+                new JTextField();
 
-        lblCliente.setForeground(
-                Colores.TEXTO
-        );
+        txtCuitCliente =
+                new JTextField();
+
+        txtEmailCliente =
+                new JTextField();
+
+        txtTelefonoCliente =
+                new JTextField();
+
+        txtCalleCliente =
+                new JTextField();
+
+        txtNumeroCliente =
+                new JTextField();
+
+        txtCiudadCliente =
+                new JTextField();
+
+        txtCodigoPostalCliente =
+                new JTextField();
+
+        txtPaisCliente =
+                new JTextField();
+
 
         btnRegistrar =
-                new JButton("Registrar usuario");
+                new JButton(
+                        "Registrar usuario"
+                );
 
         btnEliminar =
-                new JButton("Eliminar usuario");
+                new JButton(
+                        "Eliminar usuario"
+                );
+
 
         lblEstado =
                 new JLabel(" ");
+
 
         construir();
     }
@@ -147,6 +195,7 @@ public class AdministracionPanel extends JPanel {
                 Colores.TEXTO
         );
 
+
         add(
                 titulo,
                 BorderLayout.NORTH
@@ -161,36 +210,76 @@ public class AdministracionPanel extends JPanel {
                 new JPanel();
 
         contenido.setLayout(
-                new BorderLayout(
-                        20,
+                new BoxLayout(
+                        contenido,
+                        BoxLayout.Y_AXIS
+                )
+        );
+
+        contenido.setOpaque(
+                false
+        );
+
+
+        JPanel sesiones =
+                crearPanelSesiones();
+
+        sesiones.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        JPanel usuarios =
+                crearPanelGestionUsuarios();
+
+        usuarios.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        contenido.add(
+                sesiones
+        );
+
+        contenido.add(
+                Box.createVerticalStrut(
                         20
                 )
         );
 
-        contenido.setOpaque(false);
-
-
-        // =====================================================
-        // SESIONES
-        // =====================================================
-
         contenido.add(
-                crearPanelSesiones(),
-                BorderLayout.CENTER
+                usuarios
         );
 
 
-        // =====================================================
-        // USUARIOS
-        // =====================================================
+        JScrollPane scrollContenido =
+                new JScrollPane(
+                        contenido
+                );
 
-        contenido.add(
-                crearPanelUsuarios(),
-                BorderLayout.SOUTH
+        scrollContenido.setBorder(
+                null
         );
+
+        scrollContenido.setOpaque(
+                false
+        );
+
+        scrollContenido
+                .getViewport()
+                .setOpaque(false);
+
+        scrollContenido.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        scrollContenido.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+        );
+
 
         add(
-                contenido,
+                scrollContenido,
                 BorderLayout.CENTER
         );
 
@@ -199,9 +288,14 @@ public class AdministracionPanel extends JPanel {
         // ESTADO
         // =====================================================
 
+        lblEstado.setFont(
+                Fuentes.NORMAL
+        );
+
         lblEstado.setForeground(
                 Colores.TEXTO_SECUNDARIO
         );
+
 
         add(
                 lblEstado,
@@ -226,18 +320,27 @@ public class AdministracionPanel extends JPanel {
                 )
         );
 
+        panel.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        310
+                )
+        );
+
+
         JLabel titulo =
                 new JLabel(
                         "Sesiones activas"
                 );
 
         titulo.setFont(
-                Fuentes.SUBTITULO
+                Fuentes.LABEL
         );
 
         titulo.setForeground(
                 Colores.TEXTO
         );
+
 
         panel.add(
                 titulo,
@@ -249,8 +352,8 @@ public class AdministracionPanel extends JPanel {
         // TABLA
         // =====================================================
 
-        tablaSesiones.setModel(
-                new javax.swing.table.DefaultTableModel(
+        DefaultTableModel modelo =
+                new DefaultTableModel(
                         new Object[][]{},
                         new String[]{
                                 "Usuario",
@@ -266,11 +369,19 @@ public class AdministracionPanel extends JPanel {
 
                         return false;
                     }
-                }
+                };
+
+
+        tablaSesiones.setModel(
+                modelo
+        );
+
+        tablaSesiones.setFont(
+                Fuentes.NORMAL
         );
 
         tablaSesiones.setRowHeight(
-                32
+                28
         );
 
         tablaSesiones.setSelectionMode(
@@ -281,10 +392,19 @@ public class AdministracionPanel extends JPanel {
                 .getTableHeader()
                 .setReorderingAllowed(false);
 
+
         JScrollPane scroll =
                 new JScrollPane(
                         tablaSesiones
                 );
+
+        scroll.setPreferredSize(
+                new Dimension(
+                        700,
+                        190
+                )
+        );
+
 
         panel.add(
                 scroll,
@@ -303,7 +423,19 @@ public class AdministracionPanel extends JPanel {
                         )
                 );
 
-        botones.setOpaque(false);
+        botones.setOpaque(
+                false
+        );
+
+
+        btnActualizarSesiones.setFont(
+                Fuentes.BOTON
+        );
+
+        btnCerrarSesion.setFont(
+                Fuentes.BOTON
+        );
+
 
         btnActualizarSesiones.setFocusPainted(
                 false
@@ -313,6 +445,7 @@ public class AdministracionPanel extends JPanel {
                 false
         );
 
+
         botones.add(
                 btnActualizarSesiones
         );
@@ -321,30 +454,44 @@ public class AdministracionPanel extends JPanel {
                 btnCerrarSesion
         );
 
+
         panel.add(
                 botones,
                 BorderLayout.SOUTH
         );
+
 
         return panel;
     }
 
 
     // =========================================================
-    // PANEL USUARIOS
+    // GESTIÓN DE USUARIOS
     // =========================================================
 
-    private JPanel crearPanelUsuarios() {
+    private JPanel crearPanelGestionUsuarios() {
 
         JPanel panel =
                 crearPanelBase();
 
         panel.setLayout(
-                new BorderLayout(
-                        10,
-                        10
+                new BoxLayout(
+                        panel,
+                        BoxLayout.Y_AXIS
                 )
         );
+
+        panel.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        Integer.MAX_VALUE
+                )
+        );
+
+
+        // =====================================================
+        // TÍTULO
+        // =====================================================
 
         JLabel titulo =
                 new JLabel(
@@ -352,12 +499,236 @@ public class AdministracionPanel extends JPanel {
                 );
 
         titulo.setFont(
-                Fuentes.SUBTITULO
+                Fuentes.LABEL
         );
 
         titulo.setForeground(
                 Colores.TEXTO
         );
+
+        titulo.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        panel.add(
+                titulo
+        );
+
+        panel.add(
+                Box.createVerticalStrut(
+                        12
+                )
+        );
+
+
+        // =====================================================
+        // DATOS DEL USUARIO
+        // =====================================================
+
+        JPanel formularioUsuario =
+                new JPanel(
+                        new GridBagLayout()
+                );
+
+        formularioUsuario.setOpaque(
+                false
+        );
+
+        formularioUsuario.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        GridBagConstraints gbc =
+                crearConstraints();
+
+
+        agregarCampo(
+                formularioUsuario,
+                gbc,
+                0,
+                "Nombre:",
+                txtNombre
+        );
+
+        agregarCampo(
+                formularioUsuario,
+                gbc,
+                1,
+                "Apellido:",
+                txtApellido
+        );
+
+        agregarCampo(
+                formularioUsuario,
+                gbc,
+                2,
+                "Email:",
+                txtEmail
+        );
+
+        agregarCampo(
+                formularioUsuario,
+                gbc,
+                3,
+                "Contraseña:",
+                txtContrasena
+        );
+
+        agregarCampo(
+                formularioUsuario,
+                gbc,
+                4,
+                "Rol:",
+                cmbRol
+        );
+
+
+        panel.add(
+                formularioUsuario
+        );
+
+
+        // =====================================================
+        // DATOS DEL CLIENTE
+        // =====================================================
+
+        panelDatosCliente =
+                crearPanelDatosCliente();
+
+        panelDatosCliente.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+        panelDatosCliente.setVisible(
+                false
+        );
+
+
+        panel.add(
+                Box.createVerticalStrut(
+                        12
+                )
+        );
+
+        panel.add(
+                panelDatosCliente
+        );
+
+
+        // =====================================================
+        // BOTONES
+        // =====================================================
+
+        JPanel botones =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.RIGHT
+                        )
+                );
+
+        botones.setOpaque(
+                false
+        );
+
+        botones.setAlignmentX(
+                Component.LEFT_ALIGNMENT
+        );
+
+
+        btnRegistrar.setFont(
+                Fuentes.BOTON
+        );
+
+        btnEliminar.setFont(
+                Fuentes.BOTON
+        );
+
+
+        btnRegistrar.setFocusPainted(
+                false
+        );
+
+        btnEliminar.setFocusPainted(
+                false
+        );
+
+
+        botones.add(
+                btnRegistrar
+        );
+
+        botones.add(
+                btnEliminar
+        );
+
+
+        panel.add(
+                Box.createVerticalStrut(
+                        10
+                )
+        );
+
+        panel.add(
+                botones
+        );
+
+
+        return panel;
+    }
+
+
+    // =========================================================
+    // PANEL DATOS DEL CLIENTE
+    // =========================================================
+
+    private JPanel crearPanelDatosCliente() {
+
+        JPanel panel =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        panel.setBackground(
+                Colores.FONDO
+        );
+
+        panel.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                Colores.BORDE
+                        ),
+                        new EmptyBorder(
+                                15,
+                                15,
+                                15,
+                                15
+                        )
+                )
+        );
+
+
+        // =====================================================
+        // TÍTULO
+        // =====================================================
+
+        JLabel titulo =
+                new JLabel(
+                        "Datos del cliente"
+                );
+
+        titulo.setFont(
+                Fuentes.LABEL
+        );
+
+        titulo.setForeground(
+                Colores.TEXTO
+        );
+
 
         panel.add(
                 titulo,
@@ -374,7 +745,10 @@ public class AdministracionPanel extends JPanel {
                         new GridBagLayout()
                 );
 
-        formulario.setOpaque(false);
+        formulario.setOpaque(
+                false
+        );
+
 
         GridBagConstraints gbc =
                 new GridBagConstraints();
@@ -390,106 +764,96 @@ public class AdministracionPanel extends JPanel {
         gbc.fill =
                 GridBagConstraints.HORIZONTAL;
 
-        gbc.weightx = 1;
-
 
         // -----------------------------------------------------
-        // NOMBRE
+        // IZQUIERDA
         // -----------------------------------------------------
 
-        agregarCampo(
+        agregarCampoCliente(
                 formulario,
                 gbc,
                 0,
-                "Nombre:",
-                txtNombre
+                0,
+                "Razón social:",
+                txtRazonSocialCliente
         );
 
-
-        // -----------------------------------------------------
-        // APELLIDO
-        // -----------------------------------------------------
-
-        agregarCampo(
+        agregarCampoCliente(
                 formulario,
                 gbc,
+                0,
                 1,
-                "Apellido:",
-                txtApellido
+                "CUIT:",
+                txtCuitCliente
+        );
+
+        agregarCampoCliente(
+                formulario,
+                gbc,
+                0,
+                2,
+                "Email:",
+                txtEmailCliente
+        );
+
+        agregarCampoCliente(
+                formulario,
+                gbc,
+                0,
+                3,
+                "Teléfono:",
+                txtTelefonoCliente
+        );
+
+        agregarCampoCliente(
+                formulario,
+                gbc,
+                0,
+                4,
+                "País:",
+                txtPaisCliente
         );
 
 
         // -----------------------------------------------------
-        // EMAIL
+        // DERECHA
         // -----------------------------------------------------
 
-        agregarCampo(
+        agregarCampoCliente(
                 formulario,
                 gbc,
                 2,
-                "Email:",
-                txtEmail
+                0,
+                "Calle:",
+                txtCalleCliente
         );
 
-
-        // -----------------------------------------------------
-        // CONTRASEÑA
-        // -----------------------------------------------------
-
-        agregarCampo(
+        agregarCampoCliente(
                 formulario,
                 gbc,
+                2,
+                1,
+                "Número:",
+                txtNumeroCliente
+        );
+
+        agregarCampoCliente(
+                formulario,
+                gbc,
+                2,
+                2,
+                "Ciudad:",
+                txtCiudadCliente
+        );
+
+        agregarCampoCliente(
+                formulario,
+                gbc,
+                2,
                 3,
-                "Contraseña:",
-                txtPassword
+                "Código postal:",
+                txtCodigoPostalCliente
         );
-
-
-        // -----------------------------------------------------
-        // ROL
-        // -----------------------------------------------------
-
-        agregarCampo(
-                formulario,
-                gbc,
-                4,
-                "Rol:",
-                cmbRol
-        );
-
-
-        // -----------------------------------------------------
-        // CLIENTE
-        // -----------------------------------------------------
-
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.weightx = 0;
-
-        formulario.add(
-                lblCliente,
-                gbc
-        );
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-
-        formulario.add(
-                cmbCliente,
-                gbc
-        );
-
-
-        /*
-         * Por defecto ocultamos el campo Cliente.
-         *
-         * El AdministracionPanelController lo mostrará
-         * únicamente cuando se seleccione el rol Cliente.
-         */
-
-        lblCliente.setVisible(false);
-
-        cmbCliente.setVisible(false);
 
 
         panel.add(
@@ -498,71 +862,72 @@ public class AdministracionPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // BOTONES
-        // =====================================================
-
-        JPanel botones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-        botones.setOpaque(false);
-
-        btnRegistrar.setFocusPainted(
-                false
-        );
-
-        btnEliminar.setFocusPainted(
-                false
-        );
-
-        botones.add(
-                btnRegistrar
-        );
-
-        botones.add(
-                btnEliminar
-        );
-
-        panel.add(
-                botones,
-                BorderLayout.SOUTH
-        );
-
         return panel;
     }
 
 
     // =========================================================
-    // AGREGAR CAMPO
+    // CONSTRAINTS USUARIO
+    // =========================================================
+
+    private GridBagConstraints crearConstraints() {
+
+        GridBagConstraints gbc =
+                new GridBagConstraints();
+
+        gbc.insets =
+                new Insets(
+                        5,
+                        5,
+                        5,
+                        5
+                );
+
+        gbc.fill =
+                GridBagConstraints.HORIZONTAL;
+
+        gbc.anchor =
+                GridBagConstraints.WEST;
+
+        return gbc;
+    }
+
+
+    // =========================================================
+    // AGREGAR CAMPO USUARIO
     // =========================================================
 
     private void agregarCampo(
             JPanel panel,
             GridBagConstraints gbc,
             int fila,
-            String etiqueta,
+            String texto,
             JComponent campo
     ) {
 
-        gbc.gridx = 0;
+        gbc.gridx =
+                0;
 
-        gbc.gridy = fila;
+        gbc.gridy =
+                fila;
 
-        gbc.weightx = 0;
+        gbc.weightx =
+                0;
 
 
         JLabel label =
                 new JLabel(
-                        etiqueta
+                        texto
                 );
+
+        label.setFont(
+                Fuentes.NORMAL
+        );
 
         label.setForeground(
                 Colores.TEXTO
         );
+
 
         panel.add(
                 label,
@@ -570,9 +935,85 @@ public class AdministracionPanel extends JPanel {
         );
 
 
-        gbc.gridx = 1;
+        gbc.gridx =
+                1;
 
-        gbc.weightx = 1;
+        gbc.weightx =
+                1;
+
+
+        campo.setPreferredSize(
+                new Dimension(
+                        500,
+                        30
+                )
+        );
+
+
+        panel.add(
+                campo,
+                gbc
+        );
+    }
+
+
+    // =========================================================
+    // AGREGAR CAMPO CLIENTE
+    // =========================================================
+
+    private void agregarCampoCliente(
+            JPanel panel,
+            GridBagConstraints gbc,
+            int columna,
+            int fila,
+            String texto,
+            JComponent campo
+    ) {
+
+        gbc.gridx =
+                columna;
+
+        gbc.gridy =
+                fila;
+
+        gbc.weightx =
+                0;
+
+
+        JLabel label =
+                new JLabel(
+                        texto
+                );
+
+        label.setFont(
+                Fuentes.NORMAL
+        );
+
+        label.setForeground(
+                Colores.TEXTO
+        );
+
+
+        panel.add(
+                label,
+                gbc
+        );
+
+
+        gbc.gridx =
+                columna + 1;
+
+        gbc.weightx =
+                1;
+
+
+        campo.setPreferredSize(
+                new Dimension(
+                        220,
+                        30
+                )
+        );
+
 
         panel.add(
                 campo,
@@ -608,24 +1049,31 @@ public class AdministracionPanel extends JPanel {
                 )
         );
 
+
         return panel;
     }
 
 
     // =========================================================
-    // MOSTRAR / OCULTAR CLIENTE
+    // MOSTRAR / OCULTAR DATOS DEL CLIENTE
     // =========================================================
 
-    public void mostrarCampoCliente(
-            boolean mostrar
-    ) {
+    public void mostrarDatosCliente() {
 
-        lblCliente.setVisible(
-                mostrar
+        panelDatosCliente.setVisible(
+                true
         );
 
-        cmbCliente.setVisible(
-                mostrar
+        revalidate();
+
+        repaint();
+    }
+
+
+    public void ocultarDatosCliente() {
+
+        panelDatosCliente.setVisible(
+                false
         );
 
         revalidate();
@@ -635,33 +1083,33 @@ public class AdministracionPanel extends JPanel {
 
 
     // =========================================================
-    // LIMPIAR FORMULARIO
+    // LIMPIAR DATOS DEL CLIENTE
     // =========================================================
 
-    public void limpiarFormulario() {
+    public void limpiarDatosCliente() {
 
-        txtNombre.setText("");
+        txtRazonSocialCliente.setText("");
 
-        txtApellido.setText("");
+        txtCuitCliente.setText("");
 
-        txtEmail.setText("");
+        txtEmailCliente.setText("");
 
-        txtPassword.setText("");
+        txtTelefonoCliente.setText("");
 
-        if (cmbRol.getItemCount() > 0) {
+        txtCalleCliente.setText("");
 
-            cmbRol.setSelectedIndex(0);
-        }
+        txtNumeroCliente.setText("");
 
-        if (cmbCliente.getItemCount() > 0) {
+        txtCiudadCliente.setText("");
 
-            cmbCliente.setSelectedIndex(0);
-        }
+        txtCodigoPostalCliente.setText("");
+
+        txtPaisCliente.setText("");
     }
 
 
     // =========================================================
-    // GETTERS
+    // GETTERS SESIONES
     // =========================================================
 
     public JTable getTablaSesiones() {
@@ -682,6 +1130,10 @@ public class AdministracionPanel extends JPanel {
     }
 
 
+    // =========================================================
+    // GETTERS USUARIO
+    // =========================================================
+
     public JTextField getTxtNombre() {
 
         return txtNombre;
@@ -700,21 +1152,15 @@ public class AdministracionPanel extends JPanel {
     }
 
 
-    public JPasswordField getTxtPassword() {
+    public JPasswordField getTxtContrasena() {
 
-        return txtPassword;
+        return txtContrasena;
     }
 
 
     public JComboBox<String> getCmbRol() {
 
         return cmbRol;
-    }
-
-
-    public JComboBox<String> getCmbCliente() {
-
-        return cmbCliente;
     }
 
 
@@ -729,6 +1175,68 @@ public class AdministracionPanel extends JPanel {
         return btnEliminar;
     }
 
+
+    // =========================================================
+    // GETTERS CLIENTE
+    // =========================================================
+
+    public JTextField getTxtRazonSocialCliente() {
+
+        return txtRazonSocialCliente;
+    }
+
+
+    public JTextField getTxtCuitCliente() {
+
+        return txtCuitCliente;
+    }
+
+
+    public JTextField getTxtEmailCliente() {
+
+        return txtEmailCliente;
+    }
+
+
+    public JTextField getTxtTelefonoCliente() {
+
+        return txtTelefonoCliente;
+    }
+
+
+    public JTextField getTxtCalleCliente() {
+
+        return txtCalleCliente;
+    }
+
+
+    public JTextField getTxtNumeroCliente() {
+
+        return txtNumeroCliente;
+    }
+
+
+    public JTextField getTxtCiudadCliente() {
+
+        return txtCiudadCliente;
+    }
+
+
+    public JTextField getTxtCodigoPostalCliente() {
+
+        return txtCodigoPostalCliente;
+    }
+
+
+    public JTextField getTxtPaisCliente() {
+
+        return txtPaisCliente;
+    }
+
+
+    // =========================================================
+    // ESTADO
+    // =========================================================
 
     public JLabel getLblEstado() {
 
