@@ -120,6 +120,189 @@ public class IncidenteService {
 
 
     // =========================================================
+    // MODIFICAR INCIDENTE
+    // =========================================================
+
+    public void modificarIncidente(
+            String id,
+            String envioId,
+            String tipo,
+            String severidad,
+            String estado,
+            String descripcion
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR INCIDENTE
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del incidente no es válido."
+        );
+
+
+        Document existente =
+                incidenteDAO.buscarPorId(
+                        id
+                );
+
+
+        if (existente == null) {
+
+            throw new IllegalArgumentException(
+                    "El incidente no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR ENVÍO
+        // -----------------------------------------------------
+
+        validarObjectId(
+                envioId,
+                "El ID del envío no es válido."
+        );
+
+
+        if (!envioDAO.existePorId(envioId)) {
+
+            throw new IllegalArgumentException(
+                    "El envío seleccionado no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR TIPO
+        // -----------------------------------------------------
+
+        if (tipo == null
+                || tipo.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El tipo de incidente es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR SEVERIDAD
+        // -----------------------------------------------------
+
+        if (severidad == null
+                || severidad.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "La severidad es obligatoria."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR ESTADO
+        // -----------------------------------------------------
+
+        if (estado == null
+                || estado.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El estado es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR DESCRIPCIÓN
+        // -----------------------------------------------------
+
+        if (descripcion == null
+                || descripcion.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "La descripción es obligatoria."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // CONSERVAR FECHA ORIGINAL
+        // -----------------------------------------------------
+
+        Date fecha =
+                existente.getDate(
+                        "fecha"
+                );
+
+
+        // -----------------------------------------------------
+        // CREAR OBJETO MODIFICADO
+        // -----------------------------------------------------
+
+        Incidente incidente =
+                new Incidente(
+                        id,
+                        envioId,
+                        tipo.trim(),
+                        fecha,
+                        severidad.trim(),
+                        estado.trim(),
+                        descripcion.trim()
+                );
+
+
+        // -----------------------------------------------------
+        // ACTUALIZAR EN MONGODB
+        // -----------------------------------------------------
+
+        incidenteDAO.modificar(
+                incidente
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR INCIDENTE
+    // =========================================================
+
+    public void eliminarIncidente(
+            String id
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR ID
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del incidente no es válido."
+        );
+
+
+        // -----------------------------------------------------
+        // VERIFICAR EXISTENCIA
+        // -----------------------------------------------------
+
+        if (!incidenteDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El incidente no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // ELIMINAR
+        // -----------------------------------------------------
+
+        incidenteDAO.eliminar(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR INCIDENTES
     // =========================================================
 

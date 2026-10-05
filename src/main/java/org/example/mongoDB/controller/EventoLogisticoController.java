@@ -42,6 +42,42 @@ public class EventoLogisticoController {
 
 
     // =========================================================
+    // MODIFICAR EVENTO
+    // =========================================================
+
+    public void modificarEvento(
+            String id,
+            String envioId,
+            String tipoEvento,
+            String ubicacion,
+            String descripcion
+    ) {
+
+        eventoService.modificarEvento(
+                id,
+                envioId,
+                tipoEvento,
+                ubicacion,
+                descripcion
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR EVENTO
+    // =========================================================
+
+    public void eliminarEvento(
+            String id
+    ) {
+
+        eventoService.eliminarEvento(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR EVENTOS
     // =========================================================
 

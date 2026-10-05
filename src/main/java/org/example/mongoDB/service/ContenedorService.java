@@ -41,6 +41,7 @@ public class ContenedorService {
             );
         }
 
+
         if (tipo == null
                 || tipo.isBlank()) {
 
@@ -48,6 +49,7 @@ public class ContenedorService {
                     "El tipo es obligatorio."
             );
         }
+
 
         if (capacidad <= 0) {
 
@@ -66,6 +68,7 @@ public class ContenedorService {
                         codigoInternacional.trim()
                 );
 
+
         if (existente != null) {
 
             throw new IllegalArgumentException(
@@ -73,6 +76,10 @@ public class ContenedorService {
             );
         }
 
+
+        // -----------------------------------------------------
+        // CREAR CONTENEDOR
+        // -----------------------------------------------------
 
         Contenedor contenedor =
                 new Contenedor(
@@ -86,6 +93,163 @@ public class ContenedorService {
 
         contenedorDAO.agregar(
                 contenedor
+        );
+    }
+
+
+    // =========================================================
+    // MODIFICAR CONTENEDOR
+    // =========================================================
+
+    public void modificarContenedor(
+            String id,
+            String codigoInternacional,
+            String tipo,
+            double capacidad,
+            String estado
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR ID
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id
+        );
+
+
+        if (!contenedorDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El contenedor no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR CÓDIGO
+        // -----------------------------------------------------
+
+        if (codigoInternacional == null
+                || codigoInternacional.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El código internacional es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR TIPO
+        // -----------------------------------------------------
+
+        if (tipo == null
+                || tipo.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El tipo es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR CAPACIDAD
+        // -----------------------------------------------------
+
+        if (capacidad <= 0) {
+
+            throw new IllegalArgumentException(
+                    "La capacidad debe ser mayor a 0."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR ESTADO
+        // -----------------------------------------------------
+
+        if (estado == null
+                || estado.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El estado es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // EVITAR CÓDIGO DUPLICADO
+        // -----------------------------------------------------
+
+        Document existente =
+                contenedorDAO.buscarPorCodigo(
+                        codigoInternacional.trim()
+                );
+
+
+        if (existente != null) {
+
+            ObjectId idExistente =
+                    existente.getObjectId(
+                            "_id"
+                    );
+
+
+            if (idExistente != null
+                    && !idExistente
+                    .toHexString()
+                    .equals(id)) {
+
+                throw new IllegalArgumentException(
+                        "Ya existe otro contenedor con ese código internacional."
+                );
+            }
+        }
+
+
+        // -----------------------------------------------------
+        // MODIFICAR CONTENEDOR
+        // -----------------------------------------------------
+
+        Contenedor contenedor =
+                new Contenedor(
+                        id,
+                        codigoInternacional.trim(),
+                        tipo.trim(),
+                        capacidad,
+                        estado.trim()
+                );
+
+
+        contenedorDAO.modificar(
+                contenedor
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR CONTENEDOR
+    // =========================================================
+
+    public void eliminarContenedor(
+            String id
+    ) {
+
+        validarObjectId(
+                id
+        );
+
+
+        if (!contenedorDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El contenedor no existe."
+            );
+        }
+
+
+        contenedorDAO.eliminar(
+                id
         );
     }
 

@@ -20,6 +20,10 @@ public class ClientesPanel extends JPanel {
 
     private final JButton btnMostrarFormulario;
 
+    private final JButton btnEditar;
+
+    private final JButton btnEliminar;
+
 
     // =========================================================
     // FORMULARIO
@@ -66,47 +70,70 @@ public class ClientesPanel extends JPanel {
         tablaClientes =
                 new JTable();
 
+
         btnActualizar =
                 new JButton("Actualizar");
+
 
         btnMostrarFormulario =
                 new JButton("+ Agregar cliente");
 
+
+        btnEditar =
+                new JButton("Editar");
+
+
+        btnEliminar =
+                new JButton("Eliminar");
+
+
         txtRazonSocial =
                 new JTextField();
+
 
         txtCuit =
                 new JTextField();
 
+
         txtEmail =
                 new JTextField();
+
 
         txtTelefono =
                 new JTextField();
 
+
         txtCalle =
                 new JTextField();
+
 
         txtNumero =
                 new JTextField();
 
+
         txtCiudad =
                 new JTextField();
+
 
         txtCodigoPostal =
                 new JTextField();
 
+
         txtPais =
                 new JTextField();
+
 
         btnAgregar =
                 new JButton("Guardar cliente");
 
+
         btnCancelar =
                 new JButton("Cancelar");
 
+
         lblEstado =
                 new JLabel(" ");
+
 
         construir();
     }
@@ -125,9 +152,11 @@ public class ClientesPanel extends JPanel {
                 )
         );
 
+
         setBackground(
                 Colores.FONDO
         );
+
 
         setBorder(
                 new EmptyBorder(
@@ -148,13 +177,16 @@ public class ClientesPanel extends JPanel {
                         "Clientes"
                 );
 
+
         titulo.setFont(
                 Fuentes.TITULO
         );
 
+
         titulo.setForeground(
                 Colores.TEXTO
         );
+
 
         add(
                 titulo,
@@ -173,6 +205,7 @@ public class ClientesPanel extends JPanel {
                                 20
                         )
                 );
+
 
         contenido.setOpaque(false);
 
@@ -194,6 +227,7 @@ public class ClientesPanel extends JPanel {
         JPanel inferior =
                 new JPanel();
 
+
         inferior.setLayout(
                 new BoxLayout(
                         inferior,
@@ -201,35 +235,80 @@ public class ClientesPanel extends JPanel {
                 )
         );
 
+
         inferior.setOpaque(false);
 
 
-        JPanel panelBotonAgregar =
+        JPanel panelBotones =
                 new JPanel(
                         new FlowLayout(
                                 FlowLayout.RIGHT
                         )
                 );
 
-        panelBotonAgregar.setOpaque(false);
 
+        panelBotones.setOpaque(false);
+
+
+        // -----------------------------------------------------
+        // BOTÓN EDITAR
+        // -----------------------------------------------------
+
+        btnEditar.setFont(
+                Fuentes.BOTON
+        );
+
+
+        btnEditar.setFocusPainted(
+                false
+        );
+
+
+        panelBotones.add(
+                btnEditar
+        );
+
+
+        // -----------------------------------------------------
+        // BOTÓN ELIMINAR
+        // -----------------------------------------------------
+
+        btnEliminar.setFont(
+                Fuentes.BOTON
+        );
+
+
+        btnEliminar.setFocusPainted(
+                false
+        );
+
+
+        panelBotones.add(
+                btnEliminar
+        );
+
+
+        // -----------------------------------------------------
+        // BOTÓN AGREGAR CLIENTE
+        // -----------------------------------------------------
 
         btnMostrarFormulario.setFont(
                 Fuentes.BOTON
         );
+
 
         btnMostrarFormulario.setFocusPainted(
                 false
         );
 
 
-        panelBotonAgregar.add(
+        panelBotones.add(
                 btnMostrarFormulario
         );
 
 
         inferior.add(
-                panelBotonAgregar
+                panelBotones
         );
 
 
@@ -239,6 +318,7 @@ public class ClientesPanel extends JPanel {
 
         panelFormulario =
                 crearPanelFormulario();
+
 
         panelFormulario.setVisible(
                 false
@@ -270,6 +350,7 @@ public class ClientesPanel extends JPanel {
                 Fuentes.NORMAL
         );
 
+
         lblEstado.setForeground(
                 Colores.TEXTO_SECUNDARIO
         );
@@ -291,6 +372,7 @@ public class ClientesPanel extends JPanel {
         JPanel panel =
                 crearPanelBase();
 
+
         panel.setLayout(
                 new BorderLayout(
                         10,
@@ -308,6 +390,7 @@ public class ClientesPanel extends JPanel {
                         new BorderLayout()
                 );
 
+
         cabecera.setOpaque(false);
 
 
@@ -316,9 +399,11 @@ public class ClientesPanel extends JPanel {
                         "Clientes registrados"
                 );
 
+
         titulo.setFont(
                 Fuentes.LABEL
         );
+
 
         titulo.setForeground(
                 Colores.TEXTO
@@ -329,6 +414,7 @@ public class ClientesPanel extends JPanel {
                 Fuentes.BOTON
         );
 
+
         btnActualizar.setFocusPainted(
                 false
         );
@@ -338,6 +424,7 @@ public class ClientesPanel extends JPanel {
                 titulo,
                 BorderLayout.WEST
         );
+
 
         cabecera.add(
                 btnActualizar,
@@ -384,21 +471,27 @@ public class ClientesPanel extends JPanel {
                 modelo
         );
 
+
         tablaClientes.setRowHeight(
                 30
         );
+
 
         tablaClientes.setFont(
                 Fuentes.NORMAL
         );
 
+
         tablaClientes.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
 
+
         tablaClientes
                 .getTableHeader()
-                .setReorderingAllowed(false);
+                .setReorderingAllowed(
+                        false
+                );
 
 
         JScrollPane scroll =
@@ -426,6 +519,7 @@ public class ClientesPanel extends JPanel {
         JPanel panel =
                 crearPanelBase();
 
+
         panel.setLayout(
                 new BorderLayout(
                         10,
@@ -436,12 +530,14 @@ public class ClientesPanel extends JPanel {
 
         JLabel titulo =
                 new JLabel(
-                        "Nuevo cliente"
+                        "Datos del cliente"
                 );
+
 
         titulo.setFont(
                 Fuentes.LABEL
         );
+
 
         titulo.setForeground(
                 Colores.TEXTO
@@ -463,11 +559,13 @@ public class ClientesPanel extends JPanel {
                         new GridBagLayout()
                 );
 
+
         formulario.setOpaque(false);
 
 
         GridBagConstraints gbc =
                 new GridBagConstraints();
+
 
         gbc.insets =
                 new Insets(
@@ -476,6 +574,7 @@ public class ClientesPanel extends JPanel {
                         5,
                         5
                 );
+
 
         gbc.fill =
                 GridBagConstraints.HORIZONTAL;
@@ -494,6 +593,7 @@ public class ClientesPanel extends JPanel {
                 txtRazonSocial
         );
 
+
         agregarCampo(
                 formulario,
                 gbc,
@@ -502,6 +602,7 @@ public class ClientesPanel extends JPanel {
                 "CUIT:",
                 txtCuit
         );
+
 
         agregarCampo(
                 formulario,
@@ -512,6 +613,7 @@ public class ClientesPanel extends JPanel {
                 txtEmail
         );
 
+
         agregarCampo(
                 formulario,
                 gbc,
@@ -520,6 +622,7 @@ public class ClientesPanel extends JPanel {
                 "Teléfono:",
                 txtTelefono
         );
+
 
         agregarCampo(
                 formulario,
@@ -544,6 +647,7 @@ public class ClientesPanel extends JPanel {
                 txtCalle
         );
 
+
         agregarCampo(
                 formulario,
                 gbc,
@@ -553,6 +657,7 @@ public class ClientesPanel extends JPanel {
                 txtNumero
         );
 
+
         agregarCampo(
                 formulario,
                 gbc,
@@ -561,6 +666,7 @@ public class ClientesPanel extends JPanel {
                 "Ciudad:",
                 txtCiudad
         );
+
 
         agregarCampo(
                 formulario,
@@ -579,7 +685,7 @@ public class ClientesPanel extends JPanel {
 
 
         // =====================================================
-        // BOTONES
+        // BOTONES DEL FORMULARIO
         // =====================================================
 
         JPanel botones =
@@ -589,12 +695,14 @@ public class ClientesPanel extends JPanel {
                         )
                 );
 
+
         botones.setOpaque(false);
 
 
         btnCancelar.setFont(
                 Fuentes.BOTON
         );
+
 
         btnCancelar.setFocusPainted(
                 false
@@ -605,6 +713,7 @@ public class ClientesPanel extends JPanel {
                 Fuentes.BOTON
         );
 
+
         btnAgregar.setFocusPainted(
                 false
         );
@@ -613,6 +722,7 @@ public class ClientesPanel extends JPanel {
         botones.add(
                 btnCancelar
         );
+
 
         botones.add(
                 btnAgregar
@@ -639,9 +749,11 @@ public class ClientesPanel extends JPanel {
                 true
         );
 
+
         btnMostrarFormulario.setVisible(
                 false
         );
+
 
         revalidate();
 
@@ -659,9 +771,11 @@ public class ClientesPanel extends JPanel {
                 false
         );
 
+
         btnMostrarFormulario.setVisible(
                 true
         );
+
 
         revalidate();
 
@@ -685,8 +799,10 @@ public class ClientesPanel extends JPanel {
         gbc.gridx =
                 columna;
 
+
         gbc.gridy =
                 fila;
+
 
         gbc.weightx =
                 0;
@@ -697,9 +813,11 @@ public class ClientesPanel extends JPanel {
                         texto
                 );
 
+
         label.setFont(
                 Fuentes.NORMAL
         );
+
 
         label.setForeground(
                 Colores.TEXTO
@@ -714,6 +832,7 @@ public class ClientesPanel extends JPanel {
 
         gbc.gridx =
                 columna + 1;
+
 
         gbc.weightx =
                 1;
@@ -743,9 +862,11 @@ public class ClientesPanel extends JPanel {
         JPanel panel =
                 new JPanel();
 
+
         panel.setBackground(
                 Colores.SUPERFICIE
         );
+
 
         panel.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -760,6 +881,7 @@ public class ClientesPanel extends JPanel {
                         )
                 )
         );
+
 
         return panel;
     }
@@ -810,6 +932,18 @@ public class ClientesPanel extends JPanel {
     public JButton getBtnMostrarFormulario() {
 
         return btnMostrarFormulario;
+    }
+
+
+    public JButton getBtnEditar() {
+
+        return btnEditar;
+    }
+
+
+    public JButton getBtnEliminar() {
+
+        return btnEliminar;
     }
 
 

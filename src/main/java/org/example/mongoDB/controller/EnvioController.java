@@ -49,6 +49,50 @@ public class EnvioController {
 
 
     // =========================================================
+    // MODIFICAR ENVÍO
+    // =========================================================
+
+    public void modificarEnvio(
+            String id,
+            String clienteId,
+            List<String> contenedoresIds,
+            String ciudadOrigen,
+            String paisOrigen,
+            String ciudadDestino,
+            String paisDestino,
+            String estado,
+            String prioridad
+    ) {
+
+        envioService.modificarEnvio(
+                id,
+                clienteId,
+                contenedoresIds,
+                ciudadOrigen,
+                paisOrigen,
+                ciudadDestino,
+                paisDestino,
+                estado,
+                prioridad
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR ENVÍO
+    // =========================================================
+
+    public void eliminarEnvio(
+            String id
+    ) {
+
+        envioService.eliminarEnvio(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR ENVÍOS
     // =========================================================
 

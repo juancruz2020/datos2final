@@ -117,4 +117,40 @@ public class IncidenteController {
         return incidenteService
                 .obtenerTodosLosIds();
     }
+    // =========================================================
+// MODIFICAR INCIDENTE
+// =========================================================
+
+public void modificarIncidente(
+        String id,
+        String envioId,
+        String tipo,
+        String severidad,
+        String estado,
+        String descripcion
+) {
+
+    incidenteService.modificarIncidente(
+            id,
+            envioId,
+            tipo,
+            severidad,
+            estado,
+            descripcion
+    );
+}
+
+
+// =========================================================
+// ELIMINAR INCIDENTE
+// =========================================================
+
+public void eliminarIncidente(
+        String id
+) {
+
+    incidenteService.eliminarIncidente(
+            id
+    );
+}
 }

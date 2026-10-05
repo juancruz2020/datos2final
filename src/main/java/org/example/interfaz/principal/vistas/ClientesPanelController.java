@@ -1,10 +1,12 @@
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.ClienteController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClientesPanelController {
@@ -12,6 +14,10 @@ public class ClientesPanelController {
     private final ClientesPanel view;
 
     private final ClienteController controller;
+
+    private final List<String> clientesIds;
+
+    private String clienteEditandoId;
 
 
     // =========================================================
@@ -27,6 +33,12 @@ public class ClientesPanelController {
         this.controller =
                 new ClienteController();
 
+        this.clientesIds =
+                new ArrayList<>();
+
+        this.clienteEditandoId =
+                null;
+
         configurarEventos();
 
         cargarClientes();
@@ -39,29 +51,29 @@ public class ClientesPanelController {
 
     private void configurarEventos() {
 
-        // -----------------------------------------------------
-        // ACTUALIZAR LISTADO
-        // -----------------------------------------------------
-
         view.getBtnActualizar()
                 .addActionListener(
                         e -> cargarClientes()
                 );
 
 
-        // -----------------------------------------------------
-        // MOSTRAR FORMULARIO
-        // -----------------------------------------------------
-
         view.getBtnMostrarFormulario()
                 .addActionListener(
-                        e -> view.mostrarFormulario()
+                        e -> prepararNuevoCliente()
                 );
 
 
-        // -----------------------------------------------------
-        // CANCELAR
-        // -----------------------------------------------------
+        view.getBtnEditar()
+                .addActionListener(
+                        e -> editarClienteSeleccionado()
+                );
+
+
+        view.getBtnEliminar()
+                .addActionListener(
+                        e -> eliminarClienteSeleccionado()
+                );
+
 
         view.getBtnCancelar()
                 .addActionListener(
@@ -69,13 +81,9 @@ public class ClientesPanelController {
                 );
 
 
-        // -----------------------------------------------------
-        // GUARDAR CLIENTE
-        // -----------------------------------------------------
-
         view.getBtnAgregar()
                 .addActionListener(
-                        e -> agregarCliente()
+                        e -> guardarCliente()
                 );
     }
 
@@ -100,8 +108,30 @@ public class ClientesPanelController {
 
             modelo.setRowCount(0);
 
+            clientesIds.clear();
+
 
             for (Document cliente : clientes) {
+
+                ObjectId id =
+                        cliente.getObjectId(
+                                "_id"
+                        );
+
+
+                if (id != null) {
+
+                    clientesIds.add(
+                            id.toHexString()
+                    );
+
+                } else {
+
+                    clientesIds.add(
+                            null
+                    );
+                }
+
 
                 Document direccion =
                         cliente.get(
@@ -171,22 +201,183 @@ public class ClientesPanelController {
 
 
     // =========================================================
-    // CANCELAR
+    // PREPARAR NUEVO CLIENTE
     // =========================================================
 
-    private void cancelar() {
+    private void prepararNuevoCliente() {
+
+        clienteEditandoId =
+                null;
 
         view.limpiarFormulario();
 
-        view.ocultarFormulario();
+        view.getBtnAgregar()
+                .setText(
+                        "Guardar cliente"
+                );
+
+        view.mostrarFormulario();
     }
 
 
     // =========================================================
-    // AGREGAR CLIENTE
+    // EDITAR CLIENTE SELECCIONADO
     // =========================================================
 
-    private void agregarCliente() {
+    private void editarClienteSeleccionado() {
+
+        int fila =
+                view.getTablaClientes()
+                        .getSelectedRow();
+
+
+        if (fila < 0) {
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Seleccioná un cliente para editar.",
+                    "Clientes",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+
+        try {
+
+            clienteEditandoId =
+                    clientesIds.get(
+                            fila
+                    );
+
+
+            Document cliente =
+                    controller.buscarPorId(
+                            clienteEditandoId
+                    );
+
+
+            Document direccion =
+                    cliente.get(
+                            "direccion",
+                            Document.class
+                    );
+
+
+            view.getTxtRazonSocial()
+                    .setText(
+                            cliente.getString(
+                                    "razon_social"
+                            )
+                    );
+
+
+            view.getTxtCuit()
+                    .setText(
+                            cliente.getString(
+                                    "cuit"
+                            )
+                    );
+
+
+            view.getTxtEmail()
+                    .setText(
+                            cliente.getString(
+                                    "email"
+                            )
+                    );
+
+
+            view.getTxtTelefono()
+                    .setText(
+                            cliente.getString(
+                                    "telefono"
+                            )
+                    );
+
+
+            view.getTxtPais()
+                    .setText(
+                            cliente.getString(
+                                    "pais"
+                            )
+                    );
+
+
+            if (direccion != null) {
+
+                view.getTxtCalle()
+                        .setText(
+                                direccion.getString(
+                                        "calle"
+                                )
+                        );
+
+
+                view.getTxtNumero()
+                        .setText(
+                                direccion.getString(
+                                        "numero"
+                                )
+                        );
+
+
+                view.getTxtCiudad()
+                        .setText(
+                                direccion.getString(
+                                        "ciudad"
+                                )
+                        );
+
+
+                view.getTxtCodigoPostal()
+                        .setText(
+                                direccion.getString(
+                                        "codigo_postal"
+                                )
+                        );
+
+            } else {
+
+                view.getTxtCalle()
+                        .setText("");
+
+                view.getTxtNumero()
+                        .setText("");
+
+                view.getTxtCiudad()
+                        .setText("");
+
+                view.getTxtCodigoPostal()
+                        .setText("");
+            }
+
+
+            view.getBtnAgregar()
+                    .setText(
+                            "Guardar cambios"
+                    );
+
+
+            view.mostrarFormulario();
+
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo cargar el cliente.",
+                    e
+            );
+        }
+    }
+
+
+    // =========================================================
+    // GUARDAR CLIENTE
+    // =========================================================
+
+    private void guardarCliente() {
 
         String razonSocial =
                 view.getTxtRazonSocial()
@@ -236,44 +427,86 @@ public class ClientesPanelController {
 
         try {
 
-            controller.crearCliente(
-                    razonSocial,
-                    cuit,
-                    email,
-                    telefono,
-                    calle,
-                    numero,
-                    ciudad,
-                    codigoPostal,
-                    pais
-            );
+            if (clienteEditandoId == null) {
+
+                controller.crearCliente(
+                        razonSocial,
+                        cuit,
+                        email,
+                        telefono,
+                        calle,
+                        numero,
+                        ciudad,
+                        codigoPostal,
+                        pais
+                );
 
 
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Cliente agregado correctamente.",
-                    "Clientes",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+                JOptionPane.showMessageDialog(
+                        view,
+                        "Cliente agregado correctamente.",
+                        "Clientes",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+            } else {
+
+                Document actual =
+                        controller.buscarPorId(
+                                clienteEditandoId
+                        );
 
 
-            // -------------------------------------------------
-            // LIMPIAR
-            // -------------------------------------------------
+                String estado =
+                        actual.getString(
+                                "estado"
+                        );
+
+
+                if (estado == null
+                        || estado.isBlank()) {
+
+                    estado =
+                            "ACTIVO";
+                }
+
+
+                controller.modificarCliente(
+                        clienteEditandoId,
+                        razonSocial,
+                        cuit,
+                        email,
+                        telefono,
+                        calle,
+                        numero,
+                        ciudad,
+                        codigoPostal,
+                        pais,
+                        estado
+                );
+
+
+                JOptionPane.showMessageDialog(
+                        view,
+                        "Cliente modificado correctamente.",
+                        "Clientes",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+
+
+            clienteEditandoId =
+                    null;
+
 
             view.limpiarFormulario();
 
-
-            // -------------------------------------------------
-            // OCULTAR FORMULARIO
-            // -------------------------------------------------
+            view.getBtnAgregar()
+                    .setText(
+                            "Guardar cliente"
+                    );
 
             view.ocultarFormulario();
-
-
-            // -------------------------------------------------
-            // ACTUALIZAR LISTADO
-            // -------------------------------------------------
 
             cargarClientes();
 
@@ -281,10 +514,125 @@ public class ClientesPanelController {
         } catch (Exception e) {
 
             mostrarError(
-                    "No se pudo agregar el cliente.",
+                    clienteEditandoId == null
+                            ? "No se pudo agregar el cliente."
+                            : "No se pudo modificar el cliente.",
                     e
             );
         }
+    }
+
+
+    // =========================================================
+    // ELIMINAR CLIENTE
+    // =========================================================
+
+    private void eliminarClienteSeleccionado() {
+
+        int fila =
+                view.getTablaClientes()
+                        .getSelectedRow();
+
+
+        if (fila < 0) {
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Seleccioná un cliente para eliminar.",
+                    "Clientes",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+
+        String clienteId =
+                clientesIds.get(
+                        fila
+                );
+
+
+        String razonSocial =
+                String.valueOf(
+                        view.getTablaClientes()
+                                .getValueAt(
+                                        fila,
+                                        0
+                                )
+                );
+
+
+        int opcion =
+                JOptionPane.showConfirmDialog(
+                        view,
+                        "¿Seguro que querés eliminar al cliente \""
+                                + razonSocial
+                                + "\"?",
+                        "Eliminar cliente",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+
+        if (opcion != JOptionPane.YES_OPTION) {
+
+            return;
+        }
+
+
+        try {
+
+            controller.eliminarCliente(
+                    clienteId
+            );
+
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Cliente eliminado correctamente.",
+                    "Clientes",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+
+            clienteEditandoId =
+                    null;
+
+            view.limpiarFormulario();
+
+            view.ocultarFormulario();
+
+            cargarClientes();
+
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo eliminar el cliente.",
+                    e
+            );
+        }
+    }
+
+
+    // =========================================================
+    // CANCELAR
+    // =========================================================
+
+    private void cancelar() {
+
+        clienteEditandoId =
+                null;
+
+        view.limpiarFormulario();
+
+        view.getBtnAgregar()
+                .setText(
+                        "Guardar cliente"
+                );
+
+        view.ocultarFormulario();
     }
 
 

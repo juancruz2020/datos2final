@@ -7,9 +7,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // Generar datos de prueba en MongoDB
-        GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
-        generador.generarDatos();
+        // Para cargar datos de prueba manualmente,
+        // descomentar estas dos líneas:
+        //
+        // GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
+        // generador.generarDatos();
+
         App.iniciar();
     }
 }

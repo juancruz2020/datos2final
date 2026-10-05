@@ -100,6 +100,169 @@ public class SensorService {
 
 
     // =========================================================
+    // MODIFICAR SENSOR
+    // =========================================================
+
+    public void modificarSensor(
+            String id,
+            String contenedorId,
+            String tipo,
+            String fabricante,
+            Date fechaInstalacion,
+            String estado
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR SENSOR
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del sensor no es válido."
+        );
+
+
+        if (!sensorDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El sensor no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR CONTENEDOR
+        // -----------------------------------------------------
+
+        validarObjectId(
+                contenedorId,
+                "El ID del contenedor no es válido."
+        );
+
+
+        if (!contenedorDAO.existePorId(
+                contenedorId
+        )) {
+
+            throw new IllegalArgumentException(
+                    "El contenedor seleccionado no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR TIPO
+        // -----------------------------------------------------
+
+        if (tipo == null
+                || tipo.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El tipo de sensor es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR FABRICANTE
+        // -----------------------------------------------------
+
+        if (fabricante == null
+                || fabricante.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El fabricante es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR FECHA
+        // -----------------------------------------------------
+
+        if (fechaInstalacion == null) {
+
+            throw new IllegalArgumentException(
+                    "La fecha de instalación es obligatoria."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR ESTADO
+        // -----------------------------------------------------
+
+        if (estado == null
+                || estado.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El estado es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // CREAR SENSOR MODIFICADO
+        // -----------------------------------------------------
+
+        Sensor sensor =
+                new Sensor(
+                        id,
+                        contenedorId,
+                        tipo.trim(),
+                        fabricante.trim(),
+                        fechaInstalacion,
+                        estado.trim()
+                );
+
+
+        sensorDAO.modificar(
+                sensor
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR SENSOR
+    // =========================================================
+
+    public void eliminarSensor(
+            String id
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR ID
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del sensor no es válido."
+        );
+
+
+        // -----------------------------------------------------
+        // VERIFICAR QUE EXISTA
+        // -----------------------------------------------------
+
+        if (!sensorDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El sensor no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // ELIMINAR
+        // -----------------------------------------------------
+
+        sensorDAO.eliminar(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR SENSORES
     // =========================================================
 

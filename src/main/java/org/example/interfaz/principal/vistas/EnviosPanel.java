@@ -17,6 +17,8 @@ public class EnviosPanel extends JPanel {
 
     private JButton btnActualizar;
     private JButton btnMostrarFormulario;
+    private JButton btnEditar;
+    private JButton btnEliminar;
 
     private JLabel lblEstado;
 
@@ -26,6 +28,8 @@ public class EnviosPanel extends JPanel {
     // =========================================================
 
     private JPanel panelFormulario;
+
+    private JLabel lblTituloFormulario;
 
     private JComboBox<String> cmbCliente;
 
@@ -37,6 +41,7 @@ public class EnviosPanel extends JPanel {
     private JTextField txtCiudadDestino;
     private JTextField txtPaisDestino;
 
+    private JComboBox<String> cmbEstado;
     private JComboBox<String> cmbPrioridad;
 
     private JButton btnGuardar;
@@ -97,7 +102,6 @@ public class EnviosPanel extends JPanel {
                 Colores.TEXTO
         );
 
-
         add(
                 titulo,
                 BorderLayout.NORTH
@@ -122,18 +126,15 @@ public class EnviosPanel extends JPanel {
                 false
         );
 
-
         centro.add(
                 construirPanelTabla()
         );
-
 
         centro.add(
                 Box.createVerticalStrut(
                         20
                 )
         );
-
 
         panelFormulario =
                 construirFormulario();
@@ -142,11 +143,9 @@ public class EnviosPanel extends JPanel {
                 false
         );
 
-
         centro.add(
                 panelFormulario
         );
-
 
         add(
                 centro,
@@ -170,7 +169,6 @@ public class EnviosPanel extends JPanel {
         lblEstado.setForeground(
                 Colores.TEXTO_SECUNDARIO
         );
-
 
         add(
                 lblEstado,
@@ -225,7 +223,6 @@ public class EnviosPanel extends JPanel {
                 false
         );
 
-
         JLabel subtitulo =
                 new JLabel(
                         "Envíos registrados"
@@ -235,12 +232,10 @@ public class EnviosPanel extends JPanel {
                 Fuentes.LABEL
         );
 
-
         btnActualizar =
                 new JButton(
                         "Actualizar"
                 );
-
 
         cabecera.add(
                 subtitulo,
@@ -251,7 +246,6 @@ public class EnviosPanel extends JPanel {
                 btnActualizar,
                 BorderLayout.EAST
         );
-
 
         panel.add(
                 cabecera,
@@ -287,12 +281,10 @@ public class EnviosPanel extends JPanel {
                     }
                 };
 
-
         tablaEnvios =
                 new JTable(
                         modelo
                 );
-
 
         tablaEnvios.setRowHeight(
                 30
@@ -312,12 +304,14 @@ public class EnviosPanel extends JPanel {
                         false
                 );
 
+        tablaEnvios.setSelectionMode(
+                ListSelectionModel.SINGLE_SELECTION
+        );
 
         JScrollPane scroll =
                 new JScrollPane(
                         tablaEnvios
                 );
-
 
         scroll.setPreferredSize(
                 new Dimension(
@@ -326,7 +320,6 @@ public class EnviosPanel extends JPanel {
                 )
         );
 
-
         panel.add(
                 scroll,
                 BorderLayout.CENTER
@@ -334,7 +327,7 @@ public class EnviosPanel extends JPanel {
 
 
         // =====================================================
-        // AGREGAR
+        // ACCIONES
         // =====================================================
 
         JPanel acciones =
@@ -348,23 +341,37 @@ public class EnviosPanel extends JPanel {
                 false
         );
 
+        btnEditar =
+                new JButton(
+                        "Editar"
+                );
+
+        btnEliminar =
+                new JButton(
+                        "Eliminar"
+                );
 
         btnMostrarFormulario =
                 new JButton(
                         "+ Agregar envío"
                 );
 
+        acciones.add(
+                btnEditar
+        );
+
+        acciones.add(
+                btnEliminar
+        );
 
         acciones.add(
                 btnMostrarFormulario
         );
 
-
         panel.add(
                 acciones,
                 BorderLayout.SOUTH
         );
-
 
         return panel;
     }
@@ -381,11 +388,9 @@ public class EnviosPanel extends JPanel {
                         new GridBagLayout()
                 );
 
-
         panel.setBackground(
                 Colores.SUPERFICIE
         );
-
 
         panel.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -401,10 +406,8 @@ public class EnviosPanel extends JPanel {
                 )
         );
 
-
         GridBagConstraints gbc =
                 new GridBagConstraints();
-
 
         gbc.insets =
                 new Insets(
@@ -414,7 +417,6 @@ public class EnviosPanel extends JPanel {
                         5
                 );
 
-
         gbc.fill =
                 GridBagConstraints.HORIZONTAL;
 
@@ -423,27 +425,24 @@ public class EnviosPanel extends JPanel {
         // TÍTULO
         // =====================================================
 
-        JLabel titulo =
+        lblTituloFormulario =
                 new JLabel(
                         "Nuevo envío"
                 );
 
-        titulo.setFont(
+        lblTituloFormulario.setFont(
                 Fuentes.LABEL
         );
-
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.weightx = 1;
 
-
         panel.add(
-                titulo,
+                lblTituloFormulario,
                 gbc
         );
-
 
         gbc.gridwidth = 1;
 
@@ -454,7 +453,6 @@ public class EnviosPanel extends JPanel {
 
         cmbCliente =
                 new JComboBox<>();
-
 
         agregarCampo(
                 panel,
@@ -472,22 +470,18 @@ public class EnviosPanel extends JPanel {
         listaContenedores =
                 new JList<>();
 
-
         listaContenedores.setSelectionMode(
                 ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
         );
-
 
         listaContenedores.setVisibleRowCount(
                 4
         );
 
-
         JScrollPane scrollContenedores =
                 new JScrollPane(
                         listaContenedores
                 );
-
 
         agregarCampo(
                 panel,
@@ -505,7 +499,6 @@ public class EnviosPanel extends JPanel {
         txtCiudadOrigen =
                 new JTextField();
 
-
         agregarCampo(
                 panel,
                 gbc,
@@ -514,10 +507,8 @@ public class EnviosPanel extends JPanel {
                 txtCiudadOrigen
         );
 
-
         txtPaisOrigen =
                 new JTextField();
-
 
         agregarCampo(
                 panel,
@@ -535,7 +526,6 @@ public class EnviosPanel extends JPanel {
         txtCiudadDestino =
                 new JTextField();
 
-
         agregarCampo(
                 panel,
                 gbc,
@@ -544,10 +534,8 @@ public class EnviosPanel extends JPanel {
                 txtCiudadDestino
         );
 
-
         txtPaisDestino =
                 new JTextField();
-
 
         agregarCampo(
                 panel,
@@ -555,6 +543,30 @@ public class EnviosPanel extends JPanel {
                 6,
                 "País destino:",
                 txtPaisDestino
+        );
+
+
+        // =====================================================
+        // ESTADO
+        // =====================================================
+
+        cmbEstado =
+                new JComboBox<>(
+                        new String[]{
+                                "PENDIENTE",
+                                "EN_TRANSITO",
+                                "DEMORADO",
+                                "ENTREGADO",
+                                "CANCELADO"
+                        }
+                );
+
+        agregarCampo(
+                panel,
+                gbc,
+                7,
+                "Estado:",
+                cmbEstado
         );
 
 
@@ -571,11 +583,10 @@ public class EnviosPanel extends JPanel {
                         }
                 );
 
-
         agregarCampo(
                 panel,
                 gbc,
-                7,
+                8,
                 "Prioridad:",
                 cmbPrioridad
         );
@@ -596,18 +607,15 @@ public class EnviosPanel extends JPanel {
                 false
         );
 
-
         btnCancelar =
                 new JButton(
                         "Cancelar"
                 );
 
-
         btnGuardar =
                 new JButton(
                         "Guardar envío"
                 );
-
 
         botones.add(
                 btnCancelar
@@ -617,18 +625,15 @@ public class EnviosPanel extends JPanel {
                 btnGuardar
         );
 
-
         gbc.gridx = 0;
-        gbc.gridy = 8;
+        gbc.gridy = 9;
         gbc.gridwidth = 2;
         gbc.weightx = 1;
-
 
         panel.add(
                 botones,
                 gbc
         );
-
 
         return panel;
     }
@@ -655,21 +660,17 @@ public class EnviosPanel extends JPanel {
                 Fuentes.NORMAL
         );
 
-
         gbc.gridx = 0;
         gbc.gridy = fila;
         gbc.weightx = 0;
-
 
         panel.add(
                 label,
                 gbc
         );
 
-
         gbc.gridx = 1;
         gbc.weightx = 1;
-
 
         componente.setPreferredSize(
                 new Dimension(
@@ -679,7 +680,6 @@ public class EnviosPanel extends JPanel {
                                 : 30
                 )
         );
-
 
         panel.add(
                 componente,
@@ -702,9 +702,7 @@ public class EnviosPanel extends JPanel {
                 false
         );
 
-
         revalidate();
-
         repaint();
     }
 
@@ -723,10 +721,52 @@ public class EnviosPanel extends JPanel {
                 true
         );
 
-
         revalidate();
-
         repaint();
+    }
+
+
+    // =========================================================
+    // MODO NUEVO
+    // =========================================================
+
+    public void prepararNuevoEnvio() {
+
+        lblTituloFormulario.setText(
+                "Nuevo envío"
+        );
+
+        btnGuardar.setText(
+                "Guardar envío"
+        );
+
+        cmbEstado.setSelectedItem(
+                "PENDIENTE"
+        );
+
+        cmbEstado.setEnabled(
+                false
+        );
+    }
+
+
+    // =========================================================
+    // MODO EDICIÓN
+    // =========================================================
+
+    public void prepararEdicion() {
+
+        lblTituloFormulario.setText(
+                "Editar envío"
+        );
+
+        btnGuardar.setText(
+                "Guardar cambios"
+        );
+
+        cmbEstado.setEnabled(
+                true
+        );
     }
 
 
@@ -743,9 +783,7 @@ public class EnviosPanel extends JPanel {
             );
         }
 
-
         listaContenedores.clearSelection();
-
 
         txtCiudadOrigen.setText("");
 
@@ -755,6 +793,12 @@ public class EnviosPanel extends JPanel {
 
         txtPaisDestino.setText("");
 
+        if (cmbEstado.getItemCount() > 0) {
+
+            cmbEstado.setSelectedItem(
+                    "PENDIENTE"
+            );
+        }
 
         if (cmbPrioridad.getItemCount() > 0) {
 
@@ -784,6 +828,18 @@ public class EnviosPanel extends JPanel {
     public JButton getBtnMostrarFormulario() {
 
         return btnMostrarFormulario;
+    }
+
+
+    public JButton getBtnEditar() {
+
+        return btnEditar;
+    }
+
+
+    public JButton getBtnEliminar() {
+
+        return btnEliminar;
     }
 
 
@@ -832,6 +888,12 @@ public class EnviosPanel extends JPanel {
     public JTextField getTxtPaisDestino() {
 
         return txtPaisDestino;
+    }
+
+
+    public JComboBox<String> getCmbEstado() {
+
+        return cmbEstado;
     }
 
 

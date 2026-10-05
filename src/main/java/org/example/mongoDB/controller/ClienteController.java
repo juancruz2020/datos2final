@@ -52,6 +52,54 @@ public class ClienteController {
 
 
     // =========================================================
+    // MODIFICAR CLIENTE
+    // =========================================================
+
+    public void modificarCliente(
+            String clienteId,
+            String razonSocial,
+            String cuit,
+            String email,
+            String telefono,
+            String calle,
+            String numero,
+            String ciudad,
+            String codigoPostal,
+            String pais,
+            String estado
+    ) {
+
+        clienteService.modificarCliente(
+                clienteId,
+                razonSocial,
+                cuit,
+                email,
+                telefono,
+                calle,
+                numero,
+                ciudad,
+                codigoPostal,
+                pais,
+                estado
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR CLIENTE
+    // =========================================================
+
+    public void eliminarCliente(
+            String clienteId
+    ) {
+
+        clienteService.eliminarCliente(
+                clienteId
+        );
+    }
+
+
+    // =========================================================
     // LISTAR CLIENTES
     // =========================================================
 

@@ -16,9 +16,7 @@ import java.util.List;
 public class EnvioService {
 
     private final EnvioMongoDAO envioDAO;
-
     private final ClienteMongoDAO clienteDAO;
-
     private final ContenedorMongoDAO contenedorDAO;
 
 
@@ -62,12 +60,10 @@ public class EnvioService {
                 "El ID del cliente no es válido."
         );
 
-
         Document cliente =
                 clienteDAO.buscarPorId(
                         clienteId
                 );
-
 
         if (cliente == null) {
 
@@ -81,89 +77,49 @@ public class EnvioService {
         // VALIDAR CONTENEDORES
         // -----------------------------------------------------
 
-        if (contenedoresIds == null
-                || contenedoresIds.isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "Debe seleccionar al menos un contenedor."
-            );
-        }
-
-
-        for (String contenedorId : contenedoresIds) {
-
-            validarObjectId(
-                    contenedorId,
-                    "Uno de los IDs de contenedor no es válido."
-            );
-
-
-            if (!contenedorDAO.existePorId(
-                    contenedorId
-            )) {
-
-                throw new IllegalArgumentException(
-                        "Uno de los contenedores seleccionados no existe."
-                );
-            }
-        }
+        validarContenedores(
+                contenedoresIds
+        );
 
 
         // -----------------------------------------------------
         // VALIDAR ORIGEN
         // -----------------------------------------------------
 
-        if (ciudadOrigen == null
-                || ciudadOrigen.isBlank()) {
+        validarTexto(
+                ciudadOrigen,
+                "La ciudad de origen es obligatoria."
+        );
 
-            throw new IllegalArgumentException(
-                    "La ciudad de origen es obligatoria."
-            );
-        }
-
-
-        if (paisOrigen == null
-                || paisOrigen.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El país de origen es obligatorio."
-            );
-        }
+        validarTexto(
+                paisOrigen,
+                "El país de origen es obligatorio."
+        );
 
 
         // -----------------------------------------------------
         // VALIDAR DESTINO
         // -----------------------------------------------------
 
-        if (ciudadDestino == null
-                || ciudadDestino.isBlank()) {
+        validarTexto(
+                ciudadDestino,
+                "La ciudad de destino es obligatoria."
+        );
 
-            throw new IllegalArgumentException(
-                    "La ciudad de destino es obligatoria."
-            );
-        }
-
-
-        if (paisDestino == null
-                || paisDestino.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El país de destino es obligatorio."
-            );
-        }
+        validarTexto(
+                paisDestino,
+                "El país de destino es obligatorio."
+        );
 
 
         // -----------------------------------------------------
         // VALIDAR PRIORIDAD
         // -----------------------------------------------------
 
-        if (prioridad == null
-                || prioridad.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "La prioridad es obligatoria."
-            );
-        }
+        validarTexto(
+                prioridad,
+                "La prioridad es obligatoria."
+        );
 
 
         // -----------------------------------------------------
@@ -175,7 +131,6 @@ public class EnvioService {
                         ciudadOrigen.trim(),
                         paisOrigen.trim()
                 );
-
 
         Ubicacion destino =
                 new Ubicacion(
@@ -209,6 +164,217 @@ public class EnvioService {
 
 
     // =========================================================
+    // MODIFICAR ENVÍO
+    // =========================================================
+
+    public void modificarEnvio(
+            String id,
+            String clienteId,
+            List<String> contenedoresIds,
+            String ciudadOrigen,
+            String paisOrigen,
+            String ciudadDestino,
+            String paisDestino,
+            String estado,
+            String prioridad
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR ENVÍO
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del envío no es válido."
+        );
+
+        Document existente =
+                envioDAO.buscarPorId(
+                        id
+                );
+
+        if (existente == null) {
+
+            throw new IllegalArgumentException(
+                    "El envío no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR CLIENTE
+        // -----------------------------------------------------
+
+        validarObjectId(
+                clienteId,
+                "El ID del cliente no es válido."
+        );
+
+        if (clienteDAO.buscarPorId(clienteId) == null) {
+
+            throw new IllegalArgumentException(
+                    "El cliente seleccionado no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR CONTENEDORES
+        // -----------------------------------------------------
+
+        validarContenedores(
+                contenedoresIds
+        );
+
+
+        // -----------------------------------------------------
+        // VALIDAR ORIGEN
+        // -----------------------------------------------------
+
+        validarTexto(
+                ciudadOrigen,
+                "La ciudad de origen es obligatoria."
+        );
+
+        validarTexto(
+                paisOrigen,
+                "El país de origen es obligatorio."
+        );
+
+
+        // -----------------------------------------------------
+        // VALIDAR DESTINO
+        // -----------------------------------------------------
+
+        validarTexto(
+                ciudadDestino,
+                "La ciudad de destino es obligatoria."
+        );
+
+        validarTexto(
+                paisDestino,
+                "El país de destino es obligatorio."
+        );
+
+
+        // -----------------------------------------------------
+        // VALIDAR ESTADO
+        // -----------------------------------------------------
+
+        validarTexto(
+                estado,
+                "El estado es obligatorio."
+        );
+
+
+        // -----------------------------------------------------
+        // VALIDAR PRIORIDAD
+        // -----------------------------------------------------
+
+        validarTexto(
+                prioridad,
+                "La prioridad es obligatoria."
+        );
+
+
+        // -----------------------------------------------------
+        // CREAR UBICACIONES
+        // -----------------------------------------------------
+
+        Ubicacion origen =
+                new Ubicacion(
+                        ciudadOrigen.trim(),
+                        paisOrigen.trim()
+                );
+
+        Ubicacion destino =
+                new Ubicacion(
+                        ciudadDestino.trim(),
+                        paisDestino.trim()
+                );
+
+
+        // -----------------------------------------------------
+        // CONSERVAR FECHA DE CREACIÓN
+        // -----------------------------------------------------
+
+        Date fechaCreacion =
+                existente.getDate(
+                        "fecha_creacion"
+                );
+
+        if (fechaCreacion == null) {
+
+            fechaCreacion =
+                    new Date();
+        }
+
+
+        // -----------------------------------------------------
+        // CONSERVAR TRAMOS EXISTENTES
+        // -----------------------------------------------------
+
+        List<Tramo> tramos =
+                convertirTramosExistentes(
+                        existente
+                );
+
+
+        // -----------------------------------------------------
+        // CREAR OBJETO ACTUALIZADO
+        // -----------------------------------------------------
+
+        Envio envio =
+                new Envio(
+                        id,
+                        clienteId,
+                        new ArrayList<>(contenedoresIds),
+                        fechaCreacion,
+                        origen,
+                        destino,
+                        estado.trim(),
+                        prioridad.trim(),
+                        tramos
+                );
+
+
+        // -----------------------------------------------------
+        // MODIFICAR
+        // -----------------------------------------------------
+
+        envioDAO.modificar(
+                envio
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR ENVÍO
+    // =========================================================
+
+    public void eliminarEnvio(
+            String id
+    ) {
+
+        validarObjectId(
+                id,
+                "El ID del envío no es válido."
+        );
+
+        if (!envioDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El envío no existe."
+            );
+        }
+
+        envioDAO.eliminar(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR ENVÍOS
     // =========================================================
 
@@ -231,12 +397,10 @@ public class EnvioService {
                 "El ID del envío no es válido."
         );
 
-
         Document envio =
                 envioDAO.buscarPorId(
                         id
                 );
-
 
         if (envio == null) {
 
@@ -244,7 +408,6 @@ public class EnvioService {
                     "El envío no existe."
             );
         }
-
 
         return envio;
     }
@@ -262,7 +425,6 @@ public class EnvioService {
                 id,
                 "El ID del envío no es válido."
         );
-
 
         return envioDAO.existePorId(
                 id
@@ -293,7 +455,6 @@ public class EnvioService {
                 "El ID del cliente no es válido."
         );
 
-
         return envioDAO.buscarPorCliente(
                 clienteId
         );
@@ -308,14 +469,10 @@ public class EnvioService {
             String estado
     ) {
 
-        if (estado == null
-                || estado.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El estado es obligatorio."
-            );
-        }
-
+        validarTexto(
+                estado,
+                "El estado es obligatorio."
+        );
 
         return envioDAO.buscarPorEstado(
                 estado.trim()
@@ -331,14 +488,10 @@ public class EnvioService {
             String pais
     ) {
 
-        if (pais == null
-                || pais.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El país es obligatorio."
-            );
-        }
-
+        validarTexto(
+                pais,
+                "El país es obligatorio."
+        );
 
         return envioDAO.buscarPorPais(
                 pais.trim()
@@ -378,10 +531,7 @@ public class EnvioService {
                 "El ID del envío no es válido."
         );
 
-
-        if (!envioDAO.existePorId(
-                envioId
-        )) {
+        if (!envioDAO.existePorId(envioId)) {
 
             throw new IllegalArgumentException(
                     "El envío seleccionado no existe."
@@ -393,39 +543,30 @@ public class EnvioService {
         // VALIDAR MEDIO DE TRANSPORTE
         // -----------------------------------------------------
 
-        if (medioTransporte == null
-                || medioTransporte.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El medio de transporte es obligatorio."
-            );
-        }
+        validarTexto(
+                medioTransporte,
+                "El medio de transporte es obligatorio."
+        );
 
 
         // -----------------------------------------------------
         // VALIDAR ORIGEN
         // -----------------------------------------------------
 
-        if (origen == null
-                || origen.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El origen del tramo es obligatorio."
-            );
-        }
+        validarTexto(
+                origen,
+                "El origen del tramo es obligatorio."
+        );
 
 
         // -----------------------------------------------------
         // VALIDAR DESTINO
         // -----------------------------------------------------
 
-        if (destino == null
-                || destino.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El destino del tramo es obligatorio."
-            );
-        }
+        validarTexto(
+                destino,
+                "El destino del tramo es obligatorio."
+        );
 
 
         // -----------------------------------------------------
@@ -488,6 +629,112 @@ public class EnvioService {
                 envioId,
                 tramo
         );
+    }
+
+
+    // =========================================================
+    // VALIDAR CONTENEDORES
+    // =========================================================
+
+    private void validarContenedores(
+            List<String> contenedoresIds
+    ) {
+
+        if (contenedoresIds == null
+                || contenedoresIds.isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "Debe seleccionar al menos un contenedor."
+            );
+        }
+
+        for (String contenedorId : contenedoresIds) {
+
+            validarObjectId(
+                    contenedorId,
+                    "Uno de los IDs de contenedor no es válido."
+            );
+
+            if (!contenedorDAO.existePorId(
+                    contenedorId
+            )) {
+
+                throw new IllegalArgumentException(
+                        "Uno de los contenedores seleccionados no existe."
+                );
+            }
+        }
+    }
+
+
+    // =========================================================
+    // CONVERTIR TRAMOS EXISTENTES
+    // =========================================================
+
+    private List<Tramo> convertirTramosExistentes(
+            Document envio
+    ) {
+
+        List<Tramo> tramos =
+                new ArrayList<>();
+
+        List<Document> documentos =
+                envio.getList(
+                        "tramos",
+                        Document.class
+                );
+
+        if (documentos == null) {
+
+            return tramos;
+        }
+
+        for (Document documento : documentos) {
+
+            Tramo tramo =
+                    new Tramo(
+                            documento.getString(
+                                    "medio_transporte"
+                            ),
+                            documento.getString(
+                                    "origen"
+                            ),
+                            documento.getString(
+                                    "destino"
+                            ),
+                            documento.getDate(
+                                    "fecha_salida"
+                            ),
+                            documento.getDate(
+                                    "fecha_llegada_estimada"
+                            )
+                    );
+
+            tramos.add(
+                    tramo
+            );
+        }
+
+        return tramos;
+    }
+
+
+    // =========================================================
+    // VALIDAR TEXTO
+    // =========================================================
+
+    private void validarTexto(
+            String texto,
+            String mensaje
+    ) {
+
+        if (texto == null
+                || texto.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    mensaje
+            );
+        }
     }
 
 

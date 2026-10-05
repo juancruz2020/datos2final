@@ -10,9 +10,12 @@ public class IncidentesPanel extends JPanel {
     private final JComboBox<String> comboEnvio;
     private final JTextField txtTipo;
     private final JTextField txtSeveridad;
+    private final JComboBox<String> comboEstado;
     private final JTextArea txtDescripcion;
 
     private final JButton btnRegistrar;
+    private final JButton btnEditar;
+    private final JButton btnEliminar;
     private final JButton btnActualizar;
 
     private final JTable tablaIncidentes;
@@ -89,7 +92,7 @@ public class IncidentesPanel extends JPanel {
 
         formulario.setBorder(
                 BorderFactory.createTitledBorder(
-                        "Registrar incidente"
+                        "Registrar / modificar incidente"
                 )
         );
 
@@ -188,11 +191,46 @@ public class IncidentesPanel extends JPanel {
 
 
         // -----------------------------------------------------
-        // DESCRIPCIÓN
+        // ESTADO
         // -----------------------------------------------------
 
         gbc.gridx = 0;
         gbc.gridy = 3;
+        gbc.weightx = 0;
+
+        formulario.add(
+                new JLabel("Estado:"),
+                gbc
+        );
+
+
+        comboEstado =
+                new JComboBox<>(
+                        new String[]{
+                                "ABIERTO",
+                                "CERRADO"
+                        }
+                );
+
+        comboEstado.setSelectedItem(
+                "ABIERTO"
+        );
+
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        formulario.add(
+                comboEstado,
+                gbc
+        );
+
+
+        // -----------------------------------------------------
+        // DESCRIPCIÓN
+        // -----------------------------------------------------
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
         gbc.weightx = 0;
 
         gbc.anchor =
@@ -210,8 +248,13 @@ public class IncidentesPanel extends JPanel {
                         20
                 );
 
-        txtDescripcion.setLineWrap(true);
-        txtDescripcion.setWrapStyleWord(true);
+        txtDescripcion.setLineWrap(
+                true
+        );
+
+        txtDescripcion.setWrapStyleWord(
+                true
+        );
 
 
         JScrollPane scrollDescripcion =
@@ -230,7 +273,7 @@ public class IncidentesPanel extends JPanel {
 
 
         // -----------------------------------------------------
-        // REGISTRAR
+        // REGISTRAR / GUARDAR
         // -----------------------------------------------------
 
         btnRegistrar =
@@ -240,7 +283,7 @@ public class IncidentesPanel extends JPanel {
 
 
         gbc.gridx = 1;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.weightx = 0;
 
         formulario.add(
@@ -289,6 +332,7 @@ public class IncidentesPanel extends JPanel {
                         modeloTabla
                 );
 
+
         tablaIncidentes.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
@@ -307,7 +351,7 @@ public class IncidentesPanel extends JPanel {
 
 
         // =====================================================
-        // ACTUALIZAR
+        // BOTONES
         // =====================================================
 
         JPanel panelBotones =
@@ -318,11 +362,31 @@ public class IncidentesPanel extends JPanel {
                 );
 
 
+        btnEditar =
+                new JButton(
+                        "Editar"
+                );
+
+
+        btnEliminar =
+                new JButton(
+                        "Eliminar"
+                );
+
+
         btnActualizar =
                 new JButton(
                         "Actualizar"
                 );
 
+
+        panelBotones.add(
+                btnEditar
+        );
+
+        panelBotones.add(
+                btnEliminar
+        );
 
         panelBotones.add(
                 btnActualizar
@@ -347,34 +411,67 @@ public class IncidentesPanel extends JPanel {
     // =========================================================
 
     public JComboBox<String> getComboEnvio() {
+
         return comboEnvio;
     }
 
+
     public JTextField getTxtTipo() {
+
         return txtTipo;
     }
 
+
     public JTextField getTxtSeveridad() {
+
         return txtSeveridad;
     }
 
+
+    public JComboBox<String> getComboEstado() {
+
+        return comboEstado;
+    }
+
+
     public JTextArea getTxtDescripcion() {
+
         return txtDescripcion;
     }
 
+
     public JButton getBtnRegistrar() {
+
         return btnRegistrar;
     }
 
+
+    public JButton getBtnEditar() {
+
+        return btnEditar;
+    }
+
+
+    public JButton getBtnEliminar() {
+
+        return btnEliminar;
+    }
+
+
     public JButton getBtnActualizar() {
+
         return btnActualizar;
     }
 
+
     public JTable getTablaIncidentes() {
+
         return tablaIncidentes;
     }
 
+
     public DefaultTableModel getModeloTabla() {
+
         return modeloTabla;
     }
 
@@ -386,12 +483,57 @@ public class IncidentesPanel extends JPanel {
     public void limpiarFormulario() {
 
         txtTipo.setText("");
+
         txtSeveridad.setText("");
+
+        comboEstado.setSelectedItem(
+                "ABIERTO"
+        );
+
         txtDescripcion.setText("");
+
 
         if (comboEnvio.getItemCount() > 0) {
 
-            comboEnvio.setSelectedIndex(0);
+            comboEnvio.setSelectedIndex(
+                    0
+            );
         }
+    }
+
+
+    // =========================================================
+    // MODO REGISTRAR
+    // =========================================================
+
+    public void modoRegistrar() {
+
+        btnRegistrar.setText(
+                "Registrar incidente"
+        );
+
+        comboEstado.setSelectedItem(
+                "ABIERTO"
+        );
+
+        comboEstado.setEnabled(
+                false
+        );
+    }
+
+
+    // =========================================================
+    // MODO EDITAR
+    // =========================================================
+
+    public void modoEditar() {
+
+        btnRegistrar.setText(
+                "Guardar cambios"
+        );
+
+        comboEstado.setEnabled(
+                true
+        );
     }
 }

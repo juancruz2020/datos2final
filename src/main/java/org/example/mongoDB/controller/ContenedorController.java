@@ -40,6 +40,42 @@ public class ContenedorController {
 
 
     // =========================================================
+    // MODIFICAR CONTENEDOR
+    // =========================================================
+
+    public void modificarContenedor(
+            String id,
+            String codigoInternacional,
+            String tipo,
+            double capacidad,
+            String estado
+    ) {
+
+        contenedorService.modificarContenedor(
+                id,
+                codigoInternacional,
+                tipo,
+                capacidad,
+                estado
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR CONTENEDOR
+    // =========================================================
+
+    public void eliminarContenedor(
+            String id
+    ) {
+
+        contenedorService.eliminarContenedor(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR CONTENEDORES
     // =========================================================
 

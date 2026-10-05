@@ -49,7 +49,6 @@ public class EventoLogisticoService {
                 "El ID del envío no es válido."
         );
 
-
         if (!envioDAO.existePorId(envioId)) {
 
             throw new IllegalArgumentException(
@@ -114,6 +113,174 @@ public class EventoLogisticoService {
 
         eventoDAO.agregar(
                 evento
+        );
+    }
+
+
+    // =========================================================
+    // MODIFICAR EVENTO LOGÍSTICO
+    // =========================================================
+
+    public void modificarEvento(
+            String id,
+            String envioId,
+            String tipoEvento,
+            String ubicacion,
+            String descripcion
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR EVENTO
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del evento no es válido."
+        );
+
+
+        Document existente =
+                eventoDAO.buscarPorId(
+                        id
+                );
+
+
+        if (existente == null) {
+
+            throw new IllegalArgumentException(
+                    "El evento logístico no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR ENVÍO
+        // -----------------------------------------------------
+
+        validarObjectId(
+                envioId,
+                "El ID del envío no es válido."
+        );
+
+
+        if (!envioDAO.existePorId(envioId)) {
+
+            throw new IllegalArgumentException(
+                    "El envío seleccionado no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR TIPO
+        // -----------------------------------------------------
+
+        if (tipoEvento == null
+                || tipoEvento.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "El tipo de evento es obligatorio."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR UBICACIÓN
+        // -----------------------------------------------------
+
+        if (ubicacion == null
+                || ubicacion.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "La ubicación es obligatoria."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // VALIDAR DESCRIPCIÓN
+        // -----------------------------------------------------
+
+        if (descripcion == null
+                || descripcion.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "La descripción es obligatoria."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // CONSERVAR FECHA ORIGINAL
+        // -----------------------------------------------------
+
+        Date fechaHora =
+                existente.getDate(
+                        "fecha_hora"
+                );
+
+
+        // -----------------------------------------------------
+        // CREAR OBJETO MODIFICADO
+        // -----------------------------------------------------
+
+        EventoLogistico evento =
+                new EventoLogistico(
+                        id,
+                        envioId,
+                        fechaHora,
+                        tipoEvento.trim(),
+                        ubicacion.trim(),
+                        descripcion.trim()
+                );
+
+
+        // -----------------------------------------------------
+        // ACTUALIZAR EN MONGODB
+        // -----------------------------------------------------
+
+        eventoDAO.modificar(
+                evento
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR EVENTO LOGÍSTICO
+    // =========================================================
+
+    public void eliminarEvento(
+            String id
+    ) {
+
+        // -----------------------------------------------------
+        // VALIDAR ID
+        // -----------------------------------------------------
+
+        validarObjectId(
+                id,
+                "El ID del evento no es válido."
+        );
+
+
+        // -----------------------------------------------------
+        // VERIFICAR EXISTENCIA
+        // -----------------------------------------------------
+
+        if (!eventoDAO.existePorId(id)) {
+
+            throw new IllegalArgumentException(
+                    "El evento logístico no existe."
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // ELIMINAR
+        // -----------------------------------------------------
+
+        eventoDAO.eliminar(
+                id
         );
     }
 

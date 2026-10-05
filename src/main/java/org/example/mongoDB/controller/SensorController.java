@@ -43,6 +43,44 @@ public class SensorController {
 
 
     // =========================================================
+    // MODIFICAR SENSOR
+    // =========================================================
+
+    public void modificarSensor(
+            String id,
+            String contenedorId,
+            String tipo,
+            String fabricante,
+            Date fechaInstalacion,
+            String estado
+    ) {
+
+        sensorService.modificarSensor(
+                id,
+                contenedorId,
+                tipo,
+                fabricante,
+                fechaInstalacion,
+                estado
+        );
+    }
+
+
+    // =========================================================
+    // ELIMINAR SENSOR
+    // =========================================================
+
+    public void eliminarSensor(
+            String id
+    ) {
+
+        sensorService.eliminarSensor(
+                id
+        );
+    }
+
+
+    // =========================================================
     // LISTAR SENSORES
     // =========================================================
 

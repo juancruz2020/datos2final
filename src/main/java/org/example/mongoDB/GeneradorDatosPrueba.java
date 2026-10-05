@@ -2,12 +2,11 @@ package org.example.mongoDB;
 
 import org.example.mongoDB.dao.*;
 import org.example.mongoDB.model.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 public class GeneradorDatosPrueba {
 
@@ -30,6 +29,7 @@ public class GeneradorDatosPrueba {
     public void generarDatos() {
 
         System.out.println("Generando datos de prueba de MongoDB...");
+
 
         // =====================================================
         // ROLES
@@ -160,7 +160,7 @@ public class GeneradorDatosPrueba {
                 "Juan",
                 "Perez",
                 "juan@logisticadelsur.com",
-                "clave_encriptada_1",
+                BCrypt.hashpw("clave1", BCrypt.gensalt()),
                 "ACTIVO",
                 new Date()
         );
@@ -172,7 +172,7 @@ public class GeneradorDatosPrueba {
                 "Maria",
                 "Gomez",
                 "maria@transportesandinos.com",
-                "clave_encriptada_2",
+                BCrypt.hashpw("clave2", BCrypt.gensalt()),
                 "ACTIVO",
                 new Date()
         );
@@ -184,7 +184,7 @@ public class GeneradorDatosPrueba {
                 "Lucas",
                 "Fernandez",
                 "lucas@comerciointernacional.com",
-                "clave_encriptada_3",
+                BCrypt.hashpw("clave3", BCrypt.gensalt()),
                 "ACTIVO",
                 new Date()
         );
@@ -196,7 +196,7 @@ public class GeneradorDatosPrueba {
                 "Sofia",
                 "Martinez",
                 "sofia@exportadorapampeana.com",
-                "clave_encriptada_4",
+                BCrypt.hashpw("clave4", BCrypt.gensalt()),
                 "ACTIVO",
                 new Date()
         );
@@ -208,7 +208,7 @@ public class GeneradorDatosPrueba {
                 "Martin",
                 "Lopez",
                 "martin@patagoniacargo.com",
-                "clave_encriptada_5",
+                BCrypt.hashpw("clave5", BCrypt.gensalt()),
                 "ACTIVO",
                 new Date()
         );
@@ -796,6 +796,7 @@ public class GeneradorDatosPrueba {
         cuentaCorrienteDAO.agregar(cuenta3);
         cuentaCorrienteDAO.agregar(cuenta4);
         cuentaCorrienteDAO.agregar(cuenta5);
+
 
         // =====================================================
         // MOSTRAR IDS GENERADOS
