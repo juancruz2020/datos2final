@@ -5,7 +5,6 @@ import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 import org.example.mongoDB.model.Usuario;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Date;
 import java.util.List;
@@ -141,14 +140,11 @@ public class UsuarioService {
 
 
         // -----------------------------------------------------
-        // ENCRIPTAR CONTRASEÑA
+        // GUARDAR CONTRASEÑA SIN ENCRIPTAR
         // -----------------------------------------------------
 
         String contraseñaEncriptada =
-                BCrypt.hashpw(
-                        contraseña,
-                        BCrypt.gensalt()
-                );
+                contraseña;
 
 
         // -----------------------------------------------------
@@ -201,11 +197,12 @@ public class UsuarioService {
         );
 
 
+        // -----------------------------------------------------
+        // GUARDAR NUEVA CONTRASEÑA SIN ENCRIPTAR
+        // -----------------------------------------------------
+
         String contraseñaEncriptada =
-                BCrypt.hashpw(
-                        nuevaContraseña,
-                        BCrypt.gensalt()
-                );
+                nuevaContraseña;
 
 
         usuarioDAO.cambiarContraseña(

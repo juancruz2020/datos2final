@@ -2,95 +2,149 @@ package org.example.usuarios.service;
 
 import org.bson.Document;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class AutenticacionService {
 
     private final UsuarioMongoDAO usuarioDAO;
 
+
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
+
     public AutenticacionService() {
-        this.usuarioDAO = new UsuarioMongoDAO();
+
+        this.usuarioDAO =
+                new UsuarioMongoDAO();
     }
 
 
-    // =========================
+    // =========================================================
     // AUTENTICAR USUARIO
-    // =========================
+    // =========================================================
 
-    public Document autenticar(String email, String contraseña) {
+    public Document autenticar(
+            String email,
+            String contraseña
+    ) {
 
-        if (email == null || email.isBlank()) {
+        // -----------------------------------------------------
+        // VALIDAR EMAIL
+        // -----------------------------------------------------
+
+        if (email == null
+                || email.isBlank()) {
+
             throw new IllegalArgumentException(
                     "El email es obligatorio"
             );
         }
 
-        if (contraseña == null || contraseña.isBlank()) {
+
+        // -----------------------------------------------------
+        // VALIDAR CONTRASEÑA
+        // -----------------------------------------------------
+
+        if (contraseña == null
+                || contraseña.isBlank()) {
+
             throw new IllegalArgumentException(
                     "La contraseña es obligatoria"
             );
         }
 
-        Document usuario = usuarioDAO.buscarPorEmail(email.trim());
+
+        // -----------------------------------------------------
+        // BUSCAR USUARIO
+        // -----------------------------------------------------
+
+        Document usuario =
+                usuarioDAO.buscarPorEmail(
+                        email.trim().toLowerCase()
+                );
+
 
         if (usuario == null) {
+
             return null;
         }
 
-        String estado = usuario.getString("estado");
 
-        if (estado == null || !"ACTIVO".equalsIgnoreCase(estado)) {
+        // -----------------------------------------------------
+        // VALIDAR ESTADO
+        // -----------------------------------------------------
+
+        String estado =
+                usuario.getString(
+                        "estado"
+                );
+
+
+        if (estado == null
+                || !"ACTIVO".equalsIgnoreCase(
+                        estado
+                )) {
+
             throw new SecurityException(
                     "El usuario no se encuentra activo"
             );
         }
 
-        String contraseñaEncriptada =
-                usuario.getString("contraseña_encriptada");
 
-        if (contraseñaEncriptada == null ||
-                contraseñaEncriptada.isBlank()) {
+        // -----------------------------------------------------
+        // OBTENER CONTRASEÑA GUARDADA
+        // -----------------------------------------------------
+
+        String contraseñaGuardada =
+                usuario.getString(
+                        "contraseña_encriptada"
+                );
+
+
+        if (contraseñaGuardada == null
+                || contraseñaGuardada.isBlank()) {
+
             throw new IllegalStateException(
                     "El usuario no tiene una contraseña configurada"
             );
         }
 
-        boolean contraseñaCorrecta;
 
-        try {
-            contraseñaCorrecta = BCrypt.checkpw(
-                    contraseña,
-                    contraseñaEncriptada
-            );
-        } catch (IllegalArgumentException e) {
+        // -----------------------------------------------------
+        // COMPARAR CONTRASEÑA
+        // -----------------------------------------------------
 
-            // El valor almacenado no es un hash BCrypt válido.
+        if (!contraseña.equals(
+                contraseñaGuardada
+        )) {
+
             return null;
         }
 
-        if (!contraseñaCorrecta) {
-            return null;
-        }
 
         return usuario;
     }
 
 
-    // =========================
-    // ENCRIPTAR CONTRASEÑA
-    // =========================
+    // =========================================================
+    // GUARDAR CONTRASEÑA
+    // =========================================================
 
-    public String encriptarContraseña(String contraseña) {
+    public String encriptarContraseña(
+            String contraseña
+    ) {
 
-        if (contraseña == null || contraseña.isBlank()) {
+        if (contraseña == null
+                || contraseña.isBlank()) {
+
             throw new IllegalArgumentException(
                     "La contraseña es obligatoria"
             );
         }
 
-        return BCrypt.hashpw(
-                contraseña,
-                BCrypt.gensalt()
-        );
+
+        // Ya no se utiliza BCrypt.
+        // Se devuelve la contraseña directamente.
+        return contraseña;
     }
 }
