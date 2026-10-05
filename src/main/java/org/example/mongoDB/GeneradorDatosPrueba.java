@@ -833,12 +833,4 @@ public class GeneradorDatosPrueba {
         generador.generarDatos();
     }
 
-
-    // =====================================================
-    // MAIN
-    // =====================================================
-
-    public static void main(String[] args) {
-        generar();
-    }
 }
