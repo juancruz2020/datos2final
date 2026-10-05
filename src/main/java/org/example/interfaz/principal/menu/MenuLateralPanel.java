@@ -146,6 +146,17 @@ public class MenuLateralPanel extends JPanel {
                 "ENVIOS"
         );
 
+        // =========================================
+        // EVENTOS LOGÍSTICOS
+        // =========================================
+
+        agregarItem(
+                opciones,
+                "◆",
+                "Eventos Logísticos",
+                "EVENTOS_LOGISTICOS"
+        );
+
         agregarItem(
                 opciones,
                 "▤",
@@ -215,6 +226,10 @@ public class MenuLateralPanel extends JPanel {
         );
     }
 
+    // =========================================
+    // AGREGAR ITEM
+    // =========================================
+
     private void agregarItem(
             JPanel contenedor,
             String icono,
@@ -233,6 +248,10 @@ public class MenuLateralPanel extends JPanel {
 
         contenedor.add(item);
     }
+
+    // =========================================
+    // ABRIR / CERRAR MENÚ
+    // =========================================
 
     private void alternar() {
 
@@ -259,7 +278,12 @@ public class MenuLateralPanel extends JPanel {
         repaint();
     }
 
+    // =========================================
+    // GET ITEMS
+    // =========================================
+
     public List<MenuItem> getItems() {
+
         return items;
     }
 }

@@ -19,6 +19,9 @@ import org.example.interfaz.principal.vistas.ClientesPanelController;
 import org.example.interfaz.principal.vistas.EnviosPanel;
 import org.example.interfaz.principal.vistas.EnviosPanelController;
 
+import org.example.interfaz.principal.vistas.EventosLogisticosPanel;
+import org.example.interfaz.principal.vistas.EventosLogisticosPanelController;
+
 import org.example.interfaz.principal.vistas.ContenedoresPanel;
 import org.example.interfaz.principal.vistas.ContenedoresPanelController;
 
@@ -30,6 +33,12 @@ import org.example.interfaz.principal.vistas.FacturacionPanelController;
 
 import org.example.interfaz.principal.vistas.TrazabilidadPanel;
 import org.example.interfaz.principal.vistas.TrazabilidadPanelController;
+
+import org.example.interfaz.principal.vistas.IncidentesPanel;
+import org.example.interfaz.principal.vistas.IncidentesPanelController;
+
+import org.example.interfaz.principal.vistas.ReportesPanel;
+import org.example.interfaz.principal.vistas.ReportesPanelController;
 
 import org.example.interfaz.tema.Colores;
 
@@ -147,6 +156,7 @@ public class PrincipalPanel extends JPanel {
 
     private void construirContenido() {
 
+
         // =====================================================
         // DASHBOARD
         // =====================================================
@@ -192,6 +202,25 @@ public class PrincipalPanel extends JPanel {
 
         new EnviosPanelController(
                 enviosPanel
+        );
+
+
+        // =====================================================
+        // EVENTOS LOGÍSTICOS
+        // =====================================================
+
+        EventosLogisticosPanel eventosLogisticosPanel =
+                new EventosLogisticosPanel();
+
+
+        contenido.add(
+                eventosLogisticosPanel,
+                "EVENTOS_LOGISTICOS"
+        );
+
+
+        new EventosLogisticosPanelController(
+                eventosLogisticosPanel
         );
 
 
@@ -306,23 +335,37 @@ public class PrincipalPanel extends JPanel {
         // REPORTES
         // =====================================================
 
+        ReportesPanel reportesPanel =
+                new ReportesPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Reportes"
-                ),
+                reportesPanel,
                 "REPORTES"
         );
 
 
+        new ReportesPanelController(
+                reportesPanel
+        );
+
+
         // =====================================================
-        // RIESGOS
+        // RIESGOS - INCIDENTES
         // =====================================================
 
+        IncidentesPanel incidentesPanel =
+                new IncidentesPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Riesgos"
-                ),
+                incidentesPanel,
                 "RIESGOS"
+        );
+
+
+        new IncidentesPanelController(
+                incidentesPanel
         );
 
 
