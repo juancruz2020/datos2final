@@ -1,6 +1,6 @@
 package org.example.neo4j.controller;
 
-import org.example.neo4j.GeneradorDatosPrueba;
+import org.example.DatosPorDefecto.GeneradorDatosPruebaNeo;
 import org.example.neo4j.model.Cliente;
 import org.example.neo4j.model.Contenedor;
 import org.example.neo4j.model.Envio;
@@ -259,6 +259,6 @@ public class ControllerNeo4j {
     // =====================================================
 
     public void generarDatosPrueba() {
-        GeneradorDatosPrueba.generar();
+        GeneradorDatosPruebaNeo.generar();
     }
 }

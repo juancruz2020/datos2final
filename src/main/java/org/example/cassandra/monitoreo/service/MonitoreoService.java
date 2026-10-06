@@ -5,7 +5,7 @@ import com.datastax.oss.driver.api.core.cql.Row;
 
 import org.example.conecciones.CassandraSingleton;
 import org.example.cassandra.monitoreo.dao.CrearTablasMonitoreo;
-import org.example.cassandra.monitoreo.dao.DatosDePruebaMonitoreo;
+import org.example.DatosPorDefecto.DatosDePruebaCassandra;
 import org.example.cassandra.monitoreo.dao.ConsultasCassandraMonitoreo;
 
 import java.time.LocalDate;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class MonitoreoService {
 
     private final CrearTablasMonitoreo crearTablasMonitoreo;
-    private final DatosDePruebaMonitoreo datosDePruebaMonitoreo;
+    private final DatosDePruebaCassandra datosDePruebaCassandra;
     private final ConsultasCassandraMonitoreo monitoreoDAO;
 
 
@@ -25,8 +25,8 @@ public class MonitoreoService {
         this.crearTablasMonitoreo =
                 new CrearTablasMonitoreo();
 
-        this.datosDePruebaMonitoreo =
-                new DatosDePruebaMonitoreo();
+        this.datosDePruebaCassandra =
+                new DatosDePruebaCassandra();
 
         CqlSession session =
                 CassandraSingleton.getInstance();
@@ -58,7 +58,7 @@ public class MonitoreoService {
         CqlSession session =
                 CassandraSingleton.getInstance();
 
-        datosDePruebaMonitoreo.insertarDatos(session);
+        datosDePruebaCassandra.insertarDatos(session);
     }
 
 

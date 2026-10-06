@@ -1,7 +1,7 @@
 package org.example.mongoDB.controller;
 
 import org.bson.Document;
-import org.example.mongoDB.GeneradorDatosPrueba;
+import org.example.DatosPorDefecto.GeneradorDatosPruebaMongo;
 import org.example.mongoDB.model.*;
 import org.example.mongoDB.service.LogisticaMongoService;
 
@@ -590,6 +590,6 @@ public class ControllerMongoDB {
     // =========================
 
     public void generarDatosPrueba() {
-        GeneradorDatosPrueba.generar();
+        GeneradorDatosPruebaMongo.generar();
     }
 }

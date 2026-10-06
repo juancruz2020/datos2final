@@ -1,14 +1,12 @@
-package org.example.neo4j;
+package org.example.DatosPorDefecto;
 
 import org.example.conecciones.Neo4jSingleton;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 
-import java.util.Map;
+public class GeneradorDatosPruebaNeo {
 
-public class GeneradorDatosPrueba {
-
-    private GeneradorDatosPrueba() {
+    private GeneradorDatosPruebaNeo() {
         // Clase utilitaria
     }
 

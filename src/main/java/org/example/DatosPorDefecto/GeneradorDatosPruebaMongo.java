@@ -1,4 +1,4 @@
-package org.example.mongoDB;
+package org.example.DatosPorDefecto;
 
 import org.example.mongoDB.dao.*;
 
@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import java.util.Date;
 
-public class GeneradorDatosPrueba {
+public class GeneradorDatosPruebaMongo {
 
     private final ClienteMongoDAO clienteDAO = new ClienteMongoDAO();
 
@@ -1407,7 +1407,7 @@ public class GeneradorDatosPrueba {
 
     public static void generar() {
 
-        GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
+        GeneradorDatosPruebaMongo generador = new GeneradorDatosPruebaMongo();
 
         generador.generarDatos();
 

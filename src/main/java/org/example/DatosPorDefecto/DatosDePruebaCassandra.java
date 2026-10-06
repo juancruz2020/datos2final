@@ -1,8 +1,9 @@
-package org.example.cassandra.monitoreo.dao;
+package org.example.DatosPorDefecto;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import org.example.cassandra.monitoreo.dao.InsertarCassandraMonitoreo;
 
-public class DatosDePruebaMonitoreo {
+public class DatosDePruebaCassandra {
 
     public void insertarDatos(CqlSession session) {
 
