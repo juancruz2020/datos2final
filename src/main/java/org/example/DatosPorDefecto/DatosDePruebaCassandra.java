@@ -103,7 +103,7 @@ public class DatosDePruebaCassandra {
         // GENERAR 60 LECTURAS
         // =================================================
 
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 150; i++) {
 
             // Sensor de la lista recibida
             String sensorId = sensorIds.get(

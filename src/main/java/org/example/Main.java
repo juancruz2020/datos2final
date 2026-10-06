@@ -13,10 +13,10 @@ public class Main {
         //GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
         // generador.generarDatos();
 
-        //DatosPruebaTotal datos =
-          //      new DatosPruebaTotal();
+        DatosPruebaTotal datos =
+                new DatosPruebaTotal();
 
-      //  datos.cargarDatos();
+        datos.cargarDatos();
 
         App.iniciar();
     }
