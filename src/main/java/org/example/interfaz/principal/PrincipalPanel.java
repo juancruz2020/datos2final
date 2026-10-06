@@ -3,44 +3,7 @@ package org.example.interfaz.principal;
 import org.example.interfaz.principal.header.HeaderPanel;
 import org.example.interfaz.principal.menu.MenuLateralPanel;
 
-import org.example.interfaz.principal.vistas.DashboardPanel;
-
-import org.example.interfaz.principal.vistas.MonitoreoPanel;
-import org.example.interfaz.principal.vistas.MonitoreoPanelController;
-
-import org.example.interfaz.principal.vistas.VistaVaciaPanel;
-
-import org.example.interfaz.principal.vistas.AdministracionPanel;
-import org.example.interfaz.principal.vistas.AdministracionPanelController;
-
-import org.example.interfaz.principal.vistas.ClientesPanel;
-import org.example.interfaz.principal.vistas.ClientesPanelController;
-
-import org.example.interfaz.principal.vistas.EnviosPanel;
-import org.example.interfaz.principal.vistas.EnviosPanelController;
-
-import org.example.interfaz.principal.vistas.EventosLogisticosPanel;
-import org.example.interfaz.principal.vistas.EventosLogisticosPanelController;
-
-import org.example.interfaz.principal.vistas.ContenedoresPanel;
-import org.example.interfaz.principal.vistas.ContenedoresPanelController;
-
-import org.example.interfaz.principal.vistas.VehiculosPanel;
-
-import org.example.interfaz.principal.vistas.SensoresPanel;
-import org.example.interfaz.principal.vistas.SensoresPanelController;
-
-import org.example.interfaz.principal.vistas.FacturacionPanel;
-import org.example.interfaz.principal.vistas.FacturacionPanelController;
-
-import org.example.interfaz.principal.vistas.TrazabilidadPanel;
-import org.example.interfaz.principal.vistas.TrazabilidadPanelController;
-
-import org.example.interfaz.principal.vistas.IncidentesPanel;
-import org.example.interfaz.principal.vistas.IncidentesPanelController;
-
-import org.example.interfaz.principal.vistas.ReportesPanel;
-import org.example.interfaz.principal.vistas.ReportesPanelController;
+import org.example.interfaz.principal.vistas.*;
 
 import org.example.interfaz.tema.Colores;
 
@@ -163,9 +126,16 @@ public class PrincipalPanel extends JPanel {
         // DASHBOARD
         // =====================================================
 
+        DashboardPanel dashboardPanel =
+                new DashboardPanel();
+
         contenido.add(
-                new DashboardPanel(),
+                dashboardPanel,
                 "DASHBOARD"
+        );
+
+        new DashboardController(
+                dashboardPanel
         );
 
 
