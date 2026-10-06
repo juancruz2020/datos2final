@@ -5,7 +5,6 @@ import org.example.cassandra.monitoreo.service.MonitoreoInsertService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class ControllerMonitoreoInsert {
 
@@ -23,10 +22,10 @@ public class ControllerMonitoreoInsert {
     // =====================================================
 
     public void insertarLecturaSensor(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia,
             Instant fechaHora,
-            UUID contenedorId,
+            String contenedorId,
             BigDecimal temperatura,
             BigDecimal humedad,
             BigDecimal vibracion,
@@ -35,7 +34,6 @@ public class ControllerMonitoreoInsert {
             BigDecimal bateria,
             String pais,
             String region) {
-
 
         insertService.insertarLecturaSensor(
                 sensorId,
@@ -51,7 +49,6 @@ public class ControllerMonitoreoInsert {
                 pais,
                 region
         );
-
 
         System.out.println(
                 "Lectura del sensor insertada correctamente."

@@ -6,7 +6,6 @@ import org.example.cassandra.monitoreo.service.MonitoreoService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public class ControllerMonitoreo {
 
@@ -19,32 +18,6 @@ public class ControllerMonitoreo {
     }
 
 
-    // ============================================================
-    // CREAR TABLAS
-    // ============================================================
-
-    public void crearTablas() {
-
-        serviceMonitoreo.crearTablas();
-
-        System.out.println(
-                "Tablas de monitoreo creadas correctamente."
-        );
-    }
-
-
-    // ============================================================
-    // CARGAR DATOS DE PRUEBA
-    // ============================================================
-
-    public void cargarDatosDePrueba() {
-
-        serviceMonitoreo.cargarDatosDePrueba();
-
-        System.out.println(
-                "Datos de prueba de monitoreo cargados correctamente."
-        );
-    }
 
 
     // ============================================================
@@ -52,7 +25,7 @@ public class ControllerMonitoreo {
     // ============================================================
 
     public List<Row> obtenerHistorialSensor(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return serviceMonitoreo.obtenerHistorialSensor(
@@ -67,7 +40,7 @@ public class ControllerMonitoreo {
     // ============================================================
 
     public List<Row> obtenerLecturasEntreFechas(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha,
             LocalDateTime desde,
             LocalDateTime hasta) {
@@ -86,7 +59,7 @@ public class ControllerMonitoreo {
     // ============================================================
 
     public List<Row> obtenerTemperaturas(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return serviceMonitoreo.obtenerTemperaturas(
@@ -101,7 +74,7 @@ public class ControllerMonitoreo {
     // ============================================================
 
     public List<Row> obtenerBateria(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return serviceMonitoreo.obtenerBateria(
@@ -116,7 +89,7 @@ public class ControllerMonitoreo {
     // ============================================================
 
     public List<Row> obtenerGPS(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return serviceMonitoreo.obtenerGPS(
@@ -158,9 +131,11 @@ public class ControllerMonitoreo {
                 hasta
         );
     }
+
+
     // ============================================================
-// 8. TABLA COMPLETA DE LECTURAS
-// ============================================================
+    // 8. TABLA COMPLETA DE LECTURAS
+    // ============================================================
 
     public List<Row> obtenerTodasLasLecturas() {
 
@@ -168,9 +143,9 @@ public class ControllerMonitoreo {
     }
 
 
-// ============================================================
-// 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
-// ============================================================
+    // ============================================================
+    // 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
+    // ============================================================
 
     public List<Row> obtenerTodasLasMetricasRegion() {
 
@@ -178,9 +153,9 @@ public class ControllerMonitoreo {
     }
 
 
-// ============================================================
-// 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
-// ============================================================
+    // ============================================================
+    // 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
+    // ============================================================
 
     public List<Row> obtenerTodasLasMetricasPais() {
 

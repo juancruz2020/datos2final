@@ -7,7 +7,6 @@ import org.example.cassandra.monitoreo.dao.InsertarCassandraMonitoreo;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class MonitoreoInsertService {
 
@@ -24,10 +23,10 @@ public class MonitoreoInsertService {
     // =====================================================
 
     public void insertarLecturaSensor(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia,
             Instant fechaHora,
-            UUID contenedorId,
+            String contenedorId,
             BigDecimal temperatura,
             BigDecimal humedad,
             BigDecimal vibracion,
@@ -76,10 +75,10 @@ public class MonitoreoInsertService {
     // =====================================================
 
     private void validarLectura(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia,
             Instant fechaHora,
-            UUID contenedorId,
+            String contenedorId,
             BigDecimal temperatura,
             BigDecimal humedad,
             BigDecimal vibracion,
@@ -90,7 +89,7 @@ public class MonitoreoInsertService {
             String region) {
 
 
-        if (sensorId == null) {
+        if (sensorId == null || sensorId.isBlank()) {
             throw new IllegalArgumentException(
                     "El sensor es obligatorio."
             );
@@ -111,7 +110,7 @@ public class MonitoreoInsertService {
         }
 
 
-        if (contenedorId == null) {
+        if (contenedorId == null || contenedorId.isBlank()) {
             throw new IllegalArgumentException(
                     "El contenedor es obligatorio."
             );

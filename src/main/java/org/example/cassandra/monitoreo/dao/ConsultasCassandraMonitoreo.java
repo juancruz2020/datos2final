@@ -1,6 +1,5 @@
 package org.example.cassandra.monitoreo.dao;
 
-
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
@@ -10,8 +9,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-
 
 public class ConsultasCassandraMonitoreo {
 
@@ -26,7 +23,7 @@ public class ConsultasCassandraMonitoreo {
     // ============================================================
 
     public List<Row> obtenerLecturasSensor(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia) {
 
         String cql = """
@@ -36,8 +33,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_dia = ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -61,7 +57,7 @@ public class ConsultasCassandraMonitoreo {
     // ============================================================
 
     public List<Row> obtenerLecturasEntreFechas(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia,
             LocalDateTime desde,
             LocalDateTime hasta) {
@@ -75,8 +71,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_hora <= ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -102,7 +97,7 @@ public class ConsultasCassandraMonitoreo {
     // ============================================================
 
     public List<Row> obtenerTemperaturas(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia) {
 
         String cql = """
@@ -112,8 +107,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_dia = ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -137,7 +131,7 @@ public class ConsultasCassandraMonitoreo {
     // ============================================================
 
     public List<Row> obtenerBateria(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia) {
 
         String cql = """
@@ -147,8 +141,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_dia = ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -172,7 +165,7 @@ public class ConsultasCassandraMonitoreo {
     // ============================================================
 
     public List<Row> obtenerPosicionesGPS(
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia) {
 
         String cql = """
@@ -182,8 +175,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_dia = ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -223,8 +215,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_dia <= ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -264,8 +255,7 @@ public class ConsultasCassandraMonitoreo {
             AND fecha_dia <= ?
             """;
 
-        PreparedStatement statement =
-                session.prepare(cql);
+        PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
                 statement.bind(
@@ -284,19 +274,19 @@ public class ConsultasCassandraMonitoreo {
         return metricas;
     }
 
+
     // ============================================================
-// 8. TABLA COMPLETA DE LECTURAS
-// ============================================================
+    // 8. TABLA COMPLETA DE LECTURAS
+    // ============================================================
 
     public List<Row> obtenerTodasLasLecturas() {
 
         String cql = """
-        SELECT *
-        FROM logistica.lecturas_sensor
-        """;
+            SELECT *
+            FROM logistica.lecturas_sensor
+            """;
 
-        ResultSet result =
-                session.execute(cql);
+        ResultSet result = session.execute(cql);
 
         List<Row> lecturas = new ArrayList<>();
 
@@ -308,19 +298,18 @@ public class ConsultasCassandraMonitoreo {
     }
 
 
-// ============================================================
-// 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
-// ============================================================
+    // ============================================================
+    // 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
+    // ============================================================
 
     public List<Row> obtenerTodasLasMetricasRegion() {
 
         String cql = """
-        SELECT *
-        FROM logistica.metricas_iot_region_dia
-        """;
+            SELECT *
+            FROM logistica.metricas_iot_region_dia
+            """;
 
-        ResultSet result =
-                session.execute(cql);
+        ResultSet result = session.execute(cql);
 
         List<Row> metricas = new ArrayList<>();
 
@@ -332,19 +321,18 @@ public class ConsultasCassandraMonitoreo {
     }
 
 
-// ============================================================
-// 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
-// ============================================================
+    // ============================================================
+    // 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
+    // ============================================================
 
     public List<Row> obtenerTodasLasMetricasPais() {
 
         String cql = """
-        SELECT *
-        FROM logistica.metricas_iot_pais_dia
-        """;
+            SELECT *
+            FROM logistica.metricas_iot_pais_dia
+            """;
 
-        ResultSet result =
-                session.execute(cql);
+        ResultSet result = session.execute(cql);
 
         List<Row> metricas = new ArrayList<>();
 
@@ -355,4 +343,3 @@ public class ConsultasCassandraMonitoreo {
         return metricas;
     }
 }
-

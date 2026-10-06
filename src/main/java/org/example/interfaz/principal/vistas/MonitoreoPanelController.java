@@ -5,6 +5,7 @@ import org.example.interfaz.componentes.CampoFecha;
 import org.example.interfaz.componentes.CampoFechaHora;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreoInsert;
+import org.example.mongoDB.controller.ControllerMongoDB;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,7 +14,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public class MonitoreoPanelController {
 
@@ -22,6 +22,8 @@ public class MonitoreoPanelController {
     private final ControllerMonitoreo monitoreo;
 
     private final ControllerMonitoreoInsert insert;
+
+    private final ControllerMongoDB mongo;
 
 
     // =========================================================
@@ -40,7 +42,64 @@ public class MonitoreoPanelController {
         this.insert =
                 new ControllerMonitoreoInsert();
 
+        this.mongo =
+                new ControllerMongoDB();
+
+
+        // Cargar IDs reales de MongoDB
+        cargarIdsMongo();
+
+
         configurarEventos();
+    }
+
+
+    // =========================================================
+    // CARGAR IDS DESDE MONGODB
+    // =========================================================
+
+    private void cargarIdsMongo() {
+
+        try {
+
+            List<String> idsMongoSensor =
+                    mongo.obtenerIdsSensores();
+
+            List<String> idsMongoContenedor =
+                    mongo.obtenerIdsContenedores();
+
+
+            view.cargarIds(
+                    idsMongoSensor,
+                    idsMongoContenedor
+            );
+
+
+            System.out.println(
+                    "Sensores encontrados en MongoDB: "
+                            + idsMongoSensor.size()
+            );
+
+
+            System.out.println(
+                    "Contenedores encontrados en MongoDB: "
+                            + idsMongoContenedor.size()
+            );
+
+
+        } catch (Exception ex) {
+
+            JOptionPane.showMessageDialog(
+                    view,
+
+                    "No se pudieron cargar los IDs desde MongoDB.\n\n"
+                            + ex.getMessage(),
+
+                    "Error",
+
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
 
@@ -62,24 +121,6 @@ public class MonitoreoPanelController {
                 );
 
 
-
-
-        view.getCrearTablas()
-                .addActionListener(
-                        e -> ejecutarAccion(
-                                "Crear tablas",
-                                monitoreo::crearTablas
-                        )
-                );
-
-
-        view.getCargarPrueba()
-                .addActionListener(
-                        e -> ejecutarAccion(
-                                "Cargar datos de prueba",
-                                monitoreo::cargarDatosDePrueba
-                        )
-                );
     }
 
 
@@ -111,9 +152,7 @@ public class MonitoreoPanelController {
                         resultados =
                                 monitoreo.obtenerHistorialSensor(
 
-                                        uuid(
-                                                view.getSensorId()
-                                        ),
+                                        view.getSensorId(),
 
                                         fecha(
                                                 view.getFecha()
@@ -130,9 +169,7 @@ public class MonitoreoPanelController {
                         resultados =
                                 monitoreo.obtenerLecturasEntreFechas(
 
-                                        uuid(
-                                                view.getSensorId()
-                                        ),
+                                        view.getSensorId(),
 
                                         fecha(
                                                 view.getFecha()
@@ -157,9 +194,7 @@ public class MonitoreoPanelController {
                         resultados =
                                 monitoreo.obtenerTemperaturas(
 
-                                        uuid(
-                                                view.getSensorId()
-                                        ),
+                                        view.getSensorId(),
 
                                         fecha(
                                                 view.getFecha()
@@ -176,9 +211,7 @@ public class MonitoreoPanelController {
                         resultados =
                                 monitoreo.obtenerBateria(
 
-                                        uuid(
-                                                view.getSensorId()
-                                        ),
+                                        view.getSensorId(),
 
                                         fecha(
                                                 view.getFecha()
@@ -195,9 +228,7 @@ public class MonitoreoPanelController {
                         resultados =
                                 monitoreo.obtenerGPS(
 
-                                        uuid(
-                                                view.getSensorId()
-                                        ),
+                                        view.getSensorId(),
 
                                         fecha(
                                                 view.getFecha()
@@ -252,7 +283,7 @@ public class MonitoreoPanelController {
 
 
                 // -------------------------------------------------
-                // TABLA COMPLETA DE LECTURAS
+                // TODAS LAS LECTURAS
                 // -------------------------------------------------
 
                 case "Todas las lecturas" ->
@@ -262,7 +293,7 @@ public class MonitoreoPanelController {
 
 
                 // -------------------------------------------------
-                // TABLA COMPLETA DE MÉTRICAS POR REGIÓN
+                // TODAS LAS MÉTRICAS POR REGIÓN
                 // -------------------------------------------------
 
                 case "Todas las métricas por región" ->
@@ -272,7 +303,7 @@ public class MonitoreoPanelController {
 
 
                 // -------------------------------------------------
-                // TABLA COMPLETA DE MÉTRICAS POR PAÍS
+                // TODAS LAS MÉTRICAS POR PAÍS
                 // -------------------------------------------------
 
                 case "Todas las métricas por país" ->
@@ -295,9 +326,9 @@ public class MonitoreoPanelController {
 
 
             view.getEstado().setText(
-                    "Consulta realizada correctamente. " +
-                            "Registros: " +
-                            resultados.size()
+                    "Consulta realizada correctamente. "
+                            + "Registros: "
+                            + resultados.size()
             );
 
 
@@ -319,11 +350,32 @@ public class MonitoreoPanelController {
 
         try {
 
+            String sensorId =
+                    view.getiSensorId();
+
+            String contenedorId =
+                    view.getiContenedorId();
+
+
+            if (sensorId == null) {
+
+                throw new IllegalArgumentException(
+                        "Debe seleccionar un sensor."
+                );
+            }
+
+
+            if (contenedorId == null) {
+
+                throw new IllegalArgumentException(
+                        "Debe seleccionar un contenedor."
+                );
+            }
+
+
             insert.insertarLecturaSensor(
 
-                    uuid(
-                            view.getiSensorId()
-                    ),
+                    sensorId,
 
                     fecha(
                             view.getiFechaDia()
@@ -333,9 +385,7 @@ public class MonitoreoPanelController {
                             view.getiFechaHora()
                     ),
 
-                    uuid(
-                            view.getiContenedorId()
-                    ),
+                    contenedorId,
 
                     decimal(
                             view.getiTemperatura()
@@ -384,7 +434,6 @@ public class MonitoreoPanelController {
             );
         }
     }
-
 
 
     // =========================================================
@@ -509,20 +558,6 @@ public class MonitoreoPanelController {
 
 
     // =========================================================
-    // CONVERSIONES
-    // =========================================================
-
-    private UUID uuid(
-            JTextField campo
-    ) {
-
-        return UUID.fromString(
-                texto(campo)
-        );
-    }
-
-
-    // =========================================================
     // CAMPO FECHA
     // =========================================================
 
@@ -597,20 +632,6 @@ public class MonitoreoPanelController {
     ) {
 
         return new BigDecimal(
-                texto(campo)
-        );
-    }
-
-
-    // =========================================================
-    // LONG
-    // =========================================================
-
-    private long numeroLong(
-            JTextField campo
-    ) {
-
-        return Long.parseLong(
                 texto(campo)
         );
     }

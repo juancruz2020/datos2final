@@ -1,10 +1,18 @@
-package org.example.cassandra.monitoreo.dao;
+package org.example.DatosPorDefecto;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import org.example.conecciones.CassandraSingleton;
 
 public class CrearTablasMonitoreo {
 
-    public static void crearTablas(CqlSession session) {
+    public static void crearTablas() {
+
+        // =====================================================
+        // OBTENER SESIÓN DE CASSANDRA
+        // =====================================================
+
+        CqlSession session = CassandraSingleton.getInstance();
+
 
         // =====================================================
         // LECTURAS DE SENSORES
@@ -12,10 +20,10 @@ public class CrearTablasMonitoreo {
 
         session.execute("""
             CREATE TABLE IF NOT EXISTS logistica.lecturas_sensor (
-                sensor_id uuid,
+                sensor_id text,
                 fecha_dia date,
                 fecha_hora timestamp,
-                contenedor_id uuid,
+                contenedor_id text,
 
                 temperatura decimal,
                 humedad decimal,
@@ -75,5 +83,10 @@ public class CrearTablasMonitoreo {
             )
             WITH CLUSTERING ORDER BY (fecha_dia DESC)
             """);
+
+
+        System.out.println(
+                "Tablas de monitoreo creadas/verificadas correctamente."
+        );
     }
 }

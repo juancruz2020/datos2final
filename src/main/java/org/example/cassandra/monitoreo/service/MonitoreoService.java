@@ -4,14 +4,13 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import org.example.conecciones.CassandraSingleton;
-import org.example.cassandra.monitoreo.dao.CrearTablasMonitoreo;
+import org.example.DatosPorDefecto.CrearTablasMonitoreo;
 import org.example.DatosPorDefecto.DatosDePruebaCassandra;
 import org.example.cassandra.monitoreo.dao.ConsultasCassandraMonitoreo;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 public class MonitoreoService {
 
@@ -36,30 +35,7 @@ public class MonitoreoService {
     }
 
 
-    // ============================================================
-    // CREAR TABLAS
-    // ============================================================
 
-    public void crearTablas() {
-
-        CqlSession session =
-                CassandraSingleton.getInstance();
-
-        crearTablasMonitoreo.crearTablas(session);
-    }
-
-
-    // ============================================================
-    // CARGAR DATOS DE PRUEBA
-    // ============================================================
-
-    public void cargarDatosDePrueba() {
-
-        CqlSession session =
-                CassandraSingleton.getInstance();
-
-        datosDePruebaCassandra.insertarDatos(session);
-    }
 
 
     // ============================================================
@@ -67,7 +43,7 @@ public class MonitoreoService {
     // ============================================================
 
     public List<Row> obtenerHistorialSensor(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return monitoreoDAO.obtenerLecturasSensor(
@@ -82,7 +58,7 @@ public class MonitoreoService {
     // ============================================================
 
     public List<Row> obtenerLecturasEntreFechas(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha,
             LocalDateTime desde,
             LocalDateTime hasta) {
@@ -108,7 +84,7 @@ public class MonitoreoService {
     // ============================================================
 
     public List<Row> obtenerTemperaturas(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return monitoreoDAO.obtenerTemperaturas(
@@ -123,7 +99,7 @@ public class MonitoreoService {
     // ============================================================
 
     public List<Row> obtenerBateria(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return monitoreoDAO.obtenerBateria(
@@ -138,7 +114,7 @@ public class MonitoreoService {
     // ============================================================
 
     public List<Row> obtenerGPS(
-            UUID sensorId,
+            String sensorId,
             LocalDate fecha) {
 
         return monitoreoDAO.obtenerPosicionesGPS(
@@ -181,9 +157,10 @@ public class MonitoreoService {
         );
     }
 
+
     // ============================================================
-// 8. TODAS LAS LECTURAS
-// ============================================================
+    // 8. TODAS LAS LECTURAS
+    // ============================================================
 
     public List<Row> obtenerTodasLasLecturas() {
 
@@ -191,9 +168,9 @@ public class MonitoreoService {
     }
 
 
-// ============================================================
-// 9. TODAS LAS MÉTRICAS POR REGIÓN
-// ============================================================
+    // ============================================================
+    // 9. TODAS LAS MÉTRICAS POR REGIÓN
+    // ============================================================
 
     public List<Row> obtenerTodasLasMetricasRegion() {
 
@@ -201,9 +178,9 @@ public class MonitoreoService {
     }
 
 
-// ============================================================
-// 10. TODAS LAS MÉTRICAS POR PAÍS
-// ============================================================
+    // ============================================================
+    // 10. TODAS LAS MÉTRICAS POR PAÍS
+    // ============================================================
 
     public List<Row> obtenerTodasLasMetricasPais() {
 

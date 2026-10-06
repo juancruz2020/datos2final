@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.DatosPorDefecto.DatosPruebaTotal;
 import org.example.interfaz.app.App;
 
 public class Main {
@@ -11,6 +12,11 @@ public class Main {
         //
         //GeneradorDatosPrueba generador = new GeneradorDatosPrueba();
         // generador.generarDatos();
+
+        //DatosPruebaTotal datos =
+          //      new DatosPruebaTotal();
+
+      //  datos.cargarDatos();
 
         App.iniciar();
     }

@@ -6,7 +6,6 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class InsertarCassandraMonitoreo {
 
@@ -16,10 +15,10 @@ public class InsertarCassandraMonitoreo {
 
     public static void insertarLecturaSensor(
             CqlSession session,
-            UUID sensorId,
+            String sensorId,
             LocalDate fechaDia,
             Instant fechaHora,
-            UUID contenedorId,
+            String contenedorId,
             BigDecimal temperatura,
             BigDecimal humedad,
             BigDecimal vibracion,
@@ -66,6 +65,7 @@ public class InsertarCassandraMonitoreo {
 
         // Después de guardar la lectura,
         // actualizamos automáticamente las métricas.
+
         actualizarMetricaRegion(
                 session,
                 region,
@@ -112,12 +112,10 @@ public class InsertarCassandraMonitoreo {
                 )
         ).one();
 
-
         BigDecimal temperaturaMin;
         BigDecimal temperaturaMax;
         BigDecimal humedadPromedio;
         long cantidadLecturas;
-
 
         // -------------------------------------------------
         // PRIMERA LECTURA DE ESA REGIÓN EN ESE DÍA
@@ -148,7 +146,6 @@ public class InsertarCassandraMonitoreo {
             long cantidadAnterior =
                     existente.getLong("cantidad_lecturas");
 
-
             temperaturaMin =
                     temperatura.compareTo(minAnterior) < 0
                             ? temperatura
@@ -158,7 +155,6 @@ public class InsertarCassandraMonitoreo {
                     temperatura.compareTo(maxAnterior) > 0
                             ? temperatura
                             : maxAnterior;
-
 
             humedadPromedio =
                     promedioAnterior
@@ -172,7 +168,6 @@ public class InsertarCassandraMonitoreo {
 
             cantidadLecturas = cantidadAnterior + 1;
         }
-
 
         String update = """
             INSERT INTO logistica.metricas_iot_region_dia (
@@ -226,11 +221,9 @@ public class InsertarCassandraMonitoreo {
                 )
         ).one();
 
-
         BigDecimal humedadPromedio;
         BigDecimal temperaturaPromedio;
         long cantidadLecturas;
-
 
         // -------------------------------------------------
         // PRIMERA LECTURA DEL PAÍS EN ESE DÍA
@@ -253,7 +246,6 @@ public class InsertarCassandraMonitoreo {
             long cantidadAnterior =
                     existente.getLong("cantidad_lecturas");
 
-
             humedadPromedio =
                     humedadAnterior
                             .multiply(BigDecimal.valueOf(cantidadAnterior))
@@ -263,7 +255,6 @@ public class InsertarCassandraMonitoreo {
                                     4,
                                     java.math.RoundingMode.HALF_UP
                             );
-
 
             temperaturaPromedio =
                     temperaturaAnterior
@@ -275,10 +266,8 @@ public class InsertarCassandraMonitoreo {
                                     java.math.RoundingMode.HALF_UP
                             );
 
-
             cantidadLecturas = cantidadAnterior + 1;
         }
-
 
         String update = """
             INSERT INTO logistica.metricas_iot_pais_dia (

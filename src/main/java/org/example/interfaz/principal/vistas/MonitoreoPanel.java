@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
+import java.util.List;
 
 public class MonitoreoPanel extends JPanel {
 
@@ -37,8 +38,8 @@ public class MonitoreoPanel extends JPanel {
     // HISTORIAL
     // -------------------------
 
-    private final JTextField historialSensorId =
-            new CampoTexto();
+    private final JComboBox<String> historialSensorId =
+            new JComboBox<>();
 
     private final CampoFecha historialFecha =
             new CampoFecha();
@@ -48,8 +49,8 @@ public class MonitoreoPanel extends JPanel {
     // HORARIOS
     // -------------------------
 
-    private final JTextField horariosSensorId =
-            new CampoTexto();
+    private final JComboBox<String> horariosSensorId =
+            new JComboBox<>();
 
     private final CampoFecha horariosFecha =
             new CampoFecha();
@@ -65,8 +66,8 @@ public class MonitoreoPanel extends JPanel {
     // TEMPERATURAS
     // -------------------------
 
-    private final JTextField temperaturasSensorId =
-            new CampoTexto();
+    private final JComboBox<String> temperaturasSensorId =
+            new JComboBox<>();
 
     private final CampoFecha temperaturasFecha =
             new CampoFecha();
@@ -76,8 +77,8 @@ public class MonitoreoPanel extends JPanel {
     // BATERÍA
     // -------------------------
 
-    private final JTextField bateriaSensorId =
-            new CampoTexto();
+    private final JComboBox<String> bateriaSensorId =
+            new JComboBox<>();
 
     private final CampoFecha bateriaFecha =
             new CampoFecha();
@@ -87,8 +88,8 @@ public class MonitoreoPanel extends JPanel {
     // GPS
     // -------------------------
 
-    private final JTextField gpsSensorId =
-            new CampoTexto();
+    private final JComboBox<String> gpsSensorId =
+            new JComboBox<>();
 
     private final CampoFecha gpsFecha =
             new CampoFecha();
@@ -126,8 +127,8 @@ public class MonitoreoPanel extends JPanel {
     // INSERCIÓN DE LECTURAS
     // =========================================================
 
-    private final JTextField iSensorId =
-            new CampoTexto();
+    private final JComboBox<String> iSensorId =
+            new JComboBox<>();
 
     private final CampoFecha iFechaDia =
             new CampoFecha();
@@ -135,8 +136,8 @@ public class MonitoreoPanel extends JPanel {
     private final CampoFechaHora iFechaHora =
             new CampoFechaHora();
 
-    private final JTextField iContenedorId =
-            new CampoTexto();
+    private final JComboBox<String> iContenedorId =
+            new JComboBox<>();
 
     private final JTextField iTemperatura =
             new CampoTexto();
@@ -163,10 +164,6 @@ public class MonitoreoPanel extends JPanel {
             new CampoTexto();
 
 
-
-
-
-
     // =========================================================
     // BOTONES
     // =========================================================
@@ -180,7 +177,6 @@ public class MonitoreoPanel extends JPanel {
             new BotonPrincipal(
                     "Insertar lectura"
             );
-
 
     private final JButton crearTablas =
             new BotonPrincipal(
@@ -337,17 +333,13 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        textos.add(
-                titulo
-        );
+        textos.add(titulo);
 
         textos.add(
                 Box.createVerticalStrut(5)
         );
 
-        textos.add(
-                subtitulo
-        );
+        textos.add(subtitulo);
 
 
         cabecera.add(
@@ -417,10 +409,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // TARJETA DE FILTROS
-        // =====================================================
-
         JPanel filtros =
                 tarjeta();
 
@@ -431,10 +419,6 @@ public class MonitoreoPanel extends JPanel {
                 )
         );
 
-
-        // =====================================================
-        // SELECTOR
-        // =====================================================
 
         JPanel selector =
                 new JPanel(
@@ -490,10 +474,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // PARÁMETROS
-        // =====================================================
-
         filtros.add(
                 parametros,
                 BorderLayout.CENTER
@@ -502,10 +482,6 @@ public class MonitoreoPanel extends JPanel {
 
         crearFormulariosConsulta();
 
-
-        // =====================================================
-        // TABLA
-        // =====================================================
 
         tabla.setRowHeight(
                 28
@@ -528,10 +504,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // ESTADO
-        // =====================================================
-
         estado.setFont(
                 Fuentes.NORMAL
         );
@@ -540,10 +512,6 @@ public class MonitoreoPanel extends JPanel {
                 Colores.TEXTO_SECUNDARIO
         );
 
-
-        // =====================================================
-        // AGREGAR
-        // =====================================================
 
         panel.add(
                 filtros,
@@ -571,10 +539,6 @@ public class MonitoreoPanel extends JPanel {
 
     private void crearFormulariosConsulta() {
 
-        // =====================================================
-        // HISTORIAL
-        // =====================================================
-
         parametros.add(
                 formulario(
                         campo(
@@ -590,10 +554,6 @@ public class MonitoreoPanel extends JPanel {
                 "HISTORIAL"
         );
 
-
-        // =====================================================
-        // HORARIOS
-        // =====================================================
 
         parametros.add(
                 formulario(
@@ -621,10 +581,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // TEMPERATURAS
-        // =====================================================
-
         parametros.add(
                 formulario(
                         campo(
@@ -640,10 +596,6 @@ public class MonitoreoPanel extends JPanel {
                 "TEMPERATURAS"
         );
 
-
-        // =====================================================
-        // BATERÍA
-        // =====================================================
 
         parametros.add(
                 formulario(
@@ -661,10 +613,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // GPS
-        // =====================================================
-
         parametros.add(
                 formulario(
                         campo(
@@ -680,10 +628,6 @@ public class MonitoreoPanel extends JPanel {
                 "GPS"
         );
 
-
-        // =====================================================
-        // REGIÓN
-        // =====================================================
 
         parametros.add(
                 formulario(
@@ -706,10 +650,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // PAÍS
-        // =====================================================
-
         parametros.add(
                 formulario(
                         campo(
@@ -731,29 +671,17 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // TABLA COMPLETA DE LECTURAS
-        // =====================================================
-
         parametros.add(
                 formulario(),
                 "TODAS_LECTURAS"
         );
 
 
-        // =====================================================
-        // TABLA COMPLETA DE MÉTRICAS POR REGIÓN
-        // =====================================================
-
         parametros.add(
                 formulario(),
                 "TODAS_REGION"
         );
 
-
-        // =====================================================
-        // TABLA COMPLETA DE MÉTRICAS POR PAÍS
-        // =====================================================
 
         parametros.add(
                 formulario(),
@@ -778,74 +706,52 @@ public class MonitoreoPanel extends JPanel {
                 (String)
                         comboConsulta.getSelectedItem();
 
-
         String vista;
 
 
         switch (seleccion) {
 
             case "Historial de sensor":
-
                 vista = "HISTORIAL";
                 break;
 
-
             case "Lecturas entre horarios":
-
                 vista = "HORARIOS";
                 break;
 
-
             case "Temperaturas":
-
                 vista = "TEMPERATURAS";
                 break;
 
-
             case "Batería":
-
                 vista = "BATERIA";
                 break;
 
-
             case "Posiciones GPS":
-
                 vista = "GPS";
                 break;
 
-
             case "Métricas por región":
-
                 vista = "REGION";
                 break;
 
-
             case "Métricas por país":
-
                 vista = "PAIS";
                 break;
 
-
             case "Todas las lecturas":
-
                 vista = "TODAS_LECTURAS";
                 break;
 
-
             case "Todas las métricas por región":
-
                 vista = "TODAS_REGION";
                 break;
 
-
             case "Todas las métricas por país":
-
                 vista = "TODAS_PAIS";
                 break;
 
-
             default:
-
                 vista = "HISTORIAL";
         }
 
@@ -855,9 +761,7 @@ public class MonitoreoPanel extends JPanel {
                 vista
         );
 
-
         parametros.revalidate();
-
         parametros.repaint();
     }
 
@@ -979,18 +883,12 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // CONTENEDOR VISIBLE
-        // =====================================================
-
         JPanel contenedorCampo =
                 new JPanel(
                         new BorderLayout()
                 );
 
-        contenedorCampo.setOpaque(
-                true
-        );
+        contenedorCampo.setOpaque(true);
 
         contenedorCampo.setBackground(
                 Color.WHITE
@@ -1033,13 +931,7 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        // =====================================================
-        // CONFIGURACIÓN DEL COMPONENTE
-        // =====================================================
-
-        componente.setOpaque(
-                true
-        );
+        componente.setOpaque(true);
 
         componente.setBackground(
                 Color.WHITE
@@ -1075,13 +967,6 @@ public class MonitoreoPanel extends JPanel {
         );
 
 
-        /*
-         * Para JTextField quitamos solamente
-         * el borde visual interno.
-         *
-         * Esto NO deshabilita la edición.
-         */
-
         if (componente instanceof JTextField) {
 
             JTextField textField =
@@ -1101,10 +986,6 @@ public class MonitoreoPanel extends JPanel {
             textField.setEnabled(true);
         }
 
-
-        // =====================================================
-        // AGREGAR
-        // =====================================================
 
         contenedorCampo.add(
                 componente,
@@ -1149,14 +1030,11 @@ public class MonitoreoPanel extends JPanel {
                 new JTabbedPane();
 
 
-        // =====================================================
-        // LECTURA SENSOR
-        // =====================================================
-
         tabs.addTab(
                 "Lectura de sensor",
                 scrollFormulario(
                         formulario(
+
                                 campo(
                                         "Sensor ID",
                                         iSensorId
@@ -1221,7 +1099,6 @@ public class MonitoreoPanel extends JPanel {
                         )
                 )
         );
-
 
 
         contenedor.add(
@@ -1446,6 +1323,70 @@ public class MonitoreoPanel extends JPanel {
 
 
     // =========================================================
+    // CARGAR IDS DESDE MONGODB
+    // =========================================================
+
+    public void cargarIds(
+            List<String> sensores,
+            List<String> contenedores
+    ) {
+
+        cargarCombo(
+                historialSensorId,
+                sensores
+        );
+
+        cargarCombo(
+                horariosSensorId,
+                sensores
+        );
+
+        cargarCombo(
+                temperaturasSensorId,
+                sensores
+        );
+
+        cargarCombo(
+                bateriaSensorId,
+                sensores
+        );
+
+        cargarCombo(
+                gpsSensorId,
+                sensores
+        );
+
+        cargarCombo(
+                iSensorId,
+                sensores
+        );
+
+        cargarCombo(
+                iContenedorId,
+                contenedores
+        );
+    }
+
+
+    private void cargarCombo(
+            JComboBox<String> combo,
+            List<String> ids
+    ) {
+
+        combo.removeAllItems();
+
+        if (ids == null) {
+            return;
+        }
+
+        for (String id : ids) {
+
+            combo.addItem(id);
+        }
+    }
+
+
+    // =========================================================
     // GETTERS CONSULTAS
     // =========================================================
 
@@ -1469,36 +1410,34 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-    /*
-     * Estos getters mantienen los nombres originales
-     * para que el Controller no tenga que cambiar.
-     *
-     * Devuelven el campo correspondiente a la consulta
-     * que está seleccionada actualmente.
-     */
-
-    public JTextField getSensorId() {
+    public String getSensorId() {
 
         String seleccion =
-                (String) comboConsulta.getSelectedItem();
+                (String)
+                        comboConsulta.getSelectedItem();
 
         switch (seleccion) {
 
             case "Lecturas entre horarios":
-                return horariosSensorId;
+                return (String)
+                        horariosSensorId.getSelectedItem();
 
             case "Temperaturas":
-                return temperaturasSensorId;
+                return (String)
+                        temperaturasSensorId.getSelectedItem();
 
             case "Batería":
-                return bateriaSensorId;
+                return (String)
+                        bateriaSensorId.getSelectedItem();
 
             case "Posiciones GPS":
-                return gpsSensorId;
+                return (String)
+                        gpsSensorId.getSelectedItem();
 
             case "Historial de sensor":
             default:
-                return historialSensorId;
+                return (String)
+                        historialSensorId.getSelectedItem();
         }
     }
 
@@ -1506,7 +1445,8 @@ public class MonitoreoPanel extends JPanel {
     public CampoFecha getFecha() {
 
         String seleccion =
-                (String) comboConsulta.getSelectedItem();
+                (String)
+                        comboConsulta.getSelectedItem();
 
         switch (seleccion) {
 
@@ -1570,11 +1510,13 @@ public class MonitoreoPanel extends JPanel {
 
 
     // =========================================================
-    // GETTERS INSERCIÓN SENSOR
+    // GETTERS INSERCIÓN
     // =========================================================
 
-    public JTextField getiSensorId() {
-        return iSensorId;
+    public String getiSensorId() {
+
+        return (String)
+                iSensorId.getSelectedItem();
     }
 
 
@@ -1588,8 +1530,10 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-    public JTextField getiContenedorId() {
-        return iContenedorId;
+    public String getiContenedorId() {
+
+        return (String)
+                iContenedorId.getSelectedItem();
     }
 
 
@@ -1633,7 +1577,6 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-
     // =========================================================
     // GETTERS BOTONES
     // =========================================================
@@ -1646,7 +1589,6 @@ public class MonitoreoPanel extends JPanel {
     public JButton getInsertarLectura() {
         return insertarLectura;
     }
-
 
 
     public JButton getCrearTablas() {
