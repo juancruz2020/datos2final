@@ -25,6 +25,8 @@ import org.example.interfaz.principal.vistas.EventosLogisticosPanelController;
 import org.example.interfaz.principal.vistas.ContenedoresPanel;
 import org.example.interfaz.principal.vistas.ContenedoresPanelController;
 
+import org.example.interfaz.principal.vistas.VehiculosPanel;
+
 import org.example.interfaz.principal.vistas.SensoresPanel;
 import org.example.interfaz.principal.vistas.SensoresPanelController;
 
@@ -240,6 +242,20 @@ public class PrincipalPanel extends JPanel {
 
         new ContenedoresPanelController(
                 contenedoresPanel
+        );
+
+
+        // =====================================================
+        // VEHÍCULOS
+        // =====================================================
+
+        VehiculosPanel vehiculosPanel =
+                new VehiculosPanel();
+
+
+        contenido.add(
+                vehiculosPanel,
+                "VEHICULOS"
         );
 
 

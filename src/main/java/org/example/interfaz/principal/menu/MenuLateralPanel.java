@@ -127,7 +127,7 @@ public class MenuLateralPanel extends JPanel {
 
         agregarItem(
                 opciones,
-                "▣",
+                "✦",
                 "Dashboard",
                 "DASHBOARD"
         );
@@ -183,6 +183,13 @@ public class MenuLateralPanel extends JPanel {
                 "↔",
                 "Trazabilidad",
                 "TRAZABILIDAD"
+        );
+
+        agregarItem(
+                opciones,
+                "⛟",
+                "Vehículos",
+                "VEHICULOS"
         );
 
         agregarItem(
