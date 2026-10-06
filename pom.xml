@@ -75,15 +75,6 @@
             <artifactId>jcalendar</artifactId>
             <version>1.4</version>
         </dependency>
-
-    <!-- ======================== -->
-<!-- PASSWORD HASHING         -->
-<!-- ======================== -->
-
-        <dependency>
-            <groupId>org.mindrot</groupId>
-            <artifactId>jbcrypt</artifactId>
-            <version>0.4</version>
-        </dependency>
+        
     </dependencies>
 </project>
