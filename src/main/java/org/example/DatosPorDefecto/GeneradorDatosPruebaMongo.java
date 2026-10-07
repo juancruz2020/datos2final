@@ -3,6 +3,7 @@ package org.example.DatosPorDefecto;
 import org.example.mongoDB.dao.*;
 
 import org.example.mongoDB.model.*;
+
 import java.math.BigDecimal;
 
 import java.util.Arrays;
@@ -18,6 +19,8 @@ public class GeneradorDatosPruebaMongo {
     private final UsuarioMongoDAO usuarioDAO = new UsuarioMongoDAO();
 
     private final ContenedorMongoDAO contenedorDAO = new ContenedorMongoDAO();
+
+    private final VehiculoMongoDAO vehiculoDAO = new VehiculoMongoDAO();
 
     private final SensorMongoDAO sensorDAO = new SensorMongoDAO();
 
@@ -412,6 +415,63 @@ public class GeneradorDatosPruebaMongo {
         contenedorDAO.agregar(contenedor4);
 
         contenedorDAO.agregar(contenedor5);
+
+        // =====================================================
+
+        // VEHICULOS
+
+        // =====================================================
+
+        Vehiculo vehiculo1 =
+                new Vehiculo(
+                        null,
+                        "CAMION",
+                        "AA123BB",
+                        "Logistica del Sur",
+                        "ACTIVO"
+                );
+
+        Vehiculo vehiculo2 =
+                new Vehiculo(
+                        null,
+                        "CAMION",
+                        "AB456CD",
+                        "Transportes Andinos",
+                        "ACTIVO"
+                );
+
+        Vehiculo vehiculo3 =
+                new Vehiculo(
+                        null,
+                        "FURGON",
+                        "AC789EF",
+                        "Comercio Internacional SA",
+                        "ACTIVO"
+                );
+
+        Vehiculo vehiculo4 =
+                new Vehiculo(
+                        null,
+                        "CAMION",
+                        "AD321GH",
+                        "Exportadora Pampeana",
+                        "INACTIVO"
+                );
+
+        Vehiculo vehiculo5 =
+                new Vehiculo(
+                        null,
+                        "CAMION",
+                        "AE654IJ",
+                        "Patagonia Cargo",
+                        "ACTIVO"
+                );
+
+        vehiculoDAO.agregar(vehiculo1);
+        vehiculoDAO.agregar(vehiculo2);
+        vehiculoDAO.agregar(vehiculo3);
+        vehiculoDAO.agregar(vehiculo4);
+        vehiculoDAO.agregar(vehiculo5);
 
         // =====================================================
 

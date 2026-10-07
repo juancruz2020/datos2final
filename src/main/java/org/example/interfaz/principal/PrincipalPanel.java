@@ -2,9 +2,7 @@ package org.example.interfaz.principal;
 
 import org.example.interfaz.principal.header.HeaderPanel;
 import org.example.interfaz.principal.menu.MenuLateralPanel;
-
 import org.example.interfaz.principal.vistas.*;
-
 import org.example.interfaz.tema.Colores;
 
 import javax.swing.*;
@@ -129,10 +127,12 @@ public class PrincipalPanel extends JPanel {
         DashboardPanel dashboardPanel =
                 new DashboardPanel();
 
+
         contenido.add(
                 dashboardPanel,
                 "DASHBOARD"
         );
+
 
         new DashboardController(
                 dashboardPanel
@@ -229,6 +229,11 @@ public class PrincipalPanel extends JPanel {
         );
 
 
+        new VehiculosPanelController(
+                vehiculosPanel
+        );
+
+
         // =====================================================
         // SENSORES
         // =====================================================
@@ -290,11 +295,19 @@ public class PrincipalPanel extends JPanel {
         // COMUNICACIONES
         // =====================================================
 
+        ComunicacionesPanel comunicacionesPanel =
+                new ComunicacionesPanel();
+
+
         contenido.add(
-                new VistaVaciaPanel(
-                        "Comunicaciones"
-                ),
+                comunicacionesPanel,
                 "COMUNICACIONES"
+        );
+
+
+        new ComunicacionesPanelController(
+                comunicacionesPanel,
+                usuarioId
         );
 
 
