@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.example.pdf.factura.FacturaPDFController;
 
 public class FacturacionPanelController {
 
@@ -26,6 +27,7 @@ public class FacturacionPanelController {
 
     private final Map<String, String> clientesPorNombre;
 
+    private final FacturaPDFController facturaPDFController;
 
     // =========================================================
     // CONSTRUCTOR
@@ -46,6 +48,9 @@ public class FacturacionPanelController {
 
         this.clientesPorNombre =
                 new HashMap<>();
+
+        this.facturaPDFController =
+                new FacturaPDFController();
 
 
         configurarEventos();
@@ -519,9 +524,9 @@ public class FacturacionPanelController {
                         .toString();
 
 
-        // =====================================================
-        // GUARDAR
-        // =====================================================
+// =====================================================
+// GUARDAR
+// =====================================================
 
         try {
 
@@ -532,6 +537,13 @@ public class FacturacionPanelController {
                     estado
             );
 
+            // Generar y abrir el PDF
+            facturaPDFController.generarFactura(
+                    clienteId,
+                    fechaEmision,
+                    importeTotal,
+                    estado
+            );
 
             JOptionPane.showMessageDialog(
                     view,
@@ -540,13 +552,11 @@ public class FacturacionPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             view.limpiarFormulario();
 
             view.ocultarFormulario();
 
             cargarFacturas();
-
 
         } catch (Exception e) {
 
