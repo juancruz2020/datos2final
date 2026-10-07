@@ -2,9 +2,12 @@ package org.example.conecciones;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 
 public class CassandraSingleton {
 
@@ -29,6 +32,14 @@ public class CassandraSingleton {
                             new InetSocketAddress(host, port)
                     )
                     .withLocalDatacenter(datacenter)
+                    .withConfigLoader(
+                            DriverConfigLoader.programmaticBuilder()
+                                    .withDuration(
+                                            DefaultDriverOption.REQUEST_TIMEOUT,
+                                            Duration.ofSeconds(10)
+                                    )
+                                    .build()
+                    )
                     .build();
 
             crearKeyspace();

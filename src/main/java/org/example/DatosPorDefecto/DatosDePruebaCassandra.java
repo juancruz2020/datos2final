@@ -175,7 +175,7 @@ public class DatosDePruebaCassandra {
         }
 
         System.out.println(
-                "60 lecturas aleatorias cargadas correctamente."
+                "150 lecturas aleatorias cargadas correctamente."
         );
     }
 

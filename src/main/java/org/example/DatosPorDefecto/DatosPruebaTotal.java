@@ -24,7 +24,7 @@ public class DatosPruebaTotal {
 
         List<String> collections = mongo.mostrarCollections();
 
-        if (collections != null && !collections.isEmpty()) {
+        if (collections == null || collections.isEmpty()) {
 
             // =====================================================
             // 1. GENERAR DATOS EN MONGODB
