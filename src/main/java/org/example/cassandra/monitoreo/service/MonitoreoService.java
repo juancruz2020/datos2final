@@ -186,4 +186,13 @@ public class MonitoreoService {
 
         return monitoreoDAO.obtenerTodasLasMetricasPais();
     }
+
+    // ============================================================
+    // 11. POSICIONES GPS DE TODOS LOS SENSORES
+    // ============================================================
+
+    public List<Row> obtenerTodasLasPosicionesGPS() {
+
+        return monitoreoDAO.obtenerTodasLasPosicionesGPS();
+    }
 }

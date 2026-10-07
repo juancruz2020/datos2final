@@ -342,4 +342,31 @@ public class ConsultasCassandraMonitoreo {
 
         return metricas;
     }
+
+    // ============================================================
+// 11. POSICIONES GPS DE TODOS LOS SENSORES
+// ============================================================
+
+    public List<Row> obtenerTodasLasPosicionesGPS() {
+
+        String cql = """
+        SELECT sensor_id,
+               contenedor_id,
+               fecha_dia,
+               fecha_hora,
+               latitud,
+               longitud
+        FROM logistica.lecturas_sensor
+        """;
+
+        ResultSet result = session.execute(cql);
+
+        List<Row> posiciones = new ArrayList<>();
+
+        for (Row row : result) {
+            posiciones.add(row);
+        }
+
+        return posiciones;
+    }
 }

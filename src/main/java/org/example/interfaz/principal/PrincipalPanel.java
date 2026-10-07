@@ -271,6 +271,22 @@ public class PrincipalPanel extends JPanel {
                 monitoreoPanel
         );
 
+        // =====================================================
+// SEGUIMIENTO GPS
+// =====================================================
+
+        SeguimientoGPSPanel seguimientoGPSPanel =
+                new SeguimientoGPSPanel();
+
+        contenido.add(
+                seguimientoGPSPanel,
+                "SEGUIMIENTO_GPS"
+        );
+
+        new SeguimientoGPSPanelController(
+                seguimientoGPSPanel
+        );
+
 
         // =====================================================
         // TRAZABILIDAD

@@ -161,4 +161,13 @@ public class ControllerMonitoreo {
 
         return serviceMonitoreo.obtenerTodasLasMetricasPais();
     }
+
+    // ============================================================
+// 11. POSICIONES GPS DE TODOS LOS SENSORES
+// ============================================================
+
+    public List<Row> obtenerTodasLasPosicionesGPS() {
+
+        return serviceMonitoreo.obtenerTodasLasPosicionesGPS();
+    }
 }
