@@ -284,103 +284,37 @@ public class MonitoreoPanel extends JPanel {
 
     private void construir() {
 
-        JPanel cabecera =
-                new JPanel(
-                        new BorderLayout()
-                );
-
+        JPanel cabecera = new JPanel(new BorderLayout(10, 10));
         cabecera.setOpaque(false);
 
+        JLabel titulo = new JLabel("Monitoreo IoT");
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 24));
+        titulo.setForeground(Colores.TEXTO);
 
-        JLabel titulo =
-                new JLabel(
-                        "Monitoreo IoT"
-                );
-
-        titulo.setFont(
-                Fuentes.TITULO
+        JLabel subtitulo = new JLabel(
+                "Consultas, métricas y lecturas almacenadas en Cassandra"
         );
+        subtitulo.setFont(Fuentes.SUBTITULO);
+        subtitulo.setForeground(Colores.TEXTO_SECUNDARIO);
 
-        titulo.setForeground(
-                Colores.TEXTO
-        );
-
-
-        JLabel subtitulo =
-                new JLabel(
-                        "Consultas, métricas y lecturas almacenadas en Cassandra"
-                );
-
-        subtitulo.setFont(
-                Fuentes.SUBTITULO
-        );
-
-        subtitulo.setForeground(
-                Colores.TEXTO_SECUNDARIO
-        );
-
-
-        JPanel textos =
-                new JPanel();
-
+        JPanel textos = new JPanel();
         textos.setOpaque(false);
-
-        textos.setLayout(
-                new BoxLayout(
-                        textos,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
-
+        textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
         textos.add(titulo);
-
-        textos.add(
-                Box.createVerticalStrut(5)
-        );
-
+        textos.add(Box.createVerticalStrut(4));
         textos.add(subtitulo);
 
+        cabecera.add(textos, BorderLayout.WEST);
+        add(cabecera, BorderLayout.NORTH);
 
-        cabecera.add(
-                textos,
-                BorderLayout.WEST
-        );
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.setBorder(null);
+        tabs.addTab("Consultas", construirConsultas());
+        tabs.addTab("Insertar datos", construirInserciones());
 
-
-        add(
-                cabecera,
-                BorderLayout.NORTH
-        );
-
-
-        JTabbedPane tabs =
-                new JTabbedPane();
-
-
-        tabs.addTab(
-                "Consultas",
-                construirConsultas()
-        );
-
-
-        tabs.addTab(
-                "Insertar datos",
-                construirInserciones()
-        );
-
-
-        tabs.addTab(
-                "Administración",
-                construirAdministracion()
-        );
-
-
-        add(
-                tabs,
-                BorderLayout.CENTER
-        );
+        add(tabs, BorderLayout.CENTER);
     }
+
 
 
     // =========================================================
@@ -389,148 +323,107 @@ public class MonitoreoPanel extends JPanel {
 
     private JPanel construirConsultas() {
 
-        JPanel panel =
-                new JPanel(
-                        new BorderLayout(
-                                0,
-                                15
-                        )
-                );
-
+        JPanel panel = new JPanel(new BorderLayout(15, 15));
         panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(15, 0, 0, 0));
 
-        panel.setBorder(
-                new EmptyBorder(
-                        20,
-                        0,
-                        0,
-                        0
-                )
-        );
+        JPanel formulario = new JPanel(new GridBagLayout());
+        formulario.setOpaque(false);
+        formulario.setBorder(BorderFactory.createTitledBorder(
+                "Parámetros de consulta"
+        ));
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
 
-        JPanel filtros =
-                tarjeta();
+        JLabel tipo = new JLabel("Tipo de consulta:");
+        tipo.setFont(new Font("SansSerif", Font.BOLD, 14));
 
-        filtros.setLayout(
-                new BorderLayout(
-                        0,
-                        15
-                )
-        );
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        formulario.add(tipo, gbc);
 
+        comboConsulta.setPreferredSize(new Dimension(350, 36));
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        formulario.add(comboConsulta, gbc);
 
-        JPanel selector =
-                new JPanel(
-                        new BorderLayout(
-                                10,
-                                0
-                        )
-                );
+        ejecutarConsulta.setPreferredSize(new Dimension(180, 36));
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        formulario.add(ejecutarConsulta, gbc);
 
-        selector.setOpaque(false);
+        comboConsulta.addActionListener(e -> actualizarFormularioConsulta());
 
-
-        JLabel tipo =
-                label(
-                        "Tipo de consulta"
-                );
-
-
-        selector.add(
-                tipo,
-                BorderLayout.WEST
-        );
-
-
-        selector.add(
-                comboConsulta,
-                BorderLayout.CENTER
-        );
-
-
-        ejecutarConsulta.setPreferredSize(
-                new Dimension(
-                        180,
-                        38
-                )
-        );
-
-
-        selector.add(
-                ejecutarConsulta,
-                BorderLayout.EAST
-        );
-
-
-        comboConsulta.addActionListener(
-                e -> actualizarFormularioConsulta()
-        );
-
-
-        filtros.add(
-                selector,
-                BorderLayout.NORTH
-        );
-
-
-        filtros.add(
-                parametros,
-                BorderLayout.CENTER
-        );
-
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        formulario.add(parametros, gbc);
 
         crearFormulariosConsulta();
 
+        /*
+         * La zona de parámetros queda arriba y la consola de resultados
+         * ocupa la mayor parte del espacio disponible.
+         */
+        JScrollPane scrollFormulario = new JScrollPane(formulario);
+        scrollFormulario.setBorder(null);
+        scrollFormulario.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        scrollFormulario.setPreferredSize(new Dimension(100, 210));
+        scrollFormulario.setMinimumSize(new Dimension(100, 120));
 
-        tabla.setRowHeight(
-                28
+        tabla.setRowHeight(32);
+        tabla.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tabla.setShowGrid(true);
+        tabla.setFillsViewportHeight(true);
+        tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabla.getTableHeader().setReorderingAllowed(false);
+
+        JScrollPane scroll = new JScrollPane(tabla);
+        scroll.setBorder(BorderFactory.createTitledBorder("Resultados"));
+
+        JPanel resultados = new JPanel(new BorderLayout());
+        resultados.setOpaque(false);
+        resultados.setMinimumSize(new Dimension(100, 150));
+        resultados.add(scroll, BorderLayout.CENTER);
+
+        JPanel pie = new JPanel(new BorderLayout());
+        pie.setOpaque(false);
+        estado.setFont(Fuentes.NORMAL);
+        estado.setForeground(Colores.TEXTO_SECUNDARIO);
+        pie.add(estado, BorderLayout.WEST);
+        resultados.add(pie, BorderLayout.SOUTH);
+
+        JSplitPane divisor = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                scrollFormulario,
+                resultados
+        );
+        divisor.setBorder(null);
+        divisor.setOpaque(false);
+        divisor.setContinuousLayout(true);
+        divisor.setResizeWeight(0.25);
+        divisor.setDividerSize(12);
+        divisor.setOneTouchExpandable(true);
+
+        // Posición inicial del separador. Se puede arrastrar libremente
+        // hacia arriba o hacia abajo, como el divisor de una ventana.
+        SwingUtilities.invokeLater(() ->
+                divisor.setDividerLocation(210)
         );
 
-        tabla.setFillsViewportHeight(
-                true
-        );
-
-
-        JScrollPane scroll =
-                new JScrollPane(
-                        tabla
-                );
-
-        scroll.setBorder(
-                BorderFactory.createLineBorder(
-                        Colores.BORDE
-                )
-        );
-
-
-        estado.setFont(
-                Fuentes.NORMAL
-        );
-
-        estado.setForeground(
-                Colores.TEXTO_SECUNDARIO
-        );
-
-
-        panel.add(
-                filtros,
-                BorderLayout.NORTH
-        );
-
-        panel.add(
-                scroll,
-                BorderLayout.CENTER
-        );
-
-        panel.add(
-                estado,
-                BorderLayout.SOUTH
-        );
-
+        panel.add(divisor, BorderLayout.CENTER);
 
         return panel;
     }
+
 
 
     // =========================================================
@@ -770,237 +663,76 @@ public class MonitoreoPanel extends JPanel {
     // FORMULARIO VERTICAL
     // =========================================================
 
-    private JPanel formulario(
-            JComponent... componentes
-    ) {
+    private JPanel formulario(JComponent... componentes) {
 
-        JPanel panel =
-                new JPanel();
-
-        panel.setLayout(
-                new BoxLayout(
-                        panel,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
+        JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(8, 8, 8, 8));
 
-        panel.setBorder(
-                new EmptyBorder(
-                        5,
-                        5,
-                        5,
-                        5
-                )
-        );
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
 
+        int fila = 0;
 
-        for (
-                JComponent componente :
-                componentes
-        ) {
+        for (JComponent componente : componentes) {
+            if (componente == null) {
+                continue;
+            }
 
-            componente.setAlignmentX(
-                    Component.LEFT_ALIGNMENT
-            );
+            componente.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+            gbc.gridx = 0;
+            gbc.gridy = fila++;
+            gbc.gridwidth = 1;
+            gbc.weightx = 1;
 
-            panel.add(
-                    componente
-            );
-
-
-            panel.add(
-                    Box.createVerticalStrut(
-                            12
-                    )
-            );
+            panel.add(componente, gbc);
         }
-
 
         return panel;
     }
+
 
 
     // =========================================================
     // CAMPO
     // =========================================================
 
-    private JPanel campo(
-            String nombre,
-            JComponent componente
-    ) {
+    private JPanel campo(String nombre, JComponent componente) {
 
-        JPanel panel =
-                new JPanel(
-                        new BorderLayout(
-                                0,
-                                6
-                        )
-                );
-
+        JPanel panel = new JPanel(new BorderLayout(0, 5));
         panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(2, 2, 2, 2));
 
-        panel.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-
-        panel.setPreferredSize(
-                new Dimension(
-                        700,
-                        70
-                )
-        );
-
-
-        panel.setMinimumSize(
-                new Dimension(
-                        250,
-                        70
-                )
-        );
-
-
-        panel.setMaximumSize(
-                new Dimension(
-                        Integer.MAX_VALUE,
-                        70
-                )
-        );
-
-
-        JLabel label =
-                label(
-                        nombre
-                );
-
-
-        panel.add(
-                label,
-                BorderLayout.NORTH
-        );
-
-
-        JPanel contenedorCampo =
-                new JPanel(
-                        new BorderLayout()
-                );
-
-        contenedorCampo.setOpaque(true);
-
-        contenedorCampo.setBackground(
-                Color.WHITE
-        );
-
-        contenedorCampo.setBorder(
-                new LineBorder(
-                        new Color(
-                                180,
-                                180,
-                                180
-                        ),
-                        1,
-                        true
-                )
-        );
-
-
-        contenedorCampo.setPreferredSize(
-                new Dimension(
-                        500,
-                        40
-                )
-        );
-
-
-        contenedorCampo.setMinimumSize(
-                new Dimension(
-                        200,
-                        40
-                )
-        );
-
-
-        contenedorCampo.setMaximumSize(
-                new Dimension(
-                        Integer.MAX_VALUE,
-                        40
-                )
-        );
-
+        JLabel label = label(nombre);
+        panel.add(label, BorderLayout.NORTH);
 
         componente.setOpaque(true);
+        componente.setBackground(Color.WHITE);
+        componente.setForeground(Color.DARK_GRAY);
+        componente.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
-        componente.setBackground(
-                Color.WHITE
-        );
+        componente.setPreferredSize(new Dimension(500, 36));
+        componente.setMinimumSize(new Dimension(180, 36));
 
-        componente.setForeground(
-                Color.DARK_GRAY
-        );
-
-        componente.setFont(
-                Fuentes.NORMAL
-        );
-
-
-        componente.setPreferredSize(
-                new Dimension(
-                        500,
-                        38
-                )
-        );
-
-
-        componente.setMinimumSize(
-                new Dimension(
-                        150,
-                        38
-                )
-        );
-
-
-        componente.setAlignmentX(
-                Component.LEFT_ALIGNMENT
-        );
-
-
-        if (componente instanceof JTextField) {
-
-            JTextField textField =
-                    (JTextField) componente;
-
-            textField.setBorder(
-                    new EmptyBorder(
-                            5,
-                            10,
-                            5,
-                            10
-                    )
-            );
-
-            textField.setEditable(true);
-
-            textField.setEnabled(true);
+        if (componente instanceof JTextField textField) {
+            textField.setBorder(new EmptyBorder(5, 10, 5, 10));
         }
 
+        JPanel contenedorCampo = new JPanel(new BorderLayout());
+        contenedorCampo.setBackground(Color.WHITE);
+        contenedorCampo.setBorder(new LineBorder(
+                new Color(180, 180, 180), 1, true
+        ));
+        contenedorCampo.add(componente, BorderLayout.CENTER);
 
-        contenedorCampo.add(
-                componente,
-                BorderLayout.CENTER
-        );
-
-
-        panel.add(
-                contenedorCampo,
-                BorderLayout.CENTER
-        );
-
-
+        panel.add(contenedorCampo, BorderLayout.CENTER);
         return panel;
     }
+
 
 
     // =========================================================
@@ -1009,254 +741,82 @@ public class MonitoreoPanel extends JPanel {
 
     private JPanel construirInserciones() {
 
-        JPanel contenedor =
-                new JPanel(
-                        new BorderLayout()
-                );
-
+        JPanel contenedor = new JPanel(new BorderLayout(15, 15));
         contenedor.setOpaque(false);
+        contenedor.setBorder(new EmptyBorder(15, 0, 0, 0));
 
-        contenedor.setBorder(
-                new EmptyBorder(
-                        20,
-                        0,
-                        0,
-                        0
-                )
-        );
+        JPanel formulario = new JPanel(new GridBagLayout());
+        formulario.setOpaque(false);
+        formulario.setBorder(BorderFactory.createTitledBorder(
+                "Registrar lectura de sensor"
+        ));
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 8, 5, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
 
-        JTabbedPane tabs =
-                new JTabbedPane();
+        JComponent[] campos = {
+                campo("Sensor ID", iSensorId),
+                campo("Fecha día", iFechaDia),
+                campo("Fecha y hora", iFechaHora),
+                campo("Contenedor ID", iContenedorId),
+                campo("Temperatura", iTemperatura),
+                campo("Humedad", iHumedad),
+                campo("Vibración", iVibracion),
+                campo("Latitud", iLatitud),
+                campo("Longitud", iLongitud),
+                campo("Batería", iBateria),
+                campo("País", iPais),
+                campo("Región", iRegion)
+        };
 
+        for (int i = 0; i < campos.length; i++) {
+            gbc.gridx = i % 2;
+            gbc.gridy = i / 2;
+            gbc.weightx = 1;
+            gbc.weighty = 0;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            formulario.add(campos[i], gbc);
+        }
 
-        tabs.addTab(
-                "Lectura de sensor",
-                scrollFormulario(
-                        formulario(
+        gbc.gridx = 0;
+        gbc.gridy = (campos.length + 1) / 2;
+        gbc.gridwidth = 2;
+        gbc.weightx = 0;
+        formulario.add(insertarLectura, gbc);
 
-                                campo(
-                                        "Sensor ID",
-                                        iSensorId
-                                ),
+        JScrollPane scroll = new JScrollPane(formulario);
+        scroll.setBorder(null);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
 
-                                campo(
-                                        "Fecha día",
-                                        iFechaDia
-                                ),
-
-                                campo(
-                                        "Fecha y hora",
-                                        iFechaHora
-                                ),
-
-                                campo(
-                                        "Contenedor ID",
-                                        iContenedorId
-                                ),
-
-                                campo(
-                                        "Temperatura",
-                                        iTemperatura
-                                ),
-
-                                campo(
-                                        "Humedad",
-                                        iHumedad
-                                ),
-
-                                campo(
-                                        "Vibración",
-                                        iVibracion
-                                ),
-
-                                campo(
-                                        "Latitud",
-                                        iLatitud
-                                ),
-
-                                campo(
-                                        "Longitud",
-                                        iLongitud
-                                ),
-
-                                campo(
-                                        "Batería",
-                                        iBateria
-                                ),
-
-                                campo(
-                                        "País",
-                                        iPais
-                                ),
-
-                                campo(
-                                        "Región",
-                                        iRegion
-                                ),
-
-                                insertarLectura
-                        )
-                )
-        );
-
-
-        contenedor.add(
-                tabs,
-                BorderLayout.CENTER
-        );
-
-
+        contenedor.add(scroll, BorderLayout.CENTER);
         return contenedor;
     }
 
-
-    // =========================================================
-    // ADMINISTRACIÓN
-    // =========================================================
-
-    private JPanel construirAdministracion() {
-
-        JPanel panel =
-                new JPanel(
-                        new GridBagLayout()
-                );
-
-        panel.setOpaque(false);
-
-
-        JPanel tarjeta =
-                tarjeta();
-
-
-        tarjeta.setLayout(
-                new BoxLayout(
-                        tarjeta,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
-
-        JLabel titulo =
-                label(
-                        "Administración de Cassandra"
-                );
-
-        titulo.setFont(
-                Fuentes.LABEL
-        );
-
-
-        JLabel descripcion =
-                new JLabel(
-                        "<html>Operaciones de preparación y datos de prueba del módulo de monitoreo.</html>"
-                );
-
-        descripcion.setFont(
-                Fuentes.NORMAL
-        );
-
-        descripcion.setForeground(
-                Colores.TEXTO_SECUNDARIO
-        );
-
-
-        tarjeta.add(
-                titulo
-        );
-
-
-        tarjeta.add(
-                Box.createVerticalStrut(
-                        10
-                )
-        );
-
-
-        tarjeta.add(
-                descripcion
-        );
-
-
-        tarjeta.add(
-                Box.createVerticalStrut(
-                        25
-                )
-        );
-
-
-        tarjeta.add(
-                crearTablas
-        );
-
-
-        tarjeta.add(
-                Box.createVerticalStrut(
-                        10
-                )
-        );
-
-
-        tarjeta.add(
-                cargarPrueba
-        );
-
-
-        panel.add(
-                tarjeta
-        );
-
-
-        return panel;
-    }
 
 
     // =========================================================
     // SCROLL FORMULARIO
     // =========================================================
 
-    private JPanel scrollFormulario(
-            JPanel formulario
-    ) {
+    private JPanel scrollFormulario(JPanel formulario) {
 
-        JPanel contenedor =
-                new JPanel(
-                        new BorderLayout()
-                );
-
+        JPanel contenedor = new JPanel(new BorderLayout());
         contenedor.setOpaque(false);
 
-
-        JScrollPane scroll =
-                new JScrollPane(
-                        formulario
-                );
-
-
-        scroll.setBorder(
-                null
-        );
-
-
+        JScrollPane scroll = new JScrollPane(formulario);
+        scroll.setBorder(null);
         scroll.setHorizontalScrollBarPolicy(
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
         );
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
 
-
-        scroll.getVerticalScrollBar()
-                .setUnitIncrement(
-                        16
-                );
-
-
-        contenedor.add(
-                scroll,
-                BorderLayout.CENTER
-        );
-
-
+        contenedor.add(scroll, BorderLayout.CENTER);
         return contenedor;
     }
+
 
 
     // =========================================================
@@ -1265,61 +825,29 @@ public class MonitoreoPanel extends JPanel {
 
     private JPanel tarjeta() {
 
-        JPanel panel =
-                new JPanel();
-
-
-        panel.setBackground(
-                Colores.SUPERFICIE
-        );
-
-
-        panel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                Colores.BORDE
-                        ),
-
-                        new EmptyBorder(
-                                18,
-                                18,
-                                18,
-                                18
-                        )
-                )
-        );
-
-
+        JPanel panel = new JPanel();
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(210, 210, 210)),
+                new EmptyBorder(18, 18, 18, 18)
+        ));
         return panel;
     }
+
 
 
     // =========================================================
     // LABEL
     // =========================================================
 
-    private JLabel label(
-            String texto
-    ) {
+    private JLabel label(String texto) {
 
-        JLabel label =
-                new JLabel(
-                        texto
-                );
-
-
-        label.setFont(
-                Fuentes.LABEL
-        );
-
-
-        label.setForeground(
-                Colores.TEXTO
-        );
-
-
+        JLabel label = new JLabel(texto);
+        label.setFont(new Font("SansSerif", Font.BOLD, 14));
+        label.setForeground(Colores.TEXTO);
         return label;
     }
+
 
 
     // =========================================================
