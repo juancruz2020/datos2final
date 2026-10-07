@@ -6,6 +6,7 @@ import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.RolController;
 import org.example.mongoDB.controller.UsuarioController;
 import org.example.usuarios.controller.AdministracionController;
+import org.example.usuarios.controller.SesionController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -23,6 +24,8 @@ public class AdministracionPanelController {
     private final RolController rolController;
 
     private final ClienteController clienteController;
+
+    private final SesionController sesionController;
 
     private Timer timer;
 
@@ -49,6 +52,9 @@ public class AdministracionPanelController {
         this.clienteController =
                 new ClienteController();
 
+        this.sesionController =
+                new SesionController();
+
 
         configurarEventos();
 
@@ -74,7 +80,7 @@ public class AdministracionPanelController {
 
         view.getBtnActualizarSesiones()
                 .addActionListener(
-                        e -> cargarSesiones()
+                        e -> actualizarSesionesManualmente()
                 );
 
 
@@ -208,25 +214,21 @@ public class AdministracionPanelController {
                         .getText()
                         .trim();
 
-
         String apellido =
                 view.getTxtApellido()
                         .getText()
                         .trim();
-
 
         String email =
                 view.getTxtEmail()
                         .getText()
                         .trim();
 
-
         String contrasena =
                 new String(
                         view.getTxtContrasena()
                                 .getPassword()
                 ).trim();
-
 
         Object rolSeleccionado =
                 view.getCmbRol()
@@ -365,48 +367,40 @@ public class AdministracionPanelController {
                         .getText()
                         .trim();
 
-
         String cuit =
                 view.getTxtCuitCliente()
                         .getText()
                         .trim();
-
 
         String email =
                 view.getTxtEmailCliente()
                         .getText()
                         .trim();
 
-
         String telefono =
                 view.getTxtTelefonoCliente()
                         .getText()
                         .trim();
-
 
         String calle =
                 view.getTxtCalleCliente()
                         .getText()
                         .trim();
 
-
         String numero =
                 view.getTxtNumeroCliente()
                         .getText()
                         .trim();
-
 
         String ciudad =
                 view.getTxtCiudadCliente()
                         .getText()
                         .trim();
 
-
         String codigoPostal =
                 view.getTxtCodigoPostalCliente()
                         .getText()
                         .trim();
-
 
         String pais =
                 view.getTxtPaisCliente()
@@ -443,50 +437,27 @@ public class AdministracionPanelController {
 
         if (cliente == null) {
 
-            throw new IllegalStateException(
-                    "El cliente fue creado pero no pudo recuperarse."
+            throw new IllegalArgumentException(
+                    "No se pudo recuperar el cliente recién creado."
             );
         }
 
 
-        ObjectId clienteObjectId =
+        ObjectId clienteId =
                 cliente.getObjectId(
                         "_id"
                 );
 
 
-        if (clienteObjectId == null) {
+        if (clienteId == null) {
 
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                     "El cliente creado no tiene un ID válido."
             );
         }
 
 
-        return clienteObjectId.toHexString();
-    }
-
-
-    // =========================================================
-    // LIMPIAR FORMULARIO USUARIO
-    // =========================================================
-
-    private void limpiarFormularioUsuario() {
-
-        view.getTxtNombre()
-                .setText("");
-
-
-        view.getTxtApellido()
-                .setText("");
-
-
-        view.getTxtEmail()
-                .setText("");
-
-
-        view.getTxtContrasena()
-                .setText("");
+        return clienteId.toHexString();
     }
 
 
@@ -506,31 +477,10 @@ public class AdministracionPanelController {
 
             JOptionPane.showMessageDialog(
                     view,
-                    "Ingresá el email del usuario que querés eliminar.",
+                    "Ingresá el email del usuario.",
                     "Validación",
                     JOptionPane.WARNING_MESSAGE
             );
-
-            return;
-        }
-
-
-        int respuesta =
-                JOptionPane.showConfirmDialog(
-                        view,
-                        "¿Querés eliminar al usuario \""
-                                + email
-                                + "\"?",
-                        "Eliminar usuario",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
-
-
-        if (
-                respuesta !=
-                        JOptionPane.YES_OPTION
-        ) {
 
             return;
         }
@@ -547,7 +497,7 @@ public class AdministracionPanelController {
             if (usuario == null) {
 
                 throw new IllegalArgumentException(
-                        "No existe un usuario con ese email."
+                        "No se encontró un usuario con ese email."
                 );
             }
 
@@ -563,6 +513,25 @@ public class AdministracionPanelController {
                 throw new IllegalArgumentException(
                         "El usuario no tiene un ID válido."
                 );
+            }
+
+
+            int respuesta =
+                    JOptionPane.showConfirmDialog(
+                            view,
+                            "¿Querés eliminar este usuario?",
+                            "Eliminar usuario",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                    );
+
+
+            if (
+                    respuesta !=
+                            JOptionPane.YES_OPTION
+            ) {
+
+                return;
             }
 
 
@@ -600,6 +569,14 @@ public class AdministracionPanelController {
 
         try {
 
+            JTable tabla =
+                    view.getTablaSesiones();
+
+
+            String usuarioSeleccionado =
+                    obtenerUsuarioSeleccionado();
+
+
             Map<String, Long> sesiones =
                     administracionController
                             .obtenerSesionesActivas();
@@ -607,8 +584,7 @@ public class AdministracionPanelController {
 
             DefaultTableModel modelo =
                     (DefaultTableModel)
-                            view.getTablaSesiones()
-                                    .getModel();
+                            tabla.getModel();
 
 
             modelo.setRowCount(
@@ -632,6 +608,11 @@ public class AdministracionPanelController {
             }
 
 
+            restaurarSeleccion(
+                    usuarioSeleccionado
+            );
+
+
             view.getLblEstado()
                     .setText(
                             "Sesiones activas: "
@@ -650,87 +631,165 @@ public class AdministracionPanelController {
 
 
     // =========================================================
-    // CERRAR SESIÓN SELECCIONADA
+    // ACTUALIZAR SESIONES MANUALMENTE
     // =========================================================
 
-    private void cerrarSesionSeleccionada() {
+    private void actualizarSesionesManualmente() {
+
+        try {
+
+            int fila =
+                    view.getTablaSesiones()
+                            .getSelectedRow();
+
+
+            if (fila == -1) {
+
+                cargarSesiones();
+
+                view.getLblEstado()
+                        .setText(
+                                "Sesiones actualizadas."
+                        );
+
+                return;
+            }
+
+
+            String usuario =
+                    String.valueOf(
+                            view.getTablaSesiones()
+                                    .getValueAt(
+                                            fila,
+                                            0
+                                    )
+                    );
+
+
+            // =================================================
+            // REFRESH DE LA SESIÓN
+            // =================================================
+
+            sesionController.renovarSesion(
+                    usuario
+            );
+
+
+            // =================================================
+            // ACTUALIZAR TABLA
+            // =================================================
+
+            cargarSesiones();
+
+
+            view.getLblEstado()
+                    .setText(
+                            "Sesión de "
+                                    + usuario
+                                    + " renovada."
+                    );
+
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo renovar la sesión.",
+                    e
+            );
+        }
+    }
+
+
+    // =========================================================
+    // OBTENER USUARIO SELECCIONADO
+    // =========================================================
+
+    private String obtenerUsuarioSeleccionado() {
+
+        JTable tabla =
+                view.getTablaSesiones();
+
 
         int fila =
-                view.getTablaSesiones()
-                        .getSelectedRow();
+                tabla.getSelectedRow();
 
 
         if (fila == -1) {
 
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná una sesión.",
-                    "Administración",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
+            return null;
         }
 
 
-        String usuario =
-                String.valueOf(
-                        view.getTablaSesiones()
-                                .getValueAt(
-                                        fila,
-                                        0
-                                )
+        Object valor =
+                tabla.getValueAt(
+                        fila,
+                        0
                 );
 
 
-        int respuesta =
-                JOptionPane.showConfirmDialog(
-                        view,
-                        "¿Querés cerrar la sesión de \""
-                                + usuario
-                                + "\"?",
-                        "Cerrar sesión",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
+        if (valor == null) {
 
+            return null;
+        }
+
+
+        return valor.toString();
+    }
+
+
+    // =========================================================
+    // RESTAURAR SELECCIÓN
+    // =========================================================
+
+    private void restaurarSeleccion(
+            String usuarioSeleccionado
+    ) {
 
         if (
-                respuesta !=
-                        JOptionPane.YES_OPTION
+                usuarioSeleccionado == null
         ) {
 
             return;
         }
 
 
-        try {
+        JTable tabla =
+                view.getTablaSesiones();
 
-            administracionController
-                    .cerrarSesion(
-                            usuario
+
+        DefaultTableModel modelo =
+                (DefaultTableModel)
+                        tabla.getModel();
+
+
+        for (
+                int i = 0;
+                i < modelo.getRowCount();
+                i++
+        ) {
+
+            Object valor =
+                    modelo.getValueAt(
+                            i,
+                            0
                     );
 
 
-            cargarSesiones();
+            if (
+                    valor != null
+                            && valor.toString()
+                            .equals(
+                                    usuarioSeleccionado
+                            )
+            ) {
 
+                tabla.setRowSelectionInterval(
+                        i,
+                        i
+                );
 
-            JOptionPane.showMessageDialog(
-                    view,
-                    "La sesión de "
-                            + usuario
-                            + " fue cerrada.",
-                    "Sesión cerrada",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-
-
-        } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo cerrar la sesión.",
-                    e
-            );
+                return;
+            }
         }
     }
 
@@ -744,7 +803,7 @@ public class AdministracionPanelController {
         timer =
                 new Timer(
                         1000,
-                        e -> cargarSesiones()
+                        e -> actualizarTiempoSesiones()
                 );
 
 
@@ -753,7 +812,129 @@ public class AdministracionPanelController {
 
 
     // =========================================================
-    // FORMATEAR TTL
+    // ACTUALIZAR TIEMPO DE SESIONES
+    // =========================================================
+
+    private void actualizarTiempoSesiones() {
+
+        try {
+
+            JTable tabla =
+                    view.getTablaSesiones();
+
+
+            Map<String, Long> sesiones =
+                    administracionController
+                            .obtenerSesionesActivas();
+
+
+            DefaultTableModel modelo =
+                    (DefaultTableModel)
+                            tabla.getModel();
+
+
+            // -------------------------------------------------
+            // ACTUALIZAR TTL
+            // -------------------------------------------------
+
+            for (
+                    int fila = 0;
+                    fila < modelo.getRowCount();
+                    fila++
+            ) {
+
+                Object valorUsuario =
+                        modelo.getValueAt(
+                                fila,
+                                0
+                        );
+
+
+                if (valorUsuario == null) {
+
+                    continue;
+                }
+
+
+                String usuario =
+                        valorUsuario.toString();
+
+
+                Long segundos =
+                        sesiones.get(
+                                usuario
+                        );
+
+
+                if (segundos != null) {
+
+                    modelo.setValueAt(
+                            formatearTiempo(
+                                    segundos
+                            ),
+                            fila,
+                            1
+                    );
+                }
+            }
+
+
+            // -------------------------------------------------
+            // ELIMINAR SESIONES EXPIRADAS
+            // -------------------------------------------------
+
+            for (
+                    int fila = modelo.getRowCount() - 1;
+                    fila >= 0;
+                    fila--
+            ) {
+
+                Object valorUsuario =
+                        modelo.getValueAt(
+                                fila,
+                                0
+                        );
+
+
+                if (valorUsuario == null) {
+
+                    continue;
+                }
+
+
+                String usuario =
+                        valorUsuario.toString();
+
+
+                if (
+                        !sesiones.containsKey(
+                                usuario
+                        )
+                ) {
+
+                    modelo.removeRow(
+                            fila
+                    );
+                }
+            }
+
+
+            view.getLblEstado()
+                    .setText(
+                            "Sesiones activas: "
+                                    + sesiones.size()
+                    );
+
+
+        } catch (Exception e) {
+
+            // No mostrar un JOptionPane cada segundo.
+        }
+    }
+
+
+    // =========================================================
+    // FORMATEAR TIEMPO
     // =========================================================
 
     private String formatearTiempo(
@@ -783,6 +964,29 @@ public class AdministracionPanelController {
 
 
     // =========================================================
+    // LIMPIAR FORMULARIO
+    // =========================================================
+
+    private void limpiarFormularioUsuario() {
+
+        view.getTxtNombre()
+                .setText("");
+
+        view.getTxtApellido()
+                .setText("");
+
+        view.getTxtEmail()
+                .setText("");
+
+        view.getTxtContrasena()
+                .setText("");
+
+        view.getCmbRol()
+                .setSelectedIndex(-1);
+    }
+
+
+    // =========================================================
     // ERROR
     // =========================================================
 
@@ -799,5 +1003,73 @@ public class AdministracionPanelController {
                 "Error",
                 JOptionPane.ERROR_MESSAGE
         );
+    }
+
+    private void cerrarSesionSeleccionada() {
+
+        int fila =
+                view.getTablaSesiones()
+                        .getSelectedRow();
+
+        if (fila == -1) {
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Seleccioná una sesión.",
+                    "Administración",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+        String usuario =
+                String.valueOf(
+                        view.getTablaSesiones()
+                                .getValueAt(
+                                        fila,
+                                        0
+                                )
+                );
+
+        int respuesta =
+                JOptionPane.showConfirmDialog(
+                        view,
+                        "¿Querés cerrar la sesión de \""
+                                + usuario
+                                + "\"?",
+                        "Cerrar sesión",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+        if (respuesta != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+
+            administracionController.cerrarSesion(
+                    usuario
+            );
+
+            cargarSesiones();
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "La sesión de "
+                            + usuario
+                            + " fue cerrada.",
+                    "Sesión cerrada",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo cerrar la sesión.",
+                    e
+            );
+        }
     }
 }
