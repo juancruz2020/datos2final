@@ -22,84 +22,89 @@ public class DatosPruebaTotal {
 
     public void cargarDatos() {
 
-        // =====================================================
-        // 1. GENERAR DATOS EN MONGODB
-        // =====================================================
+        List<String> collections = mongo.mostrarCollections();
 
-        GeneradorDatosPruebaMongo generador =
-                new GeneradorDatosPruebaMongo();
+        if (collections != null && !collections.isEmpty()) {
 
-        generador.generarDatos();
+            // =====================================================
+            // 1. GENERAR DATOS EN MONGODB
+            // =====================================================
 
-        // =====================================================
-        // 2. OBTENER IDS REALES DESDE MONGODB
-        // =====================================================
+            GeneradorDatosPruebaMongo generador =
+                    new GeneradorDatosPruebaMongo();
 
-        List<String> idsMongoSensor =
-                mongo.obtenerIdsSensores();
+            generador.generarDatos();
 
-        List<String> idsMongoContenedor =
-                mongo.obtenerIdsContenedores();
+            // =====================================================
+            // 2. OBTENER IDS REALES DESDE MONGODB
+            // =====================================================
 
-        // =====================================================
-        // 3. VALIDAR QUE EXISTAN SENSORES Y CONTENEDORES
-        // =====================================================
+            List<String> idsMongoSensor =
+                    mongo.obtenerIdsSensores();
 
-        if (idsMongoSensor == null || idsMongoSensor.isEmpty()) {
+            List<String> idsMongoContenedor =
+                    mongo.obtenerIdsContenedores();
+
+            // =====================================================
+            // 3. VALIDAR QUE EXISTAN SENSORES Y CONTENEDORES
+            // =====================================================
+
+            if (idsMongoSensor == null || idsMongoSensor.isEmpty()) {
+
+                System.out.println(
+                        "No se encontraron sensores en MongoDB."
+                );
+
+                return;
+            }
+
+            if (idsMongoContenedor == null || idsMongoContenedor.isEmpty()) {
+
+                System.out.println(
+                        "No se encontraron contenedores en MongoDB."
+                );
+
+                return;
+            }
+
+            // =====================================================
+            // 4. MOSTRAR CANTIDAD DE IDS ENCONTRADOS
+            // =====================================================
 
             System.out.println(
-                    "No se encontraron sensores en MongoDB."
+                    "Sensores encontrados en MongoDB: "
+                            + idsMongoSensor.size()
             );
-
-            return;
-        }
-
-        if (idsMongoContenedor == null || idsMongoContenedor.isEmpty()) {
 
             System.out.println(
-                    "No se encontraron contenedores en MongoDB."
+                    "Contenedores encontrados en MongoDB: "
+                            + idsMongoContenedor.size()
             );
 
-            return;
+            // =====================================================
+            // 5. CREAR TABLAS DE CASSANDRA
+            // =====================================================
+            // Si ya existen, CREATE TABLE IF NOT EXISTS
+            // no las vuelve a crear.
+
+            tablascass.crearTablas();
+
+            // =====================================================
+            // 6. GENERAR LECTURAS EN CASSANDRA
+            // =====================================================
+
+            cassandra.insertarDatos(
+                    idsMongoSensor,
+                    idsMongoContenedor
+            );
+
+            // =====================================================
+            // 7. FINALIZADO
+            // =====================================================
+
+            System.out.println(
+                    "Datos de prueba cargados correctamente."
+            );
         }
-
-        // =====================================================
-        // 4. MOSTRAR CANTIDAD DE IDS ENCONTRADOS
-        // =====================================================
-
-        System.out.println(
-                "Sensores encontrados en MongoDB: "
-                        + idsMongoSensor.size()
-        );
-
-        System.out.println(
-                "Contenedores encontrados en MongoDB: "
-                        + idsMongoContenedor.size()
-        );
-
-        // =====================================================
-        // 5. CREAR TABLAS DE CASSANDRA
-        // =====================================================
-        // Si ya existen, CREATE TABLE IF NOT EXISTS
-        // no las vuelve a crear.
-
-        tablascass.crearTablas();
-
-        // =====================================================
-        // 6. GENERAR LECTURAS EN CASSANDRA
-        // =====================================================
-
-        cassandra.insertarDatos(
-                idsMongoSensor,
-                idsMongoContenedor
-        );
-
-        // =====================================================
-        // 7. FINALIZADO
-        // =====================================================
-
-        System.out.println(
-                "Datos de prueba cargados correctamente."
-        );
     }
 }

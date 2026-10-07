@@ -6,10 +6,13 @@ import org.example.mongoDB.model.*;
 import org.example.mongoDB.service.LogisticaMongoService;
 
 import java.util.List;
+import org.example.mongoDB.dao.ShowCollectionsDAO;
 
 public class ControllerMongoDB {
 
     private final LogisticaMongoService service;
+    private final ShowCollectionsDAO showCollectionsDAO;
+
 
 
     // =========================
@@ -18,6 +21,7 @@ public class ControllerMongoDB {
 
     public ControllerMongoDB() {
         this.service = new LogisticaMongoService();
+        this.showCollectionsDAO = new ShowCollectionsDAO();
     }
 
 
@@ -591,5 +595,13 @@ public class ControllerMongoDB {
 
     public void generarDatosPrueba() {
         GeneradorDatosPruebaMongo.generar();
+    }
+
+    // =========================
+// MOSTRAR COLLECTIONS
+// =========================
+
+    public List<String> mostrarCollections() {
+        return showCollectionsDAO.mostrarCollections();
     }
 }
