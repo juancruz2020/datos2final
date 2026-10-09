@@ -2,6 +2,9 @@ package org.example.interfaz.principal.vistas;
 
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
+import org.example.mongoDB.controller.IncidenteController;
+import org.example.neo4j.controller.ControllerNeo4j;
+import org.bson.Document;
 
 import javax.swing.*;
 import java.math.BigDecimal;
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,6 +24,8 @@ public class DashboardController {
     private final DashboardPanel view;
 
     private final ControllerMonitoreo monitoreo;
+    private final IncidenteController incidentes;
+    private final ControllerNeo4j neo4j;
 
 
     // =========================================================
@@ -35,6 +41,10 @@ public class DashboardController {
 
         this.monitoreo =
                 new ControllerMonitoreo();
+
+        this.incidentes = new IncidenteController();
+        this.neo4j = new ControllerNeo4j();
+        view.getBtnActualizar().addActionListener(e -> cargarDashboard());
 
         cargarDashboard();
     }
@@ -52,13 +62,7 @@ public class DashboardController {
                     monitoreo.obtenerTodasLasLecturas();
 
 
-            if (
-                    lecturas == null
-                            || lecturas.isEmpty()
-            ) {
-
-                return;
-            }
+            if (lecturas == null) lecturas = List.of();
 
 
             calcularIndicadores(
@@ -77,6 +81,8 @@ public class DashboardController {
                     lecturas
             );
 
+            calcularIndicadoresLogisticos(lecturas);
+
 
         } catch (Exception e) {
 
@@ -88,6 +94,53 @@ public class DashboardController {
                     JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    private void calcularIndicadoresLogisticos(List<Row> lecturas) {
+        try {
+            List<Map<String, Object>> envios = neo4j.listarEnvios();
+            List<Document> todosIncidentes = incidentes.listarIncidentes();
+            view.actualizarEnvios(envios.size());
+            view.actualizarIncidentesAbiertos(incidentes.buscarAbiertos().size());
+            actualizarEstadosEnvios(envios);
+            actualizarSeveridadIncidentes(todosIncidentes);
+        } catch (Exception e) {
+            view.actualizarEnvios(0);
+            view.actualizarIncidentesAbiertos(0);
+        }
+        int temperaturasRiesgo = 0;
+        for (Row fila : lecturas) {
+            BigDecimal temperatura = fila.getBigDecimal("temperatura");
+            if (temperatura != null && (temperatura.compareTo(BigDecimal.valueOf(15)) < 0
+                    || temperatura.compareTo(BigDecimal.valueOf(40)) > 0)) {
+                temperaturasRiesgo++;
+            }
+        }
+        view.actualizarTemperaturasRiesgo(temperaturasRiesgo);
+    }
+
+    private void actualizarEstadosEnvios(List<Map<String, Object>> envios) {
+        Map<String, Integer> cantidades = new TreeMap<>();
+        for (Map<String, Object> envio : envios) {
+            String estado = String.valueOf(envio.getOrDefault("estado", "SIN ESTADO"));
+            cantidades.merge(estado, 1, Integer::sum);
+        }
+        javax.swing.table.DefaultTableModel modelo =
+                (javax.swing.table.DefaultTableModel) view.getTablaEstadosEnvios().getModel();
+        modelo.setRowCount(0);
+        cantidades.forEach((estado, cantidad) -> modelo.addRow(new Object[]{estado, cantidad}));
+    }
+
+    private void actualizarSeveridadIncidentes(List<Document> incidentes) {
+        Map<String, Integer> cantidades = new TreeMap<>();
+        for (Document incidente : incidentes) {
+            String severidad = incidente.getString("severidad");
+            if (severidad != null && !severidad.isBlank()) cantidades.merge(severidad, 1, Integer::sum);
+        }
+        javax.swing.table.DefaultTableModel modelo =
+                (javax.swing.table.DefaultTableModel) view.getTablaSeveridadIncidentes().getModel();
+        modelo.setRowCount(0);
+        cantidades.forEach((severidad, cantidad) -> modelo.addRow(new Object[]{severidad, cantidad}));
     }
 
 
@@ -170,7 +223,7 @@ public class DashboardController {
 
             if (
                     bateria != null
-                            && bateria.doubleValue() < 20
+                            && bateria.compareTo(BigDecimal.valueOf(40)) <= 0
                             && sensorId != null
             ) {
 

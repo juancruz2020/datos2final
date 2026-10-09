@@ -5,6 +5,7 @@ import org.example.interfaz.tema.Fuentes;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
@@ -14,6 +15,12 @@ public class DashboardPanel extends JPanel {
     private final JLabel lblContenedores;
     private final JLabel lblTemperatura;
     private final JLabel lblBateriaBaja;
+    private final JLabel lblEnvios;
+    private final JLabel lblIncidentesAbiertos;
+    private final JLabel lblTemperaturasRiesgo;
+    private final JButton btnActualizar;
+    private final JTable tablaEstadosEnvios;
+    private final JTable tablaSeveridadIncidentes;
 
     private final GraficoLineaPanel graficoTemperatura;
     private final GraficoLineaPanel graficoHumedad;
@@ -61,10 +68,13 @@ public class DashboardPanel extends JPanel {
                 )
         );
 
-        add(
-                titulo,
-                BorderLayout.NORTH
-        );
+        btnActualizar = new JButton("Actualizar");
+        JPanel cabecera = new JPanel(new BorderLayout());
+        cabecera.setOpaque(false);
+        cabecera.add(titulo, BorderLayout.WEST);
+        cabecera.add(btnActualizar, BorderLayout.EAST);
+        remove(titulo);
+        add(cabecera, BorderLayout.NORTH);
 
 
         // =====================================================
@@ -100,7 +110,7 @@ public class DashboardPanel extends JPanel {
         JPanel tarjetas =
                 new JPanel(
                         new GridLayout(
-                                1,
+                                2,
                                 4,
                                 15,
                                 0
@@ -142,13 +152,6 @@ public class DashboardPanel extends JPanel {
                         "Batería baja",
                         "0"
                 );
-
-
-        contenido.add(
-                tarjetas,
-                BorderLayout.NORTH
-        );
-
 
         // =====================================================
         // GRÁFICOS
@@ -254,10 +257,45 @@ public class DashboardPanel extends JPanel {
         );
 
 
-        add(
-                contenido,
-                BorderLayout.CENTER
-        );
+        JPanel operativos = new JPanel(new BorderLayout(15, 15));
+        operativos.setOpaque(false);
+        operativos.setBorder(new EmptyBorder(20, 30, 30, 30));
+        lblEnvios = crearTarjeta(tarjetas, "Envíos", "0");
+        lblIncidentesAbiertos = crearTarjeta(tarjetas, "Incidentes abiertos", "0");
+        lblTemperaturasRiesgo = crearTarjeta(tarjetas, "Temperaturas críticas", "0");
+        operativos.add(tarjetas, BorderLayout.NORTH);
+        JPanel tablasResumen = new JPanel(new GridLayout(1, 2, 15, 0));
+        tablasResumen.setOpaque(false);
+        tablaEstadosEnvios = crearTablaResumen("Envíos por estado", "Estado", "Cantidad");
+        tablaSeveridadIncidentes = crearTablaResumen("Incidentes por severidad", "Severidad", "Cantidad");
+        tablasResumen.add(panelTablaResumen("Distribución de envíos", tablaEstadosEnvios));
+        tablasResumen.add(panelTablaResumen("Distribución de incidentes", tablaSeveridadIncidentes));
+        operativos.add(tablasResumen, BorderLayout.CENTER);
+
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.addTab("Monitoreo", contenido);
+        pestanas.addTab("Resumen operativo", operativos);
+        add(pestanas, BorderLayout.CENTER);
+    }
+
+    private JTable crearTablaResumen(String nombre, String columna1, String columna2) {
+        return new JTable(new DefaultTableModel(new Object[]{columna1, columna2}, 0) {
+            @Override public boolean isCellEditable(int row, int column) { return false; }
+        });
+    }
+
+    private JPanel panelTablaResumen(String titulo, JTable tabla) {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setBackground(new Color(25, 50, 75));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(50, 80, 105)),
+                BorderFactory.createEmptyBorder(12, 12, 12, 12)));
+        JLabel etiqueta = new JLabel(titulo);
+        etiqueta.setForeground(Color.WHITE);
+        etiqueta.setFont(Fuentes.LABEL);
+        panel.add(etiqueta, BorderLayout.NORTH);
+        panel.add(new JScrollPane(tabla), BorderLayout.CENTER);
+        return panel;
     }
 
 
@@ -414,6 +452,13 @@ public class DashboardPanel extends JPanel {
                 )
         );
     }
+
+    public void actualizarEnvios(int cantidad) { lblEnvios.setText(String.valueOf(cantidad)); }
+    public void actualizarIncidentesAbiertos(int cantidad) { lblIncidentesAbiertos.setText(String.valueOf(cantidad)); }
+    public void actualizarTemperaturasRiesgo(int cantidad) { lblTemperaturasRiesgo.setText(String.valueOf(cantidad)); }
+    public JButton getBtnActualizar() { return btnActualizar; }
+    public JTable getTablaEstadosEnvios() { return tablaEstadosEnvios; }
+    public JTable getTablaSeveridadIncidentes() { return tablaSeveridadIncidentes; }
 
 
     // =========================================================

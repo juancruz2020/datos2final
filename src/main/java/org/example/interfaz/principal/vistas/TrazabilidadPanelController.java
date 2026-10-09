@@ -27,6 +27,8 @@ public class TrazabilidadPanelController {
     private void cargarAnalisis() {
         cargarRiesgosPorEventos();
         cargarAnomaliasTemperatura();
+        cargarBateriasBajas();
+        cargarVibracionesAltas();
         view.getLblEstado().setText("Análisis de trazabilidad actualizado.");
     }
 
@@ -104,6 +106,44 @@ public class TrazabilidadPanelController {
             }
         } catch (Exception e) {
             mostrarError("No se pudieron consultar las temperaturas de riesgo.", e);
+        }
+    }
+
+    private void cargarBateriasBajas() {
+        DefaultTableModel modelo = (DefaultTableModel) view.getTablaBateriasBajas().getModel();
+        modelo.setRowCount(0);
+        try {
+            for (Row row : monitoreoController.obtenerTodasLasLecturas()) {
+                if (row.isNull("bateria")) continue;
+                BigDecimal bateria = row.getBigDecimal("bateria");
+                if (bateria.compareTo(BigDecimal.valueOf(40)) <= 0) {
+                    String contenedor = row.isNull("contenedor_id") ? "" : row.getString("contenedor_id");
+                    String sensor = row.isNull("sensor_id") ? "" : row.getString("sensor_id");
+                    String fecha = row.isNull("fecha_hora") ? "" : row.getObject("fecha_hora").toString();
+                    modelo.addRow(new Object[]{contenedor, sensor, bateria, fecha});
+                }
+            }
+        } catch (Exception e) {
+            mostrarError("No se pudieron consultar las baterías bajas.", e);
+        }
+    }
+
+    private void cargarVibracionesAltas() {
+        DefaultTableModel modelo = (DefaultTableModel) view.getTablaVibracionesAltas().getModel();
+        modelo.setRowCount(0);
+        try {
+            for (Row row : monitoreoController.obtenerTodasLasLecturas()) {
+                if (row.isNull("vibracion")) continue;
+                BigDecimal vibracion = row.getBigDecimal("vibracion");
+                if (vibracion.compareTo(BigDecimal.valueOf(1.2)) > 0) {
+                    String contenedor = row.isNull("contenedor_id") ? "" : row.getString("contenedor_id");
+                    String sensor = row.isNull("sensor_id") ? "" : row.getString("sensor_id");
+                    String fecha = row.isNull("fecha_hora") ? "" : row.getObject("fecha_hora").toString();
+                    modelo.addRow(new Object[]{contenedor, sensor, vibracion, fecha});
+                }
+            }
+        } catch (Exception e) {
+            mostrarError("No se pudieron consultar las vibraciones altas.", e);
         }
     }
 
