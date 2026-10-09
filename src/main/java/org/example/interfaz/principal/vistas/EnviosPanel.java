@@ -113,6 +113,7 @@ public class EnviosPanel extends JPanel {
         // =========================
         DefaultTableModel modelo = new DefaultTableModel(
                 new Object[]{
+                        "Identificador",
                         "Cliente",
                         "Contenedores",
                         "Vehículo",
@@ -142,14 +143,15 @@ public class EnviosPanel extends JPanel {
         tablaEnvios.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         // Ancho de cada columna.
-        tablaEnvios.getColumnModel().getColumn(0).setPreferredWidth(180); // Cliente
-        tablaEnvios.getColumnModel().getColumn(1).setPreferredWidth(220); // Contenedores
-        tablaEnvios.getColumnModel().getColumn(2).setPreferredWidth(170); // Vehículo
-        tablaEnvios.getColumnModel().getColumn(3).setPreferredWidth(100); // Fecha
-        tablaEnvios.getColumnModel().getColumn(4).setPreferredWidth(180); // Origen
-        tablaEnvios.getColumnModel().getColumn(5).setPreferredWidth(180); // Destino
-        tablaEnvios.getColumnModel().getColumn(6).setPreferredWidth(120); // Estado
-        tablaEnvios.getColumnModel().getColumn(7).setPreferredWidth(100); // Prioridad
+        tablaEnvios.getColumnModel().getColumn(0).setPreferredWidth(110); // Identificador
+        tablaEnvios.getColumnModel().getColumn(1).setPreferredWidth(180); // Cliente
+        tablaEnvios.getColumnModel().getColumn(2).setPreferredWidth(220); // Contenedores
+        tablaEnvios.getColumnModel().getColumn(3).setPreferredWidth(170); // Vehículo
+        tablaEnvios.getColumnModel().getColumn(4).setPreferredWidth(100); // Fecha
+        tablaEnvios.getColumnModel().getColumn(5).setPreferredWidth(180); // Origen
+        tablaEnvios.getColumnModel().getColumn(6).setPreferredWidth(180); // Destino
+        tablaEnvios.getColumnModel().getColumn(7).setPreferredWidth(120); // Estado
+        tablaEnvios.getColumnModel().getColumn(8).setPreferredWidth(100); // Prioridad
 
         JScrollPane scroll = new JScrollPane(tablaEnvios);
         scroll.setPreferredSize(new Dimension(900, 250));

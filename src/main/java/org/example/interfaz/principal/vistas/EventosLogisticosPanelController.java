@@ -209,17 +209,17 @@ public class EventosLogisticosPanelController {
                     );
 
 
-            ObjectId envioId =
-                    evento.getObjectId(
-                            "envio_id"
-                    );
+            Object envioIdValor = evento.get("envio_id");
+            String envioId = envioIdValor == null
+                    ? null
+                    : envioIdValor.toString();
 
 
             if (envioId != null) {
 
                 vista.getComboEnvio()
                         .setSelectedItem(
-                                envioId.toHexString()
+                                envioId
                         );
             }
 
@@ -501,10 +501,8 @@ public class EventosLogisticosPanelController {
                             "_id"
                     );
 
-            ObjectId envioId =
-                    evento.getObjectId(
-                            "envio_id"
-                    );
+            Object envioIdValor = evento.get("envio_id");
+            String envioId = envioIdValor == null ? null : envioIdValor.toString();
 
             Date fechaHora =
                     evento.getDate(
@@ -532,7 +530,7 @@ public class EventosLogisticosPanelController {
                                             : "",
 
                                     envioId != null
-                                            ? envioId.toHexString()
+                                            ? envioId
                                             : "",
 
                                     fechaFormateada,

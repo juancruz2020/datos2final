@@ -15,6 +15,7 @@ public class ClientesPanel extends JPanel {
     // =========================================================
 
     private final JTable tablaClientes;
+    private JTable tablaRankingEnvios;
 
     private final JButton btnActualizar;
 
@@ -336,10 +337,10 @@ public class ClientesPanel extends JPanel {
         );
 
 
-        add(
-                contenido,
-                BorderLayout.CENTER
-        );
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.addTab("Clientes", contenido);
+        pestanas.addTab("Ranking de envíos", crearPanelRanking());
+        add(pestanas, BorderLayout.CENTER);
 
 
         // =====================================================
@@ -360,6 +361,24 @@ public class ClientesPanel extends JPanel {
                 lblEstado,
                 BorderLayout.SOUTH
         );
+    }
+
+    private JPanel crearPanelRanking() {
+        JPanel panel = crearPanelBase();
+        panel.setLayout(new BorderLayout(10, 10));
+        JLabel titulo = new JLabel("Clientes con más envíos");
+        titulo.setFont(Fuentes.LABEL);
+        panel.add(titulo, BorderLayout.NORTH);
+        DefaultTableModel modelo = new DefaultTableModel(
+                new Object[]{"Posición", "Cliente", "Cantidad de envíos"}, 0) {
+            @Override public boolean isCellEditable(int row, int column) { return false; }
+        };
+        tablaRankingEnvios = new JTable(modelo);
+        tablaRankingEnvios.setRowHeight(28);
+        tablaRankingEnvios.setFont(Fuentes.NORMAL);
+        tablaRankingEnvios.getTableHeader().setFont(Fuentes.LABEL);
+        panel.add(new JScrollPane(tablaRankingEnvios), BorderLayout.CENTER);
+        return panel;
     }
 
 
@@ -921,6 +940,8 @@ public class ClientesPanel extends JPanel {
 
         return tablaClientes;
     }
+
+    public JTable getTablaRankingEnvios() { return tablaRankingEnvios; }
 
 
     public JButton getBtnActualizar() {

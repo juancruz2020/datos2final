@@ -103,7 +103,7 @@ public class DatosDePruebaCassandra {
         // GENERAR 60 LECTURAS
         // =================================================
 
-        for (int i = 0; i < 150; i++) {
+        for (int i = 0; i < 60; i++) {
 
             // Sensor de la lista recibida
             String sensorId = sensorIds.get(
@@ -175,7 +175,7 @@ public class DatosDePruebaCassandra {
         }
 
         System.out.println(
-                "150 lecturas aleatorias cargadas correctamente."
+                "60 lecturas aleatorias cargadas correctamente."
         );
     }
 

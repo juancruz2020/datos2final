@@ -3,17 +3,21 @@ package org.example.interfaz.principal.vistas;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.ClienteController;
+import org.example.neo4j.controller.ControllerNeo4j;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 public class ClientesPanelController {
 
     private final ClientesPanel view;
 
     private final ClienteController controller;
+    private final ControllerNeo4j neo4j;
 
     private final List<String> clientesIds;
 
@@ -32,6 +36,7 @@ public class ClientesPanelController {
 
         this.controller =
                 new ClienteController();
+        this.neo4j = new ControllerNeo4j();
 
         this.clientesIds =
                 new ArrayList<>();
@@ -42,6 +47,7 @@ public class ClientesPanelController {
         configurarEventos();
 
         cargarClientes();
+        cargarRankingEnvios();
     }
 
 
@@ -53,7 +59,10 @@ public class ClientesPanelController {
 
         view.getBtnActualizar()
                 .addActionListener(
-                        e -> cargarClientes()
+                        e -> {
+                            cargarClientes();
+                            cargarRankingEnvios();
+                        }
                 );
 
 
@@ -196,6 +205,39 @@ public class ClientesPanelController {
                     "No se pudieron cargar los clientes.",
                     e
             );
+        }
+    }
+
+    private void cargarRankingEnvios() {
+        try {
+            Map<String, Integer> cantidades = new HashMap<>();
+            Map<String, String> nombresNeo = new HashMap<>();
+            for (Map<String, Object> envio : neo4j.listarEnvios()) {
+                Object clienteId = envio.get("clienteId");
+                if (clienteId != null) {
+                    cantidades.merge(clienteId.toString(), 1, Integer::sum);
+                    Object nombre = envio.get("cliente");
+                    if (nombre != null && !nombre.toString().isBlank()) {
+                        nombresNeo.put(clienteId.toString(), nombre.toString());
+                    }
+                }
+            }
+            List<Document> clientes = controller.listarClientes();
+            Map<String, String> nombres = new HashMap<>();
+            for (Document cliente : clientes) {
+                Object id = cliente.get("_id");
+                if (id != null) nombres.put(id.toString(), cliente.getString("razon_social"));
+            }
+            List<Map.Entry<String, Integer>> ranking = new ArrayList<>(cantidades.entrySet());
+            ranking.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+            DefaultTableModel modelo = (DefaultTableModel) view.getTablaRankingEnvios().getModel();
+            modelo.setRowCount(0);
+            int posicion = 1;
+            for (Map.Entry<String, Integer> entrada : ranking) {
+                modelo.addRow(new Object[]{posicion++, nombresNeo.getOrDefault(entrada.getKey(), nombres.getOrDefault(entrada.getKey(), entrada.getKey())), entrada.getValue()});
+            }
+        } catch (Exception e) {
+            mostrarError("No se pudo cargar el ranking de clientes.", e);
         }
     }
 

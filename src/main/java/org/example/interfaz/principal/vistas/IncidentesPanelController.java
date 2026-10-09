@@ -218,17 +218,17 @@ public class IncidentesPanelController {
                     );
 
 
-            ObjectId envioId =
-                    incidente.getObjectId(
-                            "envio_id"
-                    );
+            Object envioIdValor = incidente.get("envio_id");
+            String envioId = envioIdValor == null
+                    ? null
+                    : envioIdValor.toString();
 
 
             if (envioId != null) {
 
                 vista.getComboEnvio()
                         .setSelectedItem(
-                                envioId.toHexString()
+                                envioId
                         );
             }
 
@@ -539,10 +539,8 @@ public class IncidentesPanelController {
                     );
 
 
-            ObjectId envioId =
-                    incidente.getObjectId(
-                            "envio_id"
-                    );
+            Object envioIdValor = incidente.get("envio_id");
+            String envioId = envioIdValor == null ? null : envioIdValor.toString();
 
 
             Date fecha =
@@ -571,7 +569,7 @@ public class IncidentesPanelController {
                                             : "",
 
                                     envioId != null
-                                            ? envioId.toHexString()
+                                            ? envioId
                                             : "",
 
                                     fechaFormateada,

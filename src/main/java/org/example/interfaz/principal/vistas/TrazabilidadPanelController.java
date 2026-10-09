@@ -1,727 +1,114 @@
 package org.example.interfaz.principal.vistas;
 
+import com.datastax.oss.driver.api.core.cql.Row;
 import org.bson.Document;
-import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.EnvioController;
+import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
+import org.example.mongoDB.controller.IncidenteController;
+import org.example.neo4j.controller.ControllerNeo4j;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class TrazabilidadPanelController {
-
     private final TrazabilidadPanel view;
+    private final IncidenteController incidenteController = new IncidenteController();
+    private final ControllerMonitoreo monitoreoController = new ControllerMonitoreo();
+    private final ControllerNeo4j neo4j = new ControllerNeo4j();
 
-    private final EnvioController envioController;
-
-    private final Map<String, String> enviosPorDescripcion;
-
-    private final SimpleDateFormat formatoFecha;
-
-
-    // =========================================================
-    // CONSTRUCTOR
-    // =========================================================
-
-    public TrazabilidadPanelController(
-            TrazabilidadPanel view
-    ) {
-
-        this.view =
-                view;
-
-        this.envioController =
-                new EnvioController();
-
-        this.enviosPorDescripcion =
-                new HashMap<>();
-
-        this.formatoFecha =
-                new SimpleDateFormat(
-                        "dd/MM/yyyy"
-                );
-
-        this.formatoFecha.setLenient(
-                false
-        );
-
-
-        configurarEventos();
-
-        cargarEnvios();
+    public TrazabilidadPanelController(TrazabilidadPanel view) {
+        this.view = view;
+        view.getBtnActualizar().addActionListener(e -> cargarAnalisis());
+        cargarAnalisis();
     }
 
-
-    // =========================================================
-    // EVENTOS
-    // =========================================================
-
-    private void configurarEventos() {
-
-        view.getCmbEnvio()
-                .addActionListener(
-                        e -> cargarTramosSeleccionados()
-                );
-
-
-        view.getBtnActualizar()
-                .addActionListener(
-                        e -> cargarEnvios()
-                );
-
-
-        view.getBtnMostrarFormulario()
-                .addActionListener(
-                        e -> mostrarFormulario()
-                );
-
-
-        view.getBtnCancelar()
-                .addActionListener(
-                        e -> cancelar()
-                );
-
-
-        view.getBtnGuardar()
-                .addActionListener(
-                        e -> guardarTramo()
-                );
+    private void cargarAnalisis() {
+        cargarRiesgosPorEventos();
+        cargarAnomaliasTemperatura();
+        view.getLblEstado().setText("Análisis de trazabilidad actualizado.");
     }
 
-
-    // =========================================================
-    // CARGAR ENVÍOS
-    // =========================================================
-
-    private void cargarEnvios() {
-
+    private void cargarRiesgosPorEventos() {
+        DefaultTableModel modelo = (DefaultTableModel) view.getTablaRiesgosEventos().getModel();
+        modelo.setRowCount(0);
         try {
-
-            List<Document> envios =
-                    envioController
-                            .listarEnvios();
-
-
-            Object seleccionadoAnterior =
-                    view.getCmbEnvio()
-                            .getSelectedItem();
-
-
-            view.getCmbEnvio()
-                    .removeAllItems();
-
-
-            enviosPorDescripcion.clear();
-
-
-            for (Document envio : envios) {
-
-                ObjectId id =
-                        envio.getObjectId(
-                                "_id"
-                        );
-
-
-                if (id == null) {
-
-                    continue;
+            Map<String, Map<String, Object>> porId = new HashMap<>();
+            for (Map<String, Object> envio : neo4j.listarEnvios()) {
+                Object id = envio.get("id");
+                if (id != null) porId.put(id.toString(), envio);
+            }
+            Map<String, Integer> repeticiones = new HashMap<>();
+            Map<String, String> ubicaciones = new HashMap<>();
+            Map<String, Map<String, Object>> enviosConIncidente = new HashMap<>();
+            for (Document incidente : incidenteController.listarIncidentes()) {
+                Object idValor = incidente.get("envio_id");
+                if (idValor == null) continue;
+                String envioId = idValor.toString();
+                Map<String, Object> envio = porId.get(envioId);
+                if (envio == null) continue;
+                enviosConIncidente.put(envioId, envio);
+            }
+            for (Map.Entry<String, Map<String, Object>> entrada : enviosConIncidente.entrySet()) {
+                String envioId = entrada.getKey();
+                Map<String, Object> envio = entrada.getValue();
+                for (String campo : new String[]{"ciudadOrigen", "ciudadDestino"}) {
+                    Object ubicacion = envio.get(campo);
+                    if (ubicacion == null || ubicacion.toString().isBlank()) continue;
+                    String claveUbicacion = ubicacion.toString().trim().toLowerCase();
+                    repeticiones.merge(claveUbicacion, 1, Integer::sum);
+                    ubicaciones.put(claveUbicacion, ubicacion.toString());
                 }
-
-
-                Document origen =
-                        envio.get(
-                                "origen",
-                                Document.class
-                        );
-
-
-                Document destino =
-                        envio.get(
-                                "destino",
-                                Document.class
-                        );
-
-
-                String origenTexto =
-                        obtenerUbicacion(
-                                origen
-                        );
-
-
-                String destinoTexto =
-                        obtenerUbicacion(
-                                destino
-                        );
-
-
-                String descripcion =
-                        id.toHexString()
-                                + " | "
-                                + origenTexto
-                                + " → "
-                                + destinoTexto;
-
-
-                view.getCmbEnvio()
-                        .addItem(
-                                descripcion
-                        );
-
-
-                enviosPorDescripcion.put(
-                        descripcion,
-                        id.toHexString()
-                );
             }
-
-
-            // -------------------------------------------------
-            // RESTAURAR SELECCIÓN
-            // -------------------------------------------------
-
-            if (seleccionadoAnterior != null
-                    && enviosPorDescripcion.containsKey(
-                    seleccionadoAnterior.toString()
-            )) {
-
-                view.getCmbEnvio()
-                        .setSelectedItem(
-                                seleccionadoAnterior
-                        );
+            java.util.Set<String> enviosRiesgosos = new java.util.LinkedHashSet<>();
+            Map<String, String> ubicacionRiesgoPorEnvio = new HashMap<>();
+            for (Map.Entry<String, Map<String, Object>> entrada : porId.entrySet()) {
+                String envioId = entrada.getKey();
+                if (enviosConIncidente.containsKey(envioId)) continue;
+                Map<String, Object> envio = entrada.getValue();
+                for (String campo : new String[]{"ciudadOrigen", "ciudadDestino"}) {
+                    Object ubicacion = envio.get(campo);
+                    if (ubicacion == null) continue;
+                    String claveUbicacion = ubicacion.toString().trim().toLowerCase();
+                    if (repeticiones.getOrDefault(claveUbicacion, 0) > 1) {
+                        enviosRiesgosos.add(envioId);
+                        ubicacionRiesgoPorEnvio.putIfAbsent(envioId, ubicaciones.get(claveUbicacion));
+                    }
+                }
             }
-
-
-            // -------------------------------------------------
-            // SIN ENVÍOS
-            // -------------------------------------------------
-
-            if (view.getCmbEnvio()
-                    .getItemCount() == 0) {
-
-                limpiarTabla();
-
-                view.getLblEstado()
-                        .setText(
-                                "No hay envíos registrados."
-                        );
-
-                return;
+            for (String envioId : enviosRiesgosos) {
+                String ubicacion = ubicacionRiesgoPorEnvio.get(envioId);
+                modelo.addRow(new Object[]{envioId, ubicacion, repeticiones.get(ubicacion.toLowerCase()),
+                        "Comparte ubicación con envíos que tuvieron incidentes"});
             }
-
-
-            cargarTramosSeleccionados();
-
-
         } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudieron cargar los envíos.",
-                    e
-            );
+            mostrarError("No se pudieron calcular los riesgos por eventos.", e);
         }
     }
 
-
-    // =========================================================
-    // CARGAR TRAMOS DEL ENVÍO SELECCIONADO
-    // =========================================================
-
-    private void cargarTramosSeleccionados() {
-
-        Object seleccionado =
-                view.getCmbEnvio()
-                        .getSelectedItem();
-
-
-        if (seleccionado == null) {
-
-            limpiarTabla();
-
-            return;
-        }
-
-
-        String envioId =
-                enviosPorDescripcion.get(
-                        seleccionado.toString()
-                );
-
-
-        if (envioId == null) {
-
-            limpiarTabla();
-
-            return;
-        }
-
-
+    private void cargarAnomaliasTemperatura() {
+        DefaultTableModel modelo = (DefaultTableModel) view.getTablaAnomaliasTemperatura().getModel();
+        modelo.setRowCount(0);
         try {
-
-            Document envio =
-                    envioController
-                            .buscarPorId(
-                                    envioId
-                            );
-
-
-            DefaultTableModel modelo =
-                    (DefaultTableModel)
-                            view.getTablaTramos()
-                                    .getModel();
-
-
-            modelo.setRowCount(
-                    0
-            );
-
-
-            List<Document> tramos =
-                    envio.getList(
-                            "tramos",
-                            Document.class
-                    );
-
-
-            if (tramos == null) {
-
-                view.getLblEstado()
-                        .setText(
-                                "El envío no tiene tramos registrados."
-                        );
-
-                return;
+            for (Row row : monitoreoController.obtenerTodasLasLecturas()) {
+                if (row.isNull("temperatura")) continue;
+                BigDecimal temperatura = row.getBigDecimal("temperatura");
+                if (temperatura.compareTo(BigDecimal.valueOf(15)) < 0
+                        || temperatura.compareTo(BigDecimal.valueOf(40)) > 0) {
+                    String contenedor = row.isNull("contenedor_id") ? "" : row.getString("contenedor_id");
+                    String sensor = row.isNull("sensor_id") ? "" : row.getString("sensor_id");
+                    String fecha = row.isNull("fecha_hora") ? "" : row.getObject("fecha_hora").toString();
+                    modelo.addRow(new Object[]{contenedor, sensor, temperatura, fecha});
+                }
             }
-
-
-            for (Document tramo : tramos) {
-
-                Date fechaSalida =
-                        tramo.getDate(
-                                "fecha_salida"
-                        );
-
-
-                Date fechaLlegada =
-                        tramo.getDate(
-                                "fecha_llegada_estimada"
-                        );
-
-
-                modelo.addRow(
-                        new Object[]{
-                                tramo.getString(
-                                        "medio_transporte"
-                                ),
-
-                                tramo.getString(
-                                        "origen"
-                                ),
-
-                                tramo.getString(
-                                        "destino"
-                                ),
-
-                                formatearFecha(
-                                        fechaSalida
-                                ),
-
-                                formatearFecha(
-                                        fechaLlegada
-                                )
-                        }
-                );
-            }
-
-
-            if (tramos.isEmpty()) {
-
-                view.getLblEstado()
-                        .setText(
-                                "El envío no tiene tramos registrados."
-                        );
-
-            } else {
-
-                view.getLblEstado()
-                        .setText(
-                                "Tramos registrados: "
-                                        + tramos.size()
-                        );
-            }
-
-
         } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo cargar la trazabilidad del envío.",
-                    e
-            );
+            mostrarError("No se pudieron consultar las temperaturas de riesgo.", e);
         }
     }
 
-
-    // =========================================================
-    // MOSTRAR FORMULARIO
-    // =========================================================
-
-    private void mostrarFormulario() {
-
-        if (view.getCmbEnvio()
-                .getSelectedItem() == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Primero seleccioná un envío.",
-                    "Trazabilidad",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-
-        view.mostrarFormulario();
-    }
-
-
-    // =========================================================
-    // GUARDAR TRAMO
-    // =========================================================
-
-    private void guardarTramo() {
-
-        Object envioSeleccionado =
-                view.getCmbEnvio()
-                        .getSelectedItem();
-
-
-        if (envioSeleccionado == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un envío.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-
-        String envioId =
-                enviosPorDescripcion.get(
-                        envioSeleccionado.toString()
-                );
-
-
-        if (envioId == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el ID del envío.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-
-        // =====================================================
-        // MEDIO DE TRANSPORTE
-        // =====================================================
-
-        Object medioSeleccionado =
-                view.getCmbMedioTransporte()
-                        .getSelectedItem();
-
-
-        if (medioSeleccionado == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un medio de transporte.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-
-        String medioTransporte =
-                medioSeleccionado.toString();
-
-
-        // =====================================================
-        // ORIGEN / DESTINO
-        // =====================================================
-
-        String origen =
-                view.getTxtOrigen()
-                        .getText()
-                        .trim();
-
-
-        String destino =
-                view.getTxtDestino()
-                        .getText()
-                        .trim();
-
-
-        // =====================================================
-        // FECHAS
-        // =====================================================
-
-        String fechaSalidaTexto =
-                view.getTxtFechaSalida()
-                        .getText()
-                        .trim();
-
-
-        String fechaLlegadaTexto =
-                view.getTxtFechaLlegada()
-                        .getText()
-                        .trim();
-
-
-        Date fechaSalida;
-
-        Date fechaLlegada;
-
-
-        try {
-
-            fechaSalida =
-                    convertirFecha(
-                            fechaSalidaTexto,
-                            "La fecha de salida debe tener formato dd/MM/yyyy."
-                    );
-
-
-            fechaLlegada =
-                    convertirFecha(
-                            fechaLlegadaTexto,
-                            "La fecha de llegada debe tener formato dd/MM/yyyy."
-                    );
-
-
-        } catch (IllegalArgumentException e) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    e.getMessage(),
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-
-        // =====================================================
-        // GUARDAR
-        // =====================================================
-
-        try {
-
-            envioController.agregarTramo(
-                    envioId,
-                    medioTransporte,
-                    origen,
-                    destino,
-                    fechaSalida,
-                    fechaLlegada
-            );
-
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Tramo agregado correctamente.",
-                    "Trazabilidad",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-
-
-            view.limpiarFormulario();
-
-            view.ocultarFormulario();
-
-
-            cargarTramosSeleccionados();
-
-
-        } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo agregar el tramo.",
-                    e
-            );
-        }
-    }
-
-
-    // =========================================================
-    // CONVERTIR FECHA
-    // =========================================================
-
-    private Date convertirFecha(
-            String texto,
-            String mensajeError
-    ) {
-
-        if (texto == null
-                || texto.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    mensajeError
-            );
-        }
-
-
-        try {
-
-            return formatoFecha.parse(
-                    texto
-            );
-
-
-        } catch (ParseException e) {
-
-            throw new IllegalArgumentException(
-                    mensajeError
-            );
-        }
-    }
-
-
-    // =========================================================
-    // FORMATEAR FECHA
-    // =========================================================
-
-    private String formatearFecha(
-            Date fecha
-    ) {
-
-        if (fecha == null) {
-
-            return "";
-        }
-
-
-        return formatoFecha.format(
-                fecha
-        );
-    }
-
-
-    // =========================================================
-    // OBTENER UBICACIÓN
-    // =========================================================
-
-    private String obtenerUbicacion(
-            Document ubicacion
-    ) {
-
-        if (ubicacion == null) {
-
-            return "";
-        }
-
-
-        String ciudad =
-                ubicacion.getString(
-                        "ciudad"
-                );
-
-
-        String pais =
-                ubicacion.getString(
-                        "pais"
-                );
-
-
-        if (ciudad == null) {
-
-            ciudad = "";
-        }
-
-
-        if (pais == null) {
-
-            pais = "";
-        }
-
-
-        if (ciudad.isBlank()) {
-
-            return pais;
-        }
-
-
-        if (pais.isBlank()) {
-
-            return ciudad;
-        }
-
-
-        return ciudad
-                + ", "
-                + pais;
-    }
-
-
-    // =========================================================
-    // LIMPIAR TABLA
-    // =========================================================
-
-    private void limpiarTabla() {
-
-        DefaultTableModel modelo =
-                (DefaultTableModel)
-                        view.getTablaTramos()
-                                .getModel();
-
-
-        modelo.setRowCount(
-                0
-        );
-    }
-
-
-    // =========================================================
-    // CANCELAR
-    // =========================================================
-
-    private void cancelar() {
-
-        view.limpiarFormulario();
-
-        view.ocultarFormulario();
-    }
-
-
-    // =========================================================
-    // ERROR
-    // =========================================================
-
-    private void mostrarError(
-            String mensaje,
-            Exception e
-    ) {
-
-        JOptionPane.showMessageDialog(
-                view,
-                mensaje
-                        + "\n\n"
-                        + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-        );
+    private void mostrarError(String mensaje, Exception e) {
+        JOptionPane.showMessageDialog(view, mensaje + "\n\n" + e.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
     }
 }

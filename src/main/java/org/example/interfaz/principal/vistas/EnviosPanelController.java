@@ -11,7 +11,6 @@ import org.example.neo4j.model.Ubicacion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -283,6 +282,7 @@ public class EnviosPanelController {
                 );
 
                 modelo.addRow(new Object[]{
+                        id,
                         cliente,
                         contenedores,
                         vehiculo,
@@ -537,7 +537,7 @@ public class EnviosPanelController {
 
         String id = envioIdEnEdicion != null
                 ? envioIdEnEdicion
-                : generarIdHexadecimal();
+                : generarIdentificador();
 
         String fechaCreacion;
 
@@ -823,17 +823,18 @@ public class EnviosPanelController {
         return resultado == null ? "" : resultado;
     }
 
-    private String generarIdHexadecimal() {
-        byte[] bytes = new byte[12];
-        new SecureRandom().nextBytes(bytes);
-
-        StringBuilder id = new StringBuilder(24);
-
-        for (byte b : bytes) {
-            id.append(String.format("%02x", b & 0xff));
+    private String generarIdentificador() {
+        int mayor = 0;
+        for (Map<String, Object> envio : neo4j.listarEnvios()) {
+            String id = texto(envio.get("id"));
+            if (id == null || !id.startsWith("ENV-")) continue;
+            try {
+                mayor = Math.max(mayor, Integer.parseInt(id.substring(4)));
+            } catch (NumberFormatException ignored) {
+                // Se ignoran IDs antiguos que no sigan el formato ENV-###.
+            }
         }
-
-        return id.toString();
+        return String.format("ENV-%03d", mayor + 1);
     }
 
     private void advertir(String mensaje) {

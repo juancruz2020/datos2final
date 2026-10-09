@@ -250,55 +250,6 @@ public class ControllerMongoDB {
 
 
     // =========================
-    // ENVIOS
-    // =========================
-
-    public void agregarEnvio(Envio envio) {
-        service.agregarEnvio(envio);
-    }
-
-    public void modificarEnvio(Envio envio) {
-        service.modificarEnvio(envio);
-    }
-
-    public void eliminarEnvio(String id) {
-        service.eliminarEnvio(id);
-    }
-
-    public Document buscarEnvioPorId(String id) {
-        return service.buscarEnvioPorId(id);
-    }
-
-    public List<Document> listarEnvios() {
-        return service.listarEnvios();
-    }
-
-    public List<String> obtenerIdsEnvios() {
-        return service.obtenerIdsEnvios();
-    }
-
-    public boolean existeEnvioPorId(String id) {
-        return service.existeEnvioPorId(id);
-    }
-
-    public List<Document> buscarEnviosPorCliente(String clienteId) {
-        return service.buscarEnviosPorCliente(clienteId);
-    }
-
-    public List<Document> buscarEnviosPorEstado(String estado) {
-        return service.buscarEnviosPorEstado(estado);
-    }
-
-    public List<Document> buscarEnviosPorPais(String pais) {
-        return service.buscarEnviosPorPais(pais);
-    }
-
-    public List<Document> buscarEnviosDemorados() {
-        return service.buscarEnviosDemorados();
-    }
-
-
-    // =========================
     // EVENTOS LOGISTICOS
     // =========================
 

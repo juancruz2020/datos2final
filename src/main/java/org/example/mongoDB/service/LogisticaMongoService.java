@@ -14,7 +14,6 @@ public class LogisticaMongoService {
     private final RolMongoDAO rolDAO;
     private final ContenedorMongoDAO contenedorDAO;
     private final SensorMongoDAO sensorDAO;
-    private final EnvioMongoDAO envioDAO;
     private final EventoLogisticoMongoDAO eventoLogisticoDAO;
     private final IncidenteMongoDAO incidenteDAO;
     private final AlertaMongoDAO alertaDAO;
@@ -35,7 +34,6 @@ public class LogisticaMongoService {
         this.rolDAO = new RolMongoDAO();
         this.contenedorDAO = new ContenedorMongoDAO();
         this.sensorDAO = new SensorMongoDAO();
-        this.envioDAO = new EnvioMongoDAO();
         this.eventoLogisticoDAO = new EventoLogisticoMongoDAO();
         this.incidenteDAO = new IncidenteMongoDAO();
         this.alertaDAO = new AlertaMongoDAO();
@@ -324,55 +322,6 @@ public class LogisticaMongoService {
 
     public List<Document> buscarSensoresPorEstado(String estado) {
         return sensorDAO.buscarPorEstado(estado);
-    }
-
-
-    // =========================
-    // ENVIOS
-    // =========================
-
-    public void agregarEnvio(Envio envio) {
-        envioDAO.agregar(envio);
-    }
-
-    public void modificarEnvio(Envio envio) {
-        envioDAO.modificar(envio);
-    }
-
-    public void eliminarEnvio(String id) {
-        envioDAO.eliminar(id);
-    }
-
-    public Document buscarEnvioPorId(String id) {
-        return envioDAO.buscarPorId(id);
-    }
-
-    public List<Document> listarEnvios() {
-        return envioDAO.listarTodos();
-    }
-
-    public List<String> obtenerIdsEnvios() {
-        return envioDAO.obtenerTodosLosIds();
-    }
-
-    public boolean existeEnvioPorId(String id) {
-        return envioDAO.existePorId(id);
-    }
-
-    public List<Document> buscarEnviosPorCliente(String clienteId) {
-        return envioDAO.buscarPorCliente(clienteId);
-    }
-
-    public List<Document> buscarEnviosPorEstado(String estado) {
-        return envioDAO.buscarPorEstado(estado);
-    }
-
-    public List<Document> buscarEnviosPorPais(String pais) {
-        return envioDAO.buscarPorPais(pais);
-    }
-
-    public List<Document> buscarEnviosDemorados() {
-        return envioDAO.buscarDemorados();
     }
 
 

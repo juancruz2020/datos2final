@@ -35,6 +35,10 @@ public class DatosPruebaTotal {
 
             generador.generarDatos();
 
+            // Los envíos Neo4j usan los IDs definidos por
+            // GeneradorDatosPruebaNeo (ENV-001 a ENV-008).
+            GeneradorDatosPruebaNeo.generar();
+
             // =====================================================
             // 2. OBTENER IDS REALES DESDE MONGODB
             // =====================================================
@@ -45,8 +49,17 @@ public class DatosPruebaTotal {
             List<String> idsMongoContenedor =
                     mongo.obtenerIdsContenedores();
 
+            List<String> idsMongoUsuario =
+                    mongo.obtenerIdsUsuarios();
+
             // =====================================================
-            // 3. VALIDAR QUE EXISTAN SENSORES Y CONTENEDORES
+            // 3. GENERAR SESIONES DE PRUEBA EN REDIS
+            // =====================================================
+
+            GenerarDatosPruebaRedis.generar(idsMongoUsuario);
+
+            // =====================================================
+            // 4. VALIDAR QUE EXISTAN SENSORES Y CONTENEDORES
             // =====================================================
 
             if (idsMongoSensor == null || idsMongoSensor.isEmpty()) {

@@ -24,8 +24,6 @@ public class GeneradorDatosPruebaMongo {
 
     private final SensorMongoDAO sensorDAO = new SensorMongoDAO();
 
-    private final EnvioMongoDAO envioDAO = new EnvioMongoDAO();
-
     private final EventoLogisticoMongoDAO eventoDAO = new EventoLogisticoMongoDAO();
 
     private final IncidenteMongoDAO incidenteDAO = new IncidenteMongoDAO();
@@ -370,6 +368,28 @@ public class GeneradorDatosPruebaMongo {
 
         );
 
+        Usuario usuarioAdministrador = new Usuario(
+
+                null,
+
+                null,
+
+                administrador.getId(),
+
+                "1",
+
+                "1",
+
+                "1",
+
+                "1",
+
+                "ACTIVO",
+
+                new Date()
+
+        );
+
         usuarioDAO.agregar(usuario1);
 
         usuarioDAO.agregar(usuario2);
@@ -379,6 +399,8 @@ public class GeneradorDatosPruebaMongo {
         usuarioDAO.agregar(usuario4);
 
         usuarioDAO.agregar(usuario5);
+
+        usuarioDAO.agregar(usuarioAdministrador);
 
         // =====================================================
 
@@ -651,132 +673,6 @@ public class GeneradorDatosPruebaMongo {
 
         // =====================================================
 
-        // ENVIOS
-
-        // =====================================================
-
-        Envio envio1 = new Envio(
-
-                null,
-
-                cliente1.getId(),
-
-                Arrays.asList(contenedor1.getId()),
-
-                new Date(),
-
-                new Ubicacion("Buenos Aires", "Argentina"),
-
-                new Ubicacion("Mendoza", "Argentina"),
-
-                "EN_TRANSITO",
-
-                "ALTA",
-
-                Arrays.asList(tramo1)
-
-        );
-
-        Envio envio2 = new Envio(
-
-                null,
-
-                cliente2.getId(),
-
-                Arrays.asList(contenedor2.getId()),
-
-                new Date(),
-
-                new Ubicacion("Mendoza", "Argentina"),
-
-                new Ubicacion("Santiago", "Chile"),
-
-                "DEMORADO",
-
-                "ALTA",
-
-                Arrays.asList(tramo2)
-
-        );
-
-        Envio envio3 = new Envio(
-
-                null,
-
-                cliente3.getId(),
-
-                Arrays.asList(contenedor3.getId()),
-
-                new Date(),
-
-                new Ubicacion("Buenos Aires", "Argentina"),
-
-                new Ubicacion("Montevideo", "Uruguay"),
-
-                "ENTREGADO",
-
-                "MEDIA",
-
-                Arrays.asList(tramo3)
-
-        );
-
-        Envio envio4 = new Envio(
-
-                null,
-
-                cliente4.getId(),
-
-                Arrays.asList(contenedor4.getId()),
-
-                new Date(),
-
-                new Ubicacion("Rosario", "Argentina"),
-
-                new Ubicacion("Cordoba", "Argentina"),
-
-                "EN_TRANSITO",
-
-                "MEDIA",
-
-                Arrays.asList(tramo4)
-
-        );
-
-        Envio envio5 = new Envio(
-
-                null,
-
-                cliente5.getId(),
-
-                Arrays.asList(contenedor5.getId()),
-
-                new Date(),
-
-                new Ubicacion("Neuquen", "Argentina"),
-
-                new Ubicacion("Buenos Aires", "Argentina"),
-
-                "PENDIENTE",
-
-                "BAJA",
-
-                Arrays.asList(tramo5)
-
-        );
-
-        envioDAO.agregar(envio1);
-
-        envioDAO.agregar(envio2);
-
-        envioDAO.agregar(envio3);
-
-        envioDAO.agregar(envio4);
-
-        envioDAO.agregar(envio5);
-
-        // =====================================================
-
         // EVENTOS LOGISTICOS
 
         // =====================================================
@@ -785,7 +681,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio1.getId(),
+                "ENV-001",
 
                 new Date(),
 
@@ -801,7 +697,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio2.getId(),
+                "ENV-002",
 
                 new Date(),
 
@@ -817,7 +713,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio3.getId(),
+                "ENV-003",
 
                 new Date(),
 
@@ -833,7 +729,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio4.getId(),
+                "ENV-004",
 
                 new Date(),
 
@@ -849,7 +745,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio5.getId(),
+                "ENV-005",
 
                 new Date(),
 
@@ -881,7 +777,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio1.getId(),
+                "ENV-001",
 
                 "DEMORA",
 
@@ -899,7 +795,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio2.getId(),
+                "ENV-002",
 
                 "RUTA",
 
@@ -917,7 +813,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio3.getId(),
+                "ENV-003",
 
                 "DOCUMENTACION",
 
@@ -935,7 +831,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio4.getId(),
+                "ENV-004",
 
                 "MECANICO",
 
@@ -953,7 +849,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                envio5.getId(),
+                "ENV-005",
 
                 "OPERATIVO",
 
@@ -967,6 +863,42 @@ public class GeneradorDatosPruebaMongo {
 
         );
 
+        Incidente incidente6 = new Incidente(
+
+                null,
+
+                "ENV-006",
+
+                "ADUANA",
+
+                new Date(),
+
+                "ALTA",
+
+                "ABIERTO",
+
+                "Retención preventiva en la ruta"
+
+        );
+
+        Incidente incidente7 = new Incidente(
+
+                null,
+
+                "ENV-007",
+
+                "CLIMATICO",
+
+                new Date(),
+
+                "MEDIA",
+
+                "ABIERTO",
+
+                "Demora por condiciones climáticas"
+
+        );
+
         incidenteDAO.agregar(incidente1);
 
         incidenteDAO.agregar(incidente2);
@@ -976,6 +908,10 @@ public class GeneradorDatosPruebaMongo {
         incidenteDAO.agregar(incidente4);
 
         incidenteDAO.agregar(incidente5);
+
+        incidenteDAO.agregar(incidente6);
+
+        incidenteDAO.agregar(incidente7);
 
         // =====================================================
 
@@ -1442,16 +1378,6 @@ public class GeneradorDatosPruebaMongo {
         System.out.println("Cliente 5: " + cliente5.getId());
 
         System.out.println();
-
-        System.out.println("Envio 1: " + envio1.getId());
-
-        System.out.println("Envio 2: " + envio2.getId());
-
-        System.out.println("Envio 3: " + envio3.getId());
-
-        System.out.println("Envio 4: " + envio4.getId());
-
-        System.out.println("Envio 5: " + envio5.getId());
 
         System.out.println("------------------------------------");
 

@@ -42,7 +42,7 @@ public class EnvioNeo4jDAO {
                     e.estado AS estado,
                     e.prioridad AS prioridad,
                     v.id AS vehiculoId,
-                    v.identificacion AS vehiculo,
+                    coalesce(v.identificacion, v.patente) AS vehiculo,
                     v.tipo AS vehiculoTipo,
                     collect(DISTINCT co.id) AS contenedoresIds,
                     collect(DISTINCT co.codigo) AS contenedores
@@ -85,7 +85,7 @@ public class EnvioNeo4jDAO {
                     e.estado AS estado,
                     e.prioridad AS prioridad,
                     v.id AS vehiculoId,
-                    v.identificacion AS vehiculo,
+                    coalesce(v.identificacion, v.patente) AS vehiculo,
                     v.tipo AS vehiculoTipo,
                     collect(DISTINCT co.id) AS contenedoresIds,
                     collect(DISTINCT co.codigo) AS contenedores

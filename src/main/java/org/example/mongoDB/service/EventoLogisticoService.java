@@ -2,9 +2,9 @@ package org.example.mongoDB.service;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.dao.EnvioMongoDAO;
 import org.example.mongoDB.dao.EventoLogisticoMongoDAO;
 import org.example.mongoDB.model.EventoLogistico;
+import org.example.neo4j.controller.ControllerNeo4j;
 
 import java.util.Date;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
 public class EventoLogisticoService {
 
     private final EventoLogisticoMongoDAO eventoDAO;
-    private final EnvioMongoDAO envioDAO;
+    private final ControllerNeo4j neo4j;
 
 
     // =========================================================
@@ -24,8 +24,7 @@ public class EventoLogisticoService {
         this.eventoDAO =
                 new EventoLogisticoMongoDAO();
 
-        this.envioDAO =
-                new EnvioMongoDAO();
+        this.neo4j = new ControllerNeo4j();
     }
 
 
@@ -44,12 +43,9 @@ public class EventoLogisticoService {
         // VALIDAR ENVÍO
         // -----------------------------------------------------
 
-        validarObjectId(
-                envioId,
-                "El ID del envío no es válido."
-        );
+        validarEnvioEnNeo4j(envioId);
 
-        if (!envioDAO.existePorId(envioId)) {
+        if (neo4j.buscarEnvioPorId(envioId) == null) {
 
             throw new IllegalArgumentException(
                     "El envío seleccionado no existe."
@@ -157,13 +153,10 @@ public class EventoLogisticoService {
         // VALIDAR ENVÍO
         // -----------------------------------------------------
 
-        validarObjectId(
-                envioId,
-                "El ID del envío no es válido."
-        );
+        validarEnvioEnNeo4j(envioId);
 
 
-        if (!envioDAO.existePorId(envioId)) {
+        if (neo4j.buscarEnvioPorId(envioId) == null) {
 
             throw new IllegalArgumentException(
                     "El envío seleccionado no existe."
@@ -335,10 +328,7 @@ public class EventoLogisticoService {
             String envioId
     ) {
 
-        validarObjectId(
-                envioId,
-                "El ID del envío no es válido."
-        );
+        validarEnvioEnNeo4j(envioId);
 
 
         return eventoDAO.buscarPorEnvio(
@@ -415,6 +405,15 @@ public class EventoLogisticoService {
 
             throw new IllegalArgumentException(
                     mensaje
+            );
+        }
+    }
+
+    private void validarEnvioEnNeo4j(String envioId) {
+        if (envioId == null || envioId.isBlank()
+                || neo4j.buscarEnvioPorId(envioId) == null) {
+            throw new IllegalArgumentException(
+                    "El envío seleccionado no existe en Neo4j."
             );
         }
     }

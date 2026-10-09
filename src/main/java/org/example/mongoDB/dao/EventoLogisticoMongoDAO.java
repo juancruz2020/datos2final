@@ -36,7 +36,7 @@ public class EventoLogisticoMongoDAO {
         Document documento = new Document()
                 .append(
                         "envio_id",
-                        new ObjectId(evento.getEnvioId())
+                        evento.getEnvioId()
                 )
                 .append("fecha_hora", evento.getFechaHora())
                 .append("tipo_evento", evento.getTipoEvento())
@@ -62,7 +62,7 @@ public class EventoLogisticoMongoDAO {
                 combine(
                         set(
                                 "envio_id",
-                                new ObjectId(evento.getEnvioId())
+                                evento.getEnvioId()
                         ),
                         set("fecha_hora", evento.getFechaHora()),
                         set("tipo_evento", evento.getTipoEvento()),
@@ -152,7 +152,7 @@ public class EventoLogisticoMongoDAO {
         return coleccion.find(
                 eq(
                         "envio_id",
-                        new ObjectId(envioId)
+                        envioId
                 )
         ).into(new ArrayList<>());
     }

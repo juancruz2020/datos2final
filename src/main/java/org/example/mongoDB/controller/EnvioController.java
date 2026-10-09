@@ -1,14 +1,14 @@
 package org.example.mongoDB.controller;
 
 import org.bson.Document;
-import org.example.mongoDB.service.EnvioService;
+import org.example.neo4j.controller.ControllerNeo4j;
 
 import java.util.Date;
 import java.util.List;
 
 public class EnvioController {
 
-    private final EnvioService envioService;
+    private final ControllerNeo4j neo4j;
 
 
     // =========================================================
@@ -17,8 +17,7 @@ public class EnvioController {
 
     public EnvioController() {
 
-        this.envioService =
-                new EnvioService();
+        this.neo4j = new ControllerNeo4j();
     }
 
 
@@ -36,15 +35,7 @@ public class EnvioController {
             String prioridad
     ) {
 
-        envioService.crearEnvio(
-                clienteId,
-                contenedoresIds,
-                ciudadOrigen,
-                paisOrigen,
-                ciudadDestino,
-                paisDestino,
-                prioridad
-        );
+        throw new UnsupportedOperationException("Los envíos se gestionan en Neo4j.");
     }
 
 
@@ -64,17 +55,7 @@ public class EnvioController {
             String prioridad
     ) {
 
-        envioService.modificarEnvio(
-                id,
-                clienteId,
-                contenedoresIds,
-                ciudadOrigen,
-                paisOrigen,
-                ciudadDestino,
-                paisDestino,
-                estado,
-                prioridad
-        );
+        throw new UnsupportedOperationException("Los envíos se gestionan en Neo4j.");
     }
 
 
@@ -86,9 +67,7 @@ public class EnvioController {
             String id
     ) {
 
-        envioService.eliminarEnvio(
-                id
-        );
+        throw new UnsupportedOperationException("Los envíos se gestionan en Neo4j.");
     }
 
 
@@ -97,8 +76,11 @@ public class EnvioController {
     // =========================================================
 
     public List<Document> listarEnvios() {
-
-        return envioService.listarEnvios();
+        List<Document> resultado = new java.util.ArrayList<>();
+        for (java.util.Map<String, Object> envio : neo4j.listarEnvios()) {
+            resultado.add(documentoNeo4j(envio));
+        }
+        return resultado;
     }
 
 
@@ -110,9 +92,8 @@ public class EnvioController {
             String id
     ) {
 
-        return envioService.buscarPorId(
-                id
-        );
+        java.util.Map<String, Object> envio = neo4j.buscarEnvioPorId(id);
+        return envio == null ? null : documentoNeo4j(envio);
     }
 
 
@@ -124,9 +105,7 @@ public class EnvioController {
             String id
     ) {
 
-        return envioService.existePorId(
-                id
-        );
+        return neo4j.buscarEnvioPorId(id) != null;
     }
 
 
@@ -135,8 +114,12 @@ public class EnvioController {
     // =========================================================
 
     public List<String> obtenerTodosLosIds() {
-
-        return envioService.obtenerTodosLosIds();
+        List<String> ids = new java.util.ArrayList<>();
+        for (java.util.Map<String, Object> envio : neo4j.listarEnvios()) {
+            Object id = envio.get("id");
+            if (id != null) ids.add(id.toString());
+        }
+        return ids;
     }
 
 
@@ -147,10 +130,13 @@ public class EnvioController {
     public List<Document> buscarPorCliente(
             String clienteId
     ) {
-
-        return envioService.buscarPorCliente(
-                clienteId
-        );
+        List<Document> resultado = new java.util.ArrayList<>();
+        for (Document envio : listarEnvios()) {
+            if (clienteId != null && clienteId.equals(envio.getString("cliente_id"))) {
+                resultado.add(envio);
+            }
+        }
+        return resultado;
     }
 
 
@@ -162,9 +148,11 @@ public class EnvioController {
             String estado
     ) {
 
-        return envioService.buscarPorEstado(
-                estado
-        );
+        List<Document> resultado = new java.util.ArrayList<>();
+        for (Document envio : listarEnvios()) {
+            if (estado != null && estado.equals(envio.getString("estado"))) resultado.add(envio);
+        }
+        return resultado;
     }
 
 
@@ -176,9 +164,14 @@ public class EnvioController {
             String pais
     ) {
 
-        return envioService.buscarPorPais(
-                pais
-        );
+        List<Document> resultado = new java.util.ArrayList<>();
+        for (Document envio : listarEnvios()) {
+            Document origen = envio.get("origen", Document.class);
+            Document destino = envio.get("destino", Document.class);
+            if (origen != null && pais.equals(origen.getString("pais"))
+                    || destino != null && pais.equals(destino.getString("pais"))) resultado.add(envio);
+        }
+        return resultado;
     }
 
 
@@ -187,8 +180,7 @@ public class EnvioController {
     // =========================================================
 
     public List<Document> buscarDemorados() {
-
-        return envioService.buscarDemorados();
+        return buscarPorEstado("DEMORADO");
     }
 
 
@@ -205,13 +197,21 @@ public class EnvioController {
             Date fechaLlegadaEstimada
     ) {
 
-        envioService.agregarTramo(
-                envioId,
-                medioTransporte,
-                origen,
-                destino,
-                fechaSalida,
-                fechaLlegadaEstimada
-        );
+        throw new UnsupportedOperationException("Los tramos de envíos se gestionan en Neo4j.");
+    }
+
+    private Document documentoNeo4j(java.util.Map<String, Object> envio) {
+        Document origen = new Document("ciudad", envio.get("ciudadOrigen"))
+                .append("pais", envio.get("paisOrigen"));
+        Document destino = new Document("ciudad", envio.get("ciudadDestino"))
+                .append("pais", envio.get("paisDestino"));
+        return new Document("_id", envio.get("id"))
+                .append("cliente_id", envio.get("clienteId"))
+                .append("contenedores_ids", envio.get("contenedoresIds"))
+                .append("fecha_creacion", envio.get("fechaCreacion"))
+                .append("origen", origen)
+                .append("destino", destino)
+                .append("estado", envio.get("estado"))
+                .append("prioridad", envio.get("prioridad"));
     }
 }
