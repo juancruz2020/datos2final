@@ -17,17 +17,37 @@ public class SeguimientoGPSPanel extends JPanel {
 
     private final JButton btnActualizar;
 
+    private final JComboBox<String> comboSensores;
+
+
     public SeguimientoGPSPanel() {
 
         mapa = new JXMapViewer();
 
-        lblEstado = new JLabel("Esperando posiciones...");
-        lblCantidad = new JLabel("Sensores: 0");
+        lblEstado =
+                new JLabel("Esperando posiciones...");
 
-        btnActualizar = new JButton("Actualizar");
+        lblCantidad =
+                new JLabel("Sensores: 0");
+
+        btnActualizar =
+                new JButton("Actualizar");
+
+        comboSensores =
+                new JComboBox<>();
+
+        /*
+         * Opción inicial.
+         * Después el Controller va a cargar
+         * los sensores disponibles.
+         */
+        comboSensores.addItem(
+                "Todos los sensores"
+        );
 
         construir();
     }
+
 
     // =========================================================
     // CONSTRUIR
@@ -35,8 +55,16 @@ public class SeguimientoGPSPanel extends JPanel {
 
     private void construir() {
 
-        setLayout(new BorderLayout(15, 15));
-        setBackground(Colores.FONDO);
+        setLayout(
+                new BorderLayout(
+                        15,
+                        15
+                )
+        );
+
+        setBackground(
+                Colores.FONDO
+        );
 
         setBorder(
                 new EmptyBorder(
@@ -47,16 +75,23 @@ public class SeguimientoGPSPanel extends JPanel {
                 )
         );
 
+
         // =====================================================
         // CABECERA
         // =====================================================
 
-        JPanel cabecera = new JPanel(new BorderLayout());
+        JPanel cabecera =
+                new JPanel(
+                        new BorderLayout()
+                );
+
         cabecera.setOpaque(false);
 
-        JLabel titulo = new JLabel(
-                "Seguimiento GPS"
-        );
+
+        JLabel titulo =
+                new JLabel(
+                        "Seguimiento GPS"
+                );
 
         titulo.setFont(
                 new Font(
@@ -70,9 +105,11 @@ public class SeguimientoGPSPanel extends JPanel {
                 Colores.TEXTO
         );
 
-        JLabel subtitulo = new JLabel(
-                "Ubicación de los sensores y contenedores"
-        );
+
+        JLabel subtitulo =
+                new JLabel(
+                        "Ubicación de los sensores y contenedores"
+                );
 
         subtitulo.setFont(
                 Fuentes.NORMAL
@@ -82,7 +119,10 @@ public class SeguimientoGPSPanel extends JPanel {
                 Colores.TEXTO_SECUNDARIO
         );
 
-        JPanel textos = new JPanel();
+
+        JPanel textos =
+                new JPanel();
+
         textos.setLayout(
                 new BoxLayout(
                         textos,
@@ -93,23 +133,85 @@ public class SeguimientoGPSPanel extends JPanel {
         textos.setOpaque(false);
 
         textos.add(titulo);
-        textos.add(Box.createVerticalStrut(5));
+
+        textos.add(
+                Box.createVerticalStrut(5)
+        );
+
         textos.add(subtitulo);
+
 
         cabecera.add(
                 textos,
                 BorderLayout.WEST
         );
 
+
+        // =====================================================
+        // CONTROLES
+        // =====================================================
+
+        JPanel controles =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.RIGHT,
+                                10,
+                                0
+                        )
+                );
+
+        controles.setOpaque(false);
+
+
+        JLabel lblSensor =
+                new JLabel(
+                        "Sensor:"
+                );
+
+        lblSensor.setFont(
+                Fuentes.NORMAL
+        );
+
+        lblSensor.setForeground(
+                Colores.TEXTO
+        );
+
+
+        /*
+         * Tamaño del selector.
+         */
+        comboSensores.setPreferredSize(
+                new Dimension(
+                        180,
+                        32
+                )
+        );
+
+
+        controles.add(
+                lblSensor
+        );
+
+        controles.add(
+                comboSensores
+        );
+
+        controles.add(
+                btnActualizar
+        );
+
+
         cabecera.add(
-                btnActualizar,
+                controles,
                 BorderLayout.EAST
         );
+
 
         add(
                 cabecera,
                 BorderLayout.NORTH
         );
+
 
         // =====================================================
         // MAPA
@@ -126,24 +228,32 @@ public class SeguimientoGPSPanel extends JPanel {
 
         mapa.setBorder(
                 BorderFactory.createLineBorder(
-                        new Color(210, 210, 210)
+                        new Color(
+                                210,
+                                210,
+                                210
+                        )
                 )
         );
+
 
         add(
                 mapa,
                 BorderLayout.CENTER
         );
 
+
         // =====================================================
         // PIE
         // =====================================================
 
-        JPanel pie = new JPanel(
-                new BorderLayout()
-        );
+        JPanel pie =
+                new JPanel(
+                        new BorderLayout()
+                );
 
         pie.setOpaque(false);
+
 
         lblEstado.setFont(
                 Fuentes.NORMAL
@@ -153,6 +263,7 @@ public class SeguimientoGPSPanel extends JPanel {
                 Colores.TEXTO_SECUNDARIO
         );
 
+
         lblCantidad.setFont(
                 Fuentes.NORMAL
         );
@@ -161,21 +272,25 @@ public class SeguimientoGPSPanel extends JPanel {
                 Colores.TEXTO_SECUNDARIO
         );
 
+
         pie.add(
                 lblEstado,
                 BorderLayout.WEST
         );
+
 
         pie.add(
                 lblCantidad,
                 BorderLayout.EAST
         );
 
+
         add(
                 pie,
                 BorderLayout.SOUTH
         );
     }
+
 
     // =========================================================
     // GETTERS
@@ -185,15 +300,23 @@ public class SeguimientoGPSPanel extends JPanel {
         return mapa;
     }
 
+
     public JLabel getLblEstado() {
         return lblEstado;
     }
+
 
     public JLabel getLblCantidad() {
         return lblCantidad;
     }
 
+
     public JButton getBtnActualizar() {
         return btnActualizar;
+    }
+
+
+    public JComboBox<String> getComboSensores() {
+        return comboSensores;
     }
 }

@@ -7,588 +7,85 @@ import org.neo4j.driver.Session;
 import java.util.List;
 import java.util.Map;
 
+/** Relaciones directas del grafo logístico. No utiliza nodos Tramo. */
 public class GrafoNeo4jDAO {
+    private final Driver driver = Neo4jSingleton.getInstance();
 
-    private final Driver driver;
-
-    public GrafoNeo4jDAO() {
-        this.driver = Neo4jSingleton.getInstance();
+    public void clienteRealizaEnvio(String clienteId, String envioId) {
+        ejecutar("MERGE (c:Cliente {id:$clienteId}) WITH c MATCH (e:Envio {id:$envioId}) MERGE (c)-[:REALIZA]->(e)", Map.of("clienteId", clienteId, "envioId", envioId));
     }
 
-    // =====================================================
-    // RELACIONES
-    // =====================================================
+    public void envioUsaVehiculo(String envioId, String vehiculoId) {
+        ejecutar("MATCH (e:Envio {id:$envioId}) MERGE (v:Vehiculo {id:$vehiculoId}) MERGE (e)-[:UTILIZA]->(v)", Map.of("envioId", envioId, "vehiculoId", vehiculoId));
+    }
 
-    // Relaciona un cliente con un envío.
-    public void clienteRealizaEnvio(
-            String clienteId,
-            String envioId
-    ) {
+    public void envioSaleDe(String envioId, String ciudad, String pais) {
+        String clave = claveUbicacion(ciudad, pais);
+        ejecutar("MATCH (e:Envio {id:$envioId}) MERGE (u:Ubicacion {clave:$clave}) SET u.ciudad=$ciudad, u.pais=$pais MERGE (e)-[:SALE_DE]->(u)", Map.of("envioId", envioId, "clave", clave, "ciudad", ciudad, "pais", pais));
+    }
 
-        String cypher = """
-                MATCH (c:Cliente {id: $clienteId})
-                MATCH (e:Envio {id: $envioId})
+    public void envioLlegaA(String envioId, String ciudad, String pais) {
+        String clave = claveUbicacion(ciudad, pais);
+        ejecutar("MATCH (e:Envio {id:$envioId}) MERGE (u:Ubicacion {clave:$clave}) SET u.ciudad=$ciudad, u.pais=$pais MERGE (e)-[:LLEGA_A]->(u)", Map.of("envioId", envioId, "clave", clave, "ciudad", ciudad, "pais", pais));
+    }
 
-                CREATE (c)-[:REALIZA]->(e)
-                """;
+    public void operadorOperaVehiculo(String operadorId, String vehiculoId) {
+        ejecutar("MERGE (o:Operador {id:$operadorId}) MERGE (v:Vehiculo {id:$vehiculoId}) MERGE (o)-[:OPERA]->(v)", Map.of("operadorId", operadorId, "vehiculoId", vehiculoId));
+    }
 
-        try (Session session = driver.session()) {
+    public void proveedorProveeVehiculo(String proveedorId, String vehiculoId) {
+        ejecutar("MERGE (p:Proveedor {id:$proveedorId}) MERGE (v:Vehiculo {id:$vehiculoId}) MERGE (p)-[:PROVEE]->(v)", Map.of("proveedorId", proveedorId, "vehiculoId", vehiculoId));
+    }
 
-            session.run(
-                    cypher,
-                    Map.of(
-                            "clienteId", clienteId,
-                            "envioId", envioId
-                    )
-            );
+    public void envioTransportaContenedor(String envioId, String contenedorId) {
+        ejecutar("MATCH (e:Envio {id:$envioId}) MERGE (c:Contenedor {id:$contenedorId}) MERGE (e)-[:TRANSPORTA]->(c)", Map.of("envioId", envioId, "contenedorId", contenedorId));
+    }
+
+    public void contenedorTieneSensor(String contenedorId, String sensorId) {
+        ejecutar("MERGE (c:Contenedor {id:$contenedorId}) MERGE (s:Sensor {id:$sensorId}) MERGE (c)-[:TIENE_SENSOR]->(s)", Map.of("contenedorId", contenedorId, "sensorId", sensorId));
+    }
+
+    public List<String> obtenerRutaEnvio(String envioId) {
+        try (Session s = driver.session()) {
+            return s.run("MATCH (e:Envio {id:$id})-[:SALE_DE|LLEGA_A]->(u:Ubicacion) RETURN DISTINCT u.ciudad AS ciudad ORDER BY ciudad", Map.of("id", envioId)).list(r -> r.get("ciudad").asString());
+        }
+    }
+    public List<String> obtenerEnviosDeCliente(String id) {
+        return consulta("MATCH (:Cliente {id:$id})-[:REALIZA]->(e:Envio) RETURN e.id AS valor", id);
+    }
+    public List<String> obtenerVehiculosDeOperador(String id) {
+        return consulta("MATCH (:Operador {id:$id})-[:OPERA]->(v:Vehiculo) RETURN v.id AS valor", id);
+    }
+    public List<String> obtenerContenedoresDeEnvio(String id) {
+        return consulta("MATCH (:Envio {id:$id})-[:TRANSPORTA]->(c:Contenedor) RETURN c.id AS valor", id);
+    }
+    public List<String> obtenerEnviosPorUbicacion(String id) {
+        return consulta("MATCH (e:Envio)-[:SALE_DE|LLEGA_A]->(u:Ubicacion) WHERE u.id=$id OR u.clave=$id RETURN DISTINCT e.id AS valor", id);
+    }
+    public List<String> obtenerOperadorDeEnvio(String id) {
+        return consulta("MATCH (:Envio {id:$id})-[:UTILIZA]->(v:Vehiculo)<-[:OPERA]-(o:Operador) RETURN DISTINCT o.id AS valor", id);
+    }
+    public List<String> obtenerProveedorDeEnvio(String id) {
+        return consulta("MATCH (:Envio {id:$id})-[:UTILIZA]->(v:Vehiculo)<-[:PROVEE]-(p:Proveedor) RETURN DISTINCT p.id AS valor", id);
+    }
+    public List<String> obtenerRecorridoContenedor(String id) {
+        try (Session s = driver.session()) {
+            return s.run("MATCH (e:Envio)-[:TRANSPORTA]->(:Contenedor {id:$id}) OPTIONAL MATCH (e)-[:SALE_DE]->(o:Ubicacion) OPTIONAL MATCH (e)-[:LLEGA_A]->(d:Ubicacion) RETURN e.id + ' | ' + coalesce(o.ciudad,'?') + ' -> ' + coalesce(d.ciudad,'?') AS valor ORDER BY e.id", Map.of("id", id)).list(r -> r.get("valor").asString());
+        }
+    }
+    public List<String> obtenerRedDeEnvio(String id) {
+        try (Session s = driver.session()) {
+            return s.run("MATCH (e:Envio {id:$id}) OPTIONAL MATCH (c:Cliente)-[:REALIZA]->(e) OPTIONAL MATCH (e)-[:UTILIZA]->(v:Vehiculo) OPTIONAL MATCH (e)-[:TRANSPORTA]->(co:Contenedor) OPTIONAL MATCH (co)-[:TIENE_SENSOR]->(se:Sensor) OPTIONAL MATCH (e)-[:SALE_DE]->(o:Ubicacion) OPTIONAL MATCH (e)-[:LLEGA_A]->(d:Ubicacion) RETURN 'Envio=' + e.id + ', Cliente=' + coalesce(c.id,'-') + ', Vehiculo=' + coalesce(v.id,'-') + ', Contenedor=' + coalesce(co.id,'-') + ', Sensor=' + coalesce(se.id,'-') + ', Origen=' + coalesce(o.ciudad,'-') + ', Destino=' + coalesce(d.ciudad,'-') AS valor", Map.of("id", id)).list(r -> r.get("valor").asString());
         }
     }
 
-    // Relaciona un envío con uno de sus tramos.
-    public void envioTieneTramo(
-            String envioId,
-            String tramoId
-    ) {
-
-        String cypher = """
-                MATCH (e:Envio {id: $envioId})
-                MATCH (t:Tramo {id: $tramoId})
-
-                CREATE (e)-[:TIENE]->(t)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "envioId", envioId,
-                            "tramoId", tramoId
-                    )
-            );
-        }
+    private List<String> consulta(String cypher, String id) {
+        try (Session s = driver.session()) { return s.run(cypher, Map.of("id", id)).list(r -> r.get("valor").asString()); }
     }
-
-    // Relaciona un tramo con el vehículo utilizado.
-    public void tramoUsaVehiculo(
-            String tramoId,
-            String vehiculoId
-    ) {
-
-        String cypher = """
-                MATCH (t:Tramo {id: $tramoId})
-                MATCH (v:Vehiculo {id: $vehiculoId})
-
-                CREATE (t)-[:USA]->(v)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "tramoId", tramoId,
-                            "vehiculoId", vehiculoId
-                    )
-            );
-        }
+    private void ejecutar(String cypher, Map<String,Object> params) {
+        try (Session s = driver.session()) { s.run(cypher, params); }
     }
-
-    // Relaciona un tramo con su ubicación de salida.
-    public void tramoSaleDe(
-            String tramoId,
-            String ubicacionId
-    ) {
-
-        String cypher = """
-                MATCH (t:Tramo {id: $tramoId})
-                MATCH (u:Ubicacion {id: $ubicacionId})
-
-                CREATE (t)-[:SALE_DE]->(u)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "tramoId", tramoId,
-                            "ubicacionId", ubicacionId
-                    )
-            );
-        }
-    }
-
-    // Relaciona un tramo con su ubicación de llegada.
-    public void tramoLlegaA(
-            String tramoId,
-            String ubicacionId
-    ) {
-
-        String cypher = """
-                MATCH (t:Tramo {id: $tramoId})
-                MATCH (u:Ubicacion {id: $ubicacionId})
-
-                CREATE (t)-[:LLEGA_A]->(u)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "tramoId", tramoId,
-                            "ubicacionId", ubicacionId
-                    )
-            );
-        }
-    }
-
-    // Relaciona un operador con un vehículo que opera.
-    public void operadorOperaVehiculo(
-            String operadorId,
-            String vehiculoId
-    ) {
-
-        String cypher = """
-                MATCH (o:Operador {id: $operadorId})
-                MATCH (v:Vehiculo {id: $vehiculoId})
-
-                CREATE (o)-[:OPERA]->(v)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "operadorId", operadorId,
-                            "vehiculoId", vehiculoId
-                    )
-            );
-        }
-    }
-
-    // Relaciona un proveedor con un vehículo que provee.
-    public void proveedorProveeVehiculo(
-            String proveedorId,
-            String vehiculoId
-    ) {
-
-        String cypher = """
-                MATCH (p:Proveedor {id: $proveedorId})
-                MATCH (v:Vehiculo {id: $vehiculoId})
-
-                CREATE (p)-[:PROVEE]->(v)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "proveedorId", proveedorId,
-                            "vehiculoId", vehiculoId
-                    )
-            );
-        }
-    }
-
-    // Relaciona un envío con un contenedor que transporta.
-    public void envioTransportaContenedor(
-            String envioId,
-            String contenedorId
-    ) {
-
-        String cypher = """
-                MATCH (e:Envio {id: $envioId})
-                MATCH (c:Contenedor {id: $contenedorId})
-
-                CREATE (e)-[:TRANSPORTA]->(c)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "envioId", envioId,
-                            "contenedorId", contenedorId
-                    )
-            );
-        }
-    }
-
-    // Relaciona un contenedor con un sensor.
-    public void contenedorTieneSensor(
-            String contenedorId,
-            String sensorId
-    ) {
-
-        String cypher = """
-                MATCH (c:Contenedor {id: $contenedorId})
-                MATCH (s:Sensor {id: $sensorId})
-
-                CREATE (c)-[:TIENE_SENSOR]->(s)
-                """;
-
-        try (Session session = driver.session()) {
-
-            session.run(
-                    cypher,
-                    Map.of(
-                            "contenedorId", contenedorId,
-                            "sensorId", sensorId
-                    )
-            );
-        }
-    }
-
-
-    // =====================================================
-    // CONSULTAS
-    // =====================================================
-
-    /*
-     * Obtiene la ruta de un envío.
-     *
-     * Busca el envío, recorre sus tramos y obtiene las
-     * ubicaciones por las que pasa.
-     */
-    public List<String> obtenerRutaEnvio(
-            String envioId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (e:Envio {id: $envioId})
-                          -[:TIENE]->(t:Tramo)
-                          -[:SALE_DE|LLEGA_A]->(u:Ubicacion)
-
-                    RETURN DISTINCT u.ciudad AS ciudad
-                    ORDER BY t.fechaSalida
-                    """,
-                    Map.of("envioId", envioId)
-            ).list(record ->
-                    record.get("ciudad").asString()
-            );
-        }
-    }
-
-
-    /*
-     * Obtiene todos los envíos realizados por un cliente.
-     */
-    public List<String> obtenerEnviosDeCliente(
-            String clienteId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (c:Cliente {id: $clienteId})
-                          -[:REALIZA]->(e:Envio)
-
-                    RETURN e.id AS envio
-                    """,
-                    Map.of("clienteId", clienteId)
-            ).list(record ->
-                    record.get("envio").asString()
-            );
-        }
-    }
-
-
-    /*
-     * Obtiene todos los vehículos operados por un operador.
-     */
-    public List<String> obtenerVehiculosDeOperador(
-            String operadorId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (o:Operador {id: $operadorId})
-                          -[:OPERA]->(v:Vehiculo)
-
-                    RETURN v.id AS vehiculo
-                    """,
-                    Map.of("operadorId", operadorId)
-            ).list(record ->
-                    record.get("vehiculo").asString()
-            );
-        }
-    }
-
-
-    /*
-     * Obtiene todos los contenedores transportados por un envío.
-     */
-    public List<String> obtenerContenedoresDeEnvio(
-            String envioId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (e:Envio {id: $envioId})
-                          -[:TRANSPORTA]->(c:Contenedor)
-
-                    RETURN c.id AS contenedor
-                    """,
-                    Map.of("envioId", envioId)
-            ).list(record ->
-                    record.get("contenedor").asString()
-            );
-        }
-    }
-
-
-    /*
-     * Obtiene todos los envíos que pasan por una ubicación.
-     */
-    public List<String> obtenerEnviosPorUbicacion(
-            String ubicacionId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (e:Envio)
-                          -[:TIENE]->(t:Tramo)
-                          -[:SALE_DE|LLEGA_A]->
-                          (u:Ubicacion {id: $ubicacionId})
-
-                    RETURN DISTINCT e.id AS envio
-                    """,
-                    Map.of("ubicacionId", ubicacionId)
-            ).list(record ->
-                    record.get("envio").asString()
-            );
-        }
-    }
-
-
-    // =====================================================
-    // CONSULTAS AVANZADAS
-    // =====================================================
-
-    /*
-     * Obtiene los operadores relacionados con un envío.
-     *
-     * Envío -> Tramo -> Vehículo -> Operador
-     */
-    public List<String> obtenerOperadorDeEnvio(
-            String envioId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (e:Envio {id: $envioId})
-                          -[:TIENE]->(t:Tramo)
-                          -[:USA]->(v:Vehiculo)
-
-                    MATCH (o:Operador)-[:OPERA]->(v)
-
-                    RETURN DISTINCT o.id AS operador
-                    """,
-                    Map.of("envioId", envioId)
-            ).list(record ->
-                    record.get("operador").asString()
-            );
-        }
-    }
-
-
-    /*
-     * Obtiene los proveedores relacionados con un envío.
-     *
-     * Envío -> Tramo -> Vehículo -> Proveedor
-     */
-    public List<String> obtenerProveedorDeEnvio(
-            String envioId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (e:Envio {id: $envioId})
-                          -[:TIENE]->(t:Tramo)
-                          -[:USA]->(v:Vehiculo)
-
-                    MATCH (p:Proveedor)-[:PROVEE]->(v)
-
-                    RETURN DISTINCT p.id AS proveedor
-                    """,
-                    Map.of("envioId", envioId)
-            ).list(record ->
-                    record.get("proveedor").asString()
-            );
-        }
-    }
-
-
-    /*
-     * Obtiene el recorrido completo de un contenedor.
-     */
-    public List<String> obtenerRecorridoContenedor(
-            String contenedorId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (e:Envio)
-                          -[:TRANSPORTA]->
-                          (c:Contenedor {id: $contenedorId})
-
-                    MATCH (e)-[:TIENE]->(t:Tramo)
-
-                    MATCH (t)-[:SALE_DE]->(origen:Ubicacion)
-                    MATCH (t)-[:LLEGA_A]->(destino:Ubicacion)
-
-                    RETURN
-                        t.id AS tramo,
-                        origen.ciudad AS origen,
-                        destino.ciudad AS destino,
-                        t.medioTransporte AS transporte
-
-                    ORDER BY t.fechaSalida
-                    """,
-                    Map.of("contenedorId", contenedorId)
-            ).list(record -> {
-
-                String tramo =
-                        record.get("tramo").asString();
-
-                String origen =
-                        record.get("origen").asString();
-
-                String destino =
-                        record.get("destino").asString();
-
-                String transporte =
-                        record.get("transporte").asString();
-
-                return tramo
-                        + " | "
-                        + origen
-                        + " -> "
-                        + destino
-                        + " | "
-                        + transporte;
-            });
-        }
-    }
-
-
-    /*
-     * Obtiene la red completa relacionada con un envío.
-     *
-     * Incluye:
-     *
-     * Cliente
-     * Envío
-     * Tramos
-     * Vehículos
-     * Operadores
-     * Proveedores
-     * Contenedores
-     * Sensores
-     */
-    public List<String> obtenerRedDeEnvio(
-            String envioId
-    ) {
-
-        try (Session session = driver.session()) {
-
-            return session.run("""
-                    MATCH (c:Cliente)-[:REALIZA]->
-                          (e:Envio {id: $envioId})
-
-                    OPTIONAL MATCH
-                        (e)-[:TIENE]->(t:Tramo)
-
-                    OPTIONAL MATCH
-                        (t)-[:USA]->(v:Vehiculo)
-
-                    OPTIONAL MATCH
-                        (o:Operador)-[:OPERA]->(v)
-
-                    OPTIONAL MATCH
-                        (p:Proveedor)-[:PROVEE]->(v)
-
-                    OPTIONAL MATCH
-                        (e)-[:TRANSPORTA]->(cont:Contenedor)
-
-                    OPTIONAL MATCH
-                        (cont)-[:TIENE_SENSOR]->(s:Sensor)
-
-                    RETURN
-                        c.id AS cliente,
-                        e.id AS envio,
-                        t.id AS tramo,
-                        v.id AS vehiculo,
-                        o.id AS operador,
-                        p.id AS proveedor,
-                        cont.id AS contenedor,
-                        s.id AS sensor
-                    """,
-                    Map.of("envioId", envioId)
-            ).list(record -> {
-
-                String cliente =
-                        record.get("cliente").isNull()
-                                ? "-"
-                                : record.get("cliente").asString();
-
-                String envio =
-                        record.get("envio").isNull()
-                                ? "-"
-                                : record.get("envio").asString();
-
-                String tramo =
-                        record.get("tramo").isNull()
-                                ? "-"
-                                : record.get("tramo").asString();
-
-                String vehiculo =
-                        record.get("vehiculo").isNull()
-                                ? "-"
-                                : record.get("vehiculo").asString();
-
-                String operador =
-                        record.get("operador").isNull()
-                                ? "-"
-                                : record.get("operador").asString();
-
-                String proveedor =
-                        record.get("proveedor").isNull()
-                                ? "-"
-                                : record.get("proveedor").asString();
-
-                String contenedor =
-                        record.get("contenedor").isNull()
-                                ? "-"
-                                : record.get("contenedor").asString();
-
-                String sensor =
-                        record.get("sensor").isNull()
-                                ? "-"
-                                : record.get("sensor").asString();
-
-                return "Cliente=" + cliente
-                        + " | Envio=" + envio
-                        + " | Tramo=" + tramo
-                        + " | Vehiculo=" + vehiculo
-                        + " | Operador=" + operador
-                        + " | Proveedor=" + proveedor
-                        + " | Contenedor=" + contenedor
-                        + " | Sensor=" + sensor;
-            });
-        }
+    private String claveUbicacion(String ciudad, String pais) {
+        return (ciudad == null ? "" : ciudad.trim().toLowerCase()) + "|" + (pais == null ? "" : pais.trim().toLowerCase());
     }
 }

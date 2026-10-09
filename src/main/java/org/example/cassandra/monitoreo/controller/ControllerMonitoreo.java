@@ -169,5 +169,7 @@ public class ControllerMonitoreo {
     public List<Row> obtenerTodasLasPosicionesGPS() {
 
         return serviceMonitoreo.obtenerTodasLasPosicionesGPS();
+
     }
+
 }

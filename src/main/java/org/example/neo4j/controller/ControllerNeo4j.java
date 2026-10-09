@@ -7,19 +7,23 @@ import org.example.neo4j.model.Envio;
 import org.example.neo4j.model.Operador;
 import org.example.neo4j.model.Proveedor;
 import org.example.neo4j.model.Sensor;
-import org.example.neo4j.model.Tramo;
 import org.example.neo4j.model.Ubicacion;
 import org.example.neo4j.model.Vehiculo;
 import org.example.neo4j.service.LogisticaNeo4jService;
+import org.example.mongoDB.controller.VehiculoController;
+import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.util.List;
-
+import java.util.Map;
 public class ControllerNeo4j {
 
     private final LogisticaNeo4jService service;
+    private final VehiculoController vehiculoMongoController;
 
     public ControllerNeo4j() {
         this.service = new LogisticaNeo4jService();
+        this.vehiculoMongoController = new VehiculoController();
     }
 
     // =====================================================
@@ -34,12 +38,36 @@ public class ControllerNeo4j {
         service.crearEnvio(envio);
     }
 
-    public void crearTramo(Tramo tramo) {
-        service.crearTramo(tramo);
-    }
-
     public void crearVehiculo(Vehiculo vehiculo) {
         service.crearVehiculo(vehiculo);
+    }
+
+    /** Copia la referencia del vehículo de MongoDB a Neo4j conservando el mismo ID. */
+    public void sincronizarVehiculoDesdeMongo(String idVehiculoMongo) {
+        Document documento = vehiculoMongoController.buscarPorId(idVehiculoMongo);
+        ObjectId objectId = documento.getObjectId("_id");
+        if (objectId == null) {
+            throw new IllegalStateException("El vehículo de MongoDB no tiene un _id ObjectId válido.");
+        }
+        String id = objectId.toHexString();
+        String identificacion = documento.getString("identificacion");
+        String tipo = documento.getString("tipo");
+        service.sincronizarVehiculoMongo(id, identificacion, tipo);
+    }
+
+    /** Sincroniza el vehículo desde MongoDB y lo vincula directamente al envío en Neo4j. */
+    public void vincularVehiculoMongoAEnvio(String envioId, String idVehiculoMongo) {
+        Document documento = vehiculoMongoController.buscarPorId(idVehiculoMongo);
+        ObjectId objectId = documento.getObjectId("_id");
+        if (objectId == null) {
+            throw new IllegalStateException("El vehículo de MongoDB no tiene un _id ObjectId válido.");
+        }
+        service.vincularVehiculoAEnvio(
+                envioId,
+                objectId.toHexString(),
+                documento.getString("identificacion"),
+                documento.getString("tipo")
+        );
     }
 
     public void crearOperador(Operador operador) {
@@ -77,48 +105,16 @@ public class ControllerNeo4j {
         );
     }
 
-    // Envío -> Tramo
-    public void relacionarEnvioTramo(
-            String envioId,
-            String tramoId
-    ) {
-        service.relacionarEnvioTramo(
-                envioId,
-                tramoId
-        );
+    public void relacionarEnvioVehiculo(String envioId, String vehiculoId) {
+        service.relacionarEnvioVehiculo(envioId, vehiculoId);
     }
 
-    // Tramo -> Vehículo
-    public void relacionarTramoVehiculo(
-            String tramoId,
-            String vehiculoId
-    ) {
-        service.relacionarTramoVehiculo(
-                tramoId,
-                vehiculoId
-        );
+    public void relacionarEnvioOrigen(String envioId, String ciudad, String pais) {
+        service.relacionarEnvioOrigen(envioId, ciudad, pais);
     }
 
-    // Tramo -> Ubicación de salida
-    public void relacionarTramoSalida(
-            String tramoId,
-            String ubicacionId
-    ) {
-        service.relacionarTramoSalida(
-                tramoId,
-                ubicacionId
-        );
-    }
-
-    // Tramo -> Ubicación de llegada
-    public void relacionarTramoLlegada(
-            String tramoId,
-            String ubicacionId
-    ) {
-        service.relacionarTramoLlegada(
-                tramoId,
-                ubicacionId
-        );
+    public void relacionarEnvioDestino(String envioId, String ciudad, String pais) {
+        service.relacionarEnvioDestino(envioId, ciudad, pais);
     }
 
     // Operador -> Vehículo
@@ -261,4 +257,44 @@ public class ControllerNeo4j {
     public void generarDatosPrueba() {
         GeneradorDatosPruebaNeo.generar();
     }
+
+
+
+
+// =====================================================
+// CONSULTAS PARA LA INTERFAZ DE ENVÍOS
+// =====================================================
+
+    public List<Map<String, Object>> listarClientes() {
+        return service.listarClientes();
+    }
+
+    public Map<String, Object> buscarClientePorId(String id) {
+        return service.buscarClientePorId(id);
+    }
+
+    public List<Map<String, Object>> listarContenedores() {
+        return service.listarContenedores();
+    }
+
+    public Map<String, Object> buscarContenedorPorId(String id) {
+        return service.buscarContenedorPorId(id);
+    }
+
+    public List<Map<String, Object>> listarEnvios() {
+        return service.listarEnvios();
+    }
+
+    public Map<String, Object> buscarEnvioPorId(String id) {
+        return service.buscarEnvioPorId(id);
+    }
+
+    public void eliminarEnvio(String id) {
+        service.eliminarEnvio(id);
+    }
+
+    public void modificarEnvio(Envio envio) {
+        service.modificarEnvio(envio);
+    }
+
 }

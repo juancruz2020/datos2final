@@ -6,905 +6,366 @@ import org.example.interfaz.tema.Fuentes;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class EnviosPanel extends JPanel {
-
-    // =========================================================
-    // TABLA
-    // =========================================================
-
     private JTable tablaEnvios;
-
-    private JButton btnActualizar;
-    private JButton btnMostrarFormulario;
-    private JButton btnEditar;
-    private JButton btnEliminar;
-
+    private JButton btnActualizar, btnMostrarFormulario, btnEditar, btnEliminar;
     private JLabel lblEstado;
-
-
-    // =========================================================
-    // FORMULARIO
-    // =========================================================
-
     private JPanel panelFormulario;
-
     private JLabel lblTituloFormulario;
-
     private JComboBox<String> cmbCliente;
+    private JComboBox<String> cmbVehiculo;
+    private JButton btnSelectorContenedores;
+    private JPopupMenu popupContenedores;
+    private final Set<String> contenedoresSeleccionados = new LinkedHashSet<>();
+    private final List<String> opcionesContenedores = new ArrayList<>();
+    private JTextField txtCiudadOrigen, txtPaisOrigen, txtCiudadDestino, txtPaisDestino;
+    private JComboBox<String> cmbEstado, cmbPrioridad;
+    private JButton btnGuardar, btnCancelar;
+    private JPanel centro;
+    private JScrollPane scrollFormulario;
 
-    private JList<String> listaContenedores;
-
-    private JTextField txtCiudadOrigen;
-    private JTextField txtPaisOrigen;
-
-    private JTextField txtCiudadDestino;
-    private JTextField txtPaisDestino;
-
-    private JComboBox<String> cmbEstado;
-    private JComboBox<String> cmbPrioridad;
-
-    private JButton btnGuardar;
-    private JButton btnCancelar;
+    public EnviosPanel() { construir(); }
 
 
-    // =========================================================
-    // CONSTRUCTOR
-    // =========================================================
-
-    public EnviosPanel() {
-
-        construir();
-    }
-
-
-    // =========================================================
-    // CONSTRUIR
-    // =========================================================
 
     private void construir() {
+        setLayout(new BorderLayout(0, 14));
+        setBackground(Colores.FONDO);
+        setBorder(BorderFactory.createEmptyBorder(18, 22, 14, 22));
 
-        setLayout(
-                new BorderLayout(
-                        0,
-                        20
-                )
-        );
-
-        setBackground(
-                Colores.FONDO
-        );
-
-        setBorder(
-                BorderFactory.createEmptyBorder(
-                        25,
-                        30,
-                        20,
-                        30
-                )
-        );
-
-
-        // =====================================================
+        // =========================
         // TÍTULO
-        // =====================================================
+        // =========================
+        JLabel titulo = new JLabel("Envíos");
+        titulo.setFont(Fuentes.TITULO);
+        titulo.setForeground(Colores.TEXTO);
 
-        JLabel titulo =
-                new JLabel(
-                        "Envíos"
-                );
+        add(titulo, BorderLayout.NORTH);
 
-        titulo.setFont(
-                Fuentes.TITULO
+        // =========================
+        // PANEL CENTRAL
+        // =========================
+        centro = new JPanel(new BorderLayout(0, 12));
+        centro.setOpaque(false);
+
+        // La tabla ocupa todo el espacio disponible.
+        centro.add(construirPanelTabla(), BorderLayout.CENTER);
+
+        // =========================
+        // FORMULARIO
+        // =========================
+        panelFormulario = construirFormulario();
+
+        scrollFormulario = new JScrollPane(panelFormulario);
+        scrollFormulario.setBorder(null);
+        scrollFormulario.setHorizontalScrollBarPolicy(
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
         );
+        scrollFormulario.getVerticalScrollBar().setUnitIncrement(14);
+        scrollFormulario.setPreferredSize(new Dimension(800, 300));
 
-        titulo.setForeground(
-                Colores.TEXTO
-        );
+        // No agregamos el formulario hasta que se solicite.
+        add(centro, BorderLayout.CENTER);
 
-        add(
-                titulo,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================================
-        // CONTENIDO
-        // =====================================================
-
-        JPanel centro =
-                new JPanel();
-
-        centro.setLayout(
-                new BoxLayout(
-                        centro,
-                        BoxLayout.Y_AXIS
-                )
-        );
-
-        centro.setOpaque(
-                false
-        );
-
-        centro.add(
-                construirPanelTabla()
-        );
-
-        centro.add(
-                Box.createVerticalStrut(
-                        20
-                )
-        );
-
-        panelFormulario =
-                construirFormulario();
-
-        panelFormulario.setVisible(
-                false
-        );
-
-        centro.add(
-                panelFormulario
-        );
-
-        add(
-                centro,
-                BorderLayout.CENTER
-        );
-
-
-        // =====================================================
+        // =========================
         // ESTADO
-        // =====================================================
+        // =========================
+        lblEstado = new JLabel("Envíos registrados: 0");
+        lblEstado.setFont(Fuentes.NORMAL);
+        lblEstado.setForeground(Colores.TEXTO_SECUNDARIO);
 
-        lblEstado =
-                new JLabel(
-                        "Envíos registrados: 0"
-                );
-
-        lblEstado.setFont(
-                Fuentes.NORMAL
-        );
-
-        lblEstado.setForeground(
-                Colores.TEXTO_SECUNDARIO
-        );
-
-        add(
-                lblEstado,
-                BorderLayout.SOUTH
-        );
+        add(lblEstado, BorderLayout.SOUTH);
     }
 
 
-    // =========================================================
-    // PANEL TABLA
-    // =========================================================
 
     private JPanel construirPanelTabla() {
+        JPanel panel = new JPanel(new BorderLayout(0, 10));
+        panel.setBackground(Colores.SUPERFICIE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Colores.BORDE),
+                BorderFactory.createEmptyBorder(12, 12, 10, 12)
+        ));
 
-        JPanel panel =
-                new JPanel(
-                        new BorderLayout(
-                                0,
-                                10
-                        )
-                );
-
-        panel.setBackground(
-                Colores.SUPERFICIE
-        );
-
-        panel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                Colores.BORDE
-                        ),
-                        BorderFactory.createEmptyBorder(
-                                15,
-                                15,
-                                15,
-                                15
-                        )
-                )
-        );
-
-
-        // =====================================================
+        // =========================
         // CABECERA
-        // =====================================================
+        // =========================
+        JPanel cabecera = new JPanel(new BorderLayout());
+        cabecera.setOpaque(false);
 
-        JPanel cabecera =
-                new JPanel(
-                        new BorderLayout()
-                );
+        JLabel subtitulo = new JLabel("Envíos registrados");
+        subtitulo.setFont(Fuentes.LABEL);
 
-        cabecera.setOpaque(
-                false
-        );
+        btnActualizar = new JButton("Actualizar");
 
-        JLabel subtitulo =
-                new JLabel(
-                        "Envíos registrados"
-                );
+        cabecera.add(subtitulo, BorderLayout.WEST);
+        cabecera.add(btnActualizar, BorderLayout.EAST);
 
-        subtitulo.setFont(
-                Fuentes.LABEL
-        );
+        panel.add(cabecera, BorderLayout.NORTH);
 
-        btnActualizar =
-                new JButton(
-                        "Actualizar"
-                );
-
-        cabecera.add(
-                subtitulo,
-                BorderLayout.WEST
-        );
-
-        cabecera.add(
-                btnActualizar,
-                BorderLayout.EAST
-        );
-
-        panel.add(
-                cabecera,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================================
+        // =========================
         // TABLA
-        // =====================================================
+        // =========================
+        DefaultTableModel modelo = new DefaultTableModel(
+                new Object[]{
+                        "Cliente",
+                        "Contenedores",
+                        "Vehículo",
+                        "Fecha",
+                        "Origen",
+                        "Destino",
+                        "Estado",
+                        "Prioridad"
+                },
+                0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
-        DefaultTableModel modelo =
-                new DefaultTableModel(
-                        new Object[]{
-                                "Cliente",
-                                "Contenedores",
-                                "Fecha",
-                                "Origen",
-                                "Destino",
-                                "Estado",
-                                "Prioridad"
-                        },
-                        0
-                ) {
+        tablaEnvios = new JTable(modelo);
+        tablaEnvios.setRowHeight(28);
+        tablaEnvios.setFont(Fuentes.NORMAL);
+        tablaEnvios.getTableHeader().setFont(Fuentes.LABEL);
+        tablaEnvios.getTableHeader().setReorderingAllowed(false);
+        tablaEnvios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-                    @Override
-                    public boolean isCellEditable(
-                            int row,
-                            int column
-                    ) {
+        // Evita que Swing comprima todas las columnas para meterlas
+        // en el ancho disponible.
+        tablaEnvios.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
-                        return false;
-                    }
-                };
+        // Ancho de cada columna.
+        tablaEnvios.getColumnModel().getColumn(0).setPreferredWidth(180); // Cliente
+        tablaEnvios.getColumnModel().getColumn(1).setPreferredWidth(220); // Contenedores
+        tablaEnvios.getColumnModel().getColumn(2).setPreferredWidth(170); // Vehículo
+        tablaEnvios.getColumnModel().getColumn(3).setPreferredWidth(100); // Fecha
+        tablaEnvios.getColumnModel().getColumn(4).setPreferredWidth(180); // Origen
+        tablaEnvios.getColumnModel().getColumn(5).setPreferredWidth(180); // Destino
+        tablaEnvios.getColumnModel().getColumn(6).setPreferredWidth(120); // Estado
+        tablaEnvios.getColumnModel().getColumn(7).setPreferredWidth(100); // Prioridad
 
-        tablaEnvios =
-                new JTable(
-                        modelo
-                );
-
-        tablaEnvios.setRowHeight(
-                30
+        JScrollPane scroll = new JScrollPane(tablaEnvios);
+        scroll.setPreferredSize(new Dimension(900, 250));
+        scroll.setHorizontalScrollBarPolicy(
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
         );
 
-        tablaEnvios.setFont(
-                Fuentes.NORMAL
+        panel.add(scroll, BorderLayout.CENTER);
+
+        // =========================
+        // BOTONES DE ACCIÓN
+        // =========================
+        JPanel acciones = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT, 8, 0)
         );
+        acciones.setOpaque(false);
 
-        tablaEnvios.getTableHeader()
-                .setFont(
-                        Fuentes.LABEL
-                );
+        btnEditar = new JButton("Editar");
+        btnEliminar = new JButton("Eliminar");
+        btnMostrarFormulario = new JButton("+ Agregar envío");
 
-        tablaEnvios.getTableHeader()
-                .setReorderingAllowed(
-                        false
-                );
+        acciones.add(btnEditar);
+        acciones.add(btnEliminar);
+        acciones.add(btnMostrarFormulario);
 
-        tablaEnvios.setSelectionMode(
-                ListSelectionModel.SINGLE_SELECTION
-        );
-
-        JScrollPane scroll =
-                new JScrollPane(
-                        tablaEnvios
-                );
-
-        scroll.setPreferredSize(
-                new Dimension(
-                        900,
-                        350
-                )
-        );
-
-        panel.add(
-                scroll,
-                BorderLayout.CENTER
-        );
-
-
-        // =====================================================
-        // ACCIONES
-        // =====================================================
-
-        JPanel acciones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-        acciones.setOpaque(
-                false
-        );
-
-        btnEditar =
-                new JButton(
-                        "Editar"
-                );
-
-        btnEliminar =
-                new JButton(
-                        "Eliminar"
-                );
-
-        btnMostrarFormulario =
-                new JButton(
-                        "+ Agregar envío"
-                );
-
-        acciones.add(
-                btnEditar
-        );
-
-        acciones.add(
-                btnEliminar
-        );
-
-        acciones.add(
-                btnMostrarFormulario
-        );
-
-        panel.add(
-                acciones,
-                BorderLayout.SOUTH
-        );
+        panel.add(acciones, BorderLayout.SOUTH);
 
         return panel;
     }
 
-
-    // =========================================================
-    // FORMULARIO
-    // =========================================================
 
     private JPanel construirFormulario() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Colores.SUPERFICIE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Colores.BORDE),
+                BorderFactory.createEmptyBorder(12, 14, 12, 14)));
 
-        JPanel panel =
-                new JPanel(
-                        new GridBagLayout()
-                );
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 7, 5, 7);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-        panel.setBackground(
-                Colores.SUPERFICIE
-        );
-
-        panel.setBorder(
-                BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(
-                                Colores.BORDE
-                        ),
-                        BorderFactory.createEmptyBorder(
-                                15,
-                                15,
-                                15,
-                                15
-                        )
-                )
-        );
-
-        GridBagConstraints gbc =
-                new GridBagConstraints();
-
-        gbc.insets =
-                new Insets(
-                        7,
-                        5,
-                        7,
-                        5
-                );
-
-        gbc.fill =
-                GridBagConstraints.HORIZONTAL;
-
-
-        // =====================================================
-        // TÍTULO
-        // =====================================================
-
-        lblTituloFormulario =
-                new JLabel(
-                        "Nuevo envío"
-                );
-
-        lblTituloFormulario.setFont(
-                Fuentes.LABEL
-        );
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1;
-
-        panel.add(
-                lblTituloFormulario,
-                gbc
-        );
-
+        lblTituloFormulario = new JLabel("Nuevo envío");
+        lblTituloFormulario.setFont(Fuentes.LABEL);
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.weightx = 1;
+        panel.add(lblTituloFormulario, gbc);
         gbc.gridwidth = 1;
 
+        cmbCliente = new JComboBox<>();
+        agregarCampo(panel, gbc, 1, "Cliente", cmbCliente);
 
-        // =====================================================
-        // CLIENTE
-        // =====================================================
+        btnSelectorContenedores = new JButton("Seleccionar contenedores...");
+        btnSelectorContenedores.setHorizontalAlignment(SwingConstants.LEFT);
+        popupContenedores = new JPopupMenu();
+        btnSelectorContenedores.addActionListener(e -> {
+            reconstruirPopupContenedores();
+            popupContenedores.show(btnSelectorContenedores, 0, btnSelectorContenedores.getHeight());
+        });
+        agregarCampo(panel, gbc, 2, "Contenedores", btnSelectorContenedores);
 
-        cmbCliente =
-                new JComboBox<>();
+        cmbVehiculo = new JComboBox<>();
+        agregarCampo(panel, gbc, 3, "Vehículo", cmbVehiculo);
 
-        agregarCampo(
-                panel,
-                gbc,
-                1,
-                "Cliente:",
-                cmbCliente
-        );
+        txtCiudadOrigen = new JTextField(20);
+        txtPaisOrigen = new JTextField(20);
+        txtCiudadDestino = new JTextField(20);
+        txtPaisDestino = new JTextField(20);
+        agregarCampo(panel, gbc, 4, "Ciudad de origen", txtCiudadOrigen);
+        agregarCampo(panel, gbc, 5, "País de origen", txtPaisOrigen);
+        agregarCampo(panel, gbc, 6, "Ciudad de destino", txtCiudadDestino);
+        agregarCampo(panel, gbc, 7, "País de destino", txtPaisDestino);
 
+        cmbEstado = new JComboBox<>(new String[]{"PENDIENTE", "EN_TRANSITO", "DEMORADO", "ENTREGADO", "CANCELADO"});
+        agregarCampo(panel, gbc, 8, "Estado", cmbEstado);
+        cmbPrioridad = new JComboBox<>(new String[]{"BAJA", "MEDIA", "ALTA"});
+        agregarCampo(panel, gbc, 9, "Prioridad", cmbPrioridad);
 
-        // =====================================================
-        // CONTENEDORES
-        // =====================================================
-
-        listaContenedores =
-                new JList<>();
-
-        listaContenedores.setSelectionMode(
-                ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
-        );
-
-        listaContenedores.setVisibleRowCount(
-                4
-        );
-
-        JScrollPane scrollContenedores =
-                new JScrollPane(
-                        listaContenedores
-                );
-
-        agregarCampo(
-                panel,
-                gbc,
-                2,
-                "Contenedores:",
-                scrollContenedores
-        );
-
-
-        // =====================================================
-        // ORIGEN
-        // =====================================================
-
-        txtCiudadOrigen =
-                new JTextField();
-
-        agregarCampo(
-                panel,
-                gbc,
-                3,
-                "Ciudad origen:",
-                txtCiudadOrigen
-        );
-
-        txtPaisOrigen =
-                new JTextField();
-
-        agregarCampo(
-                panel,
-                gbc,
-                4,
-                "País origen:",
-                txtPaisOrigen
-        );
-
-
-        // =====================================================
-        // DESTINO
-        // =====================================================
-
-        txtCiudadDestino =
-                new JTextField();
-
-        agregarCampo(
-                panel,
-                gbc,
-                5,
-                "Ciudad destino:",
-                txtCiudadDestino
-        );
-
-        txtPaisDestino =
-                new JTextField();
-
-        agregarCampo(
-                panel,
-                gbc,
-                6,
-                "País destino:",
-                txtPaisDestino
-        );
-
-
-        // =====================================================
-        // ESTADO
-        // =====================================================
-
-        cmbEstado =
-                new JComboBox<>(
-                        new String[]{
-                                "PENDIENTE",
-                                "EN_TRANSITO",
-                                "DEMORADO",
-                                "ENTREGADO",
-                                "CANCELADO"
-                        }
-                );
-
-        agregarCampo(
-                panel,
-                gbc,
-                7,
-                "Estado:",
-                cmbEstado
-        );
-
-
-        // =====================================================
-        // PRIORIDAD
-        // =====================================================
-
-        cmbPrioridad =
-                new JComboBox<>(
-                        new String[]{
-                                "BAJA",
-                                "MEDIA",
-                                "ALTA"
-                        }
-                );
-
-        agregarCampo(
-                panel,
-                gbc,
-                8,
-                "Prioridad:",
-                cmbPrioridad
-        );
-
-
-        // =====================================================
-        // BOTONES
-        // =====================================================
-
-        JPanel botones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-        botones.setOpaque(
-                false
-        );
-
-        btnCancelar =
-                new JButton(
-                        "Cancelar"
-                );
-
-        btnGuardar =
-                new JButton(
-                        "Guardar envío"
-                );
-
-        botones.add(
-                btnCancelar
-        );
-
-        botones.add(
-                btnGuardar
-        );
-
-        gbc.gridx = 0;
-        gbc.gridy = 9;
-        gbc.gridwidth = 2;
-        gbc.weightx = 1;
-
-        panel.add(
-                botones,
-                gbc
-        );
-
+        JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        botones.setOpaque(false);
+        btnCancelar = new JButton("Cancelar");
+        btnGuardar = new JButton("Guardar envío");
+        botones.add(btnCancelar);
+        botones.add(btnGuardar);
+        gbc.gridx = 0; gbc.gridy = 10; gbc.gridwidth = 2; gbc.weightx = 1;
+        panel.add(botones, gbc);
         return panel;
     }
 
-
-    // =========================================================
-    // AGREGAR CAMPO
-    // =========================================================
-
-    private void agregarCampo(
-            JPanel panel,
-            GridBagConstraints gbc,
-            int fila,
-            String texto,
-            JComponent componente
-    ) {
-
-        JLabel label =
-                new JLabel(
-                        texto
-                );
-
-        label.setFont(
-                Fuentes.NORMAL
-        );
-
-        gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.weightx = 0;
-
-        panel.add(
-                label,
-                gbc
-        );
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-
-        componente.setPreferredSize(
-                new Dimension(
-                        400,
-                        componente instanceof JScrollPane
-                                ? 80
-                                : 30
-                )
-        );
-
-        panel.add(
-                componente,
-                gbc
-        );
+    private void agregarCampo(JPanel panel, GridBagConstraints gbc, int fila, String texto, JComponent componente) {
+        JLabel label = new JLabel(texto + ":");
+        label.setFont(Fuentes.NORMAL);
+        gbc.gridy = fila; gbc.gridx = 0; gbc.weightx = 0; gbc.gridwidth = 1;
+        panel.add(label, gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        componente.setPreferredSize(new Dimension(400, 32));
+        componente.setMinimumSize(new Dimension(150, 30));
+        panel.add(componente, gbc);
     }
 
+    private void reconstruirPopupContenedores() {
+        popupContenedores.removeAll();
+        if (opcionesContenedores.isEmpty()) {
+            JMenuItem vacio = new JMenuItem("No hay contenedores disponibles");
+            vacio.setEnabled(false);
+            popupContenedores.add(vacio);
+            return;
+        }
+        for (String codigo : opcionesContenedores) {
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(codigo, contenedoresSeleccionados.contains(codigo));
+            item.addActionListener(e -> {
+                if (item.isSelected()) contenedoresSeleccionados.add(codigo);
+                else contenedoresSeleccionados.remove(codigo);
+                actualizarTextoSelectorContenedores();
+            });
+            popupContenedores.add(item);
+        }
+    }
 
-    // =========================================================
-    // MOSTRAR FORMULARIO
-    // =========================================================
+    private void actualizarTextoSelectorContenedores() {
+        if (contenedoresSeleccionados.isEmpty()) {
+            btnSelectorContenedores.setText("Seleccionar contenedores...");
+        } else if (contenedoresSeleccionados.size() <= 2) {
+            btnSelectorContenedores.setText(String.join(", ", contenedoresSeleccionados));
+        } else {
+            btnSelectorContenedores.setText(contenedoresSeleccionados.size() + " contenedores seleccionados");
+        }
+    }
+
+    public void setOpcionesContenedores(List<String> opciones) {
+        opcionesContenedores.clear();
+        opcionesContenedores.addAll(opciones);
+        contenedoresSeleccionados.retainAll(opcionesContenedores);
+        actualizarTextoSelectorContenedores();
+    }
+
+    public List<String> getContenedoresSeleccionados() {
+        return new ArrayList<>(contenedoresSeleccionados);
+    }
+
+    public void seleccionarContenedores(List<String> etiquetas) {
+        contenedoresSeleccionados.clear();
+        for (String etiqueta : etiquetas) {
+            if (opcionesContenedores.contains(etiqueta)) contenedoresSeleccionados.add(etiqueta);
+        }
+        actualizarTextoSelectorContenedores();
+    }
+
+    public void limpiarContenedoresSeleccionados() {
+        contenedoresSeleccionados.clear();
+        actualizarTextoSelectorContenedores();
+    }
+
 
     public void mostrarFormulario() {
+        if (scrollFormulario.getParent() != centro) {
+            centro.add(scrollFormulario, BorderLayout.SOUTH);
+        }
 
-        panelFormulario.setVisible(
-                true
-        );
+        panelFormulario.setVisible(true);
+        btnMostrarFormulario.setVisible(false);
 
-        btnMostrarFormulario.setVisible(
-                false
-        );
-
-        revalidate();
-        repaint();
+        centro.revalidate();
+        centro.repaint();
     }
-
-
-    // =========================================================
-    // OCULTAR FORMULARIO
-    // =========================================================
 
     public void ocultarFormulario() {
+        centro.remove(scrollFormulario);
 
-        panelFormulario.setVisible(
-                false
-        );
+        panelFormulario.setVisible(false);
+        btnMostrarFormulario.setVisible(true);
 
-        btnMostrarFormulario.setVisible(
-                true
-        );
-
-        revalidate();
-        repaint();
+        centro.revalidate();
+        centro.repaint();
     }
 
-
-    // =========================================================
-    // MODO NUEVO
-    // =========================================================
 
     public void prepararNuevoEnvio() {
-
-        lblTituloFormulario.setText(
-                "Nuevo envío"
-        );
-
-        btnGuardar.setText(
-                "Guardar envío"
-        );
-
-        cmbEstado.setSelectedItem(
-                "PENDIENTE"
-        );
-
-        cmbEstado.setEnabled(
-                false
-        );
+        lblTituloFormulario.setText("Nuevo envío");
+        btnGuardar.setText("Guardar envío");
+        cmbEstado.setSelectedItem("PENDIENTE");
+        cmbEstado.setEnabled(false);
     }
-
-
-    // =========================================================
-    // MODO EDICIÓN
-    // =========================================================
 
     public void prepararEdicion() {
-
-        lblTituloFormulario.setText(
-                "Editar envío"
-        );
-
-        btnGuardar.setText(
-                "Guardar cambios"
-        );
-
-        cmbEstado.setEnabled(
-                true
-        );
+        lblTituloFormulario.setText("Editar envío");
+        btnGuardar.setText("Guardar cambios");
+        cmbEstado.setEnabled(true);
     }
-
-
-    // =========================================================
-    // LIMPIAR FORMULARIO
-    // =========================================================
 
     public void limpiarFormulario() {
-
-        if (cmbCliente.getItemCount() > 0) {
-
-            cmbCliente.setSelectedIndex(
-                    0
-            );
-        }
-
-        listaContenedores.clearSelection();
-
+        if (cmbCliente.getItemCount() > 0) cmbCliente.setSelectedIndex(0);
+        if (cmbVehiculo != null && cmbVehiculo.getItemCount() > 0) cmbVehiculo.setSelectedIndex(0);
+        limpiarContenedoresSeleccionados();
         txtCiudadOrigen.setText("");
-
         txtPaisOrigen.setText("");
-
         txtCiudadDestino.setText("");
-
         txtPaisDestino.setText("");
-
-        if (cmbEstado.getItemCount() > 0) {
-
-            cmbEstado.setSelectedItem(
-                    "PENDIENTE"
-            );
-        }
-
-        if (cmbPrioridad.getItemCount() > 0) {
-
-            cmbPrioridad.setSelectedIndex(
-                    0
-            );
-        }
+        if (cmbEstado.getItemCount() > 0) cmbEstado.setSelectedItem("PENDIENTE");
+        if (cmbPrioridad.getItemCount() > 0) cmbPrioridad.setSelectedIndex(0);
     }
 
-
-    // =========================================================
-    // GETTERS
-    // =========================================================
-
-    public JTable getTablaEnvios() {
-
-        return tablaEnvios;
-    }
-
-
-    public JButton getBtnActualizar() {
-
-        return btnActualizar;
-    }
-
-
-    public JButton getBtnMostrarFormulario() {
-
-        return btnMostrarFormulario;
-    }
-
-
-    public JButton getBtnEditar() {
-
-        return btnEditar;
-    }
-
-
-    public JButton getBtnEliminar() {
-
-        return btnEliminar;
-    }
-
-
-    public JButton getBtnGuardar() {
-
-        return btnGuardar;
-    }
-
-
-    public JButton getBtnCancelar() {
-
-        return btnCancelar;
-    }
-
-
-    public JComboBox<String> getCmbCliente() {
-
-        return cmbCliente;
-    }
-
-
-    public JList<String> getListaContenedores() {
-
-        return listaContenedores;
-    }
-
-
-    public JTextField getTxtCiudadOrigen() {
-
-        return txtCiudadOrigen;
-    }
-
-
-    public JTextField getTxtPaisOrigen() {
-
-        return txtPaisOrigen;
-    }
-
-
-    public JTextField getTxtCiudadDestino() {
-
-        return txtCiudadDestino;
-    }
-
-
-    public JTextField getTxtPaisDestino() {
-
-        return txtPaisDestino;
-    }
-
-
-    public JComboBox<String> getCmbEstado() {
-
-        return cmbEstado;
-    }
-
-
-    public JComboBox<String> getCmbPrioridad() {
-
-        return cmbPrioridad;
-    }
-
-
-    public JLabel getLblEstado() {
-
-        return lblEstado;
-    }
+    public JTable getTablaEnvios() { return tablaEnvios; }
+    public JButton getBtnActualizar() { return btnActualizar; }
+    public JButton getBtnMostrarFormulario() { return btnMostrarFormulario; }
+    public JButton getBtnEditar() { return btnEditar; }
+    public JButton getBtnEliminar() { return btnEliminar; }
+    public JButton getBtnGuardar() { return btnGuardar; }
+    public JButton getBtnCancelar() { return btnCancelar; }
+    public JComboBox<String> getCmbCliente() { return cmbCliente; }
+    public JComboBox<String> getCmbVehiculo() { return cmbVehiculo; }
+    public JTextField getTxtCiudadOrigen() { return txtCiudadOrigen; }
+    public JTextField getTxtPaisOrigen() { return txtPaisOrigen; }
+    public JTextField getTxtCiudadDestino() { return txtCiudadDestino; }
+    public JTextField getTxtPaisDestino() { return txtPaisDestino; }
+    public JComboBox<String> getCmbEstado() { return cmbEstado; }
+    public JComboBox<String> getCmbPrioridad() { return cmbPrioridad; }
+    public JLabel getLblEstado() { return lblEstado; }
 }

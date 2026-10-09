@@ -1,869 +1,501 @@
 package org.example.interfaz.principal.vistas;
 
-import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.example.neo4j.controller.ControllerNeo4j;
 import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.ContenedorController;
-import org.example.mongoDB.controller.EnvioController;
+import org.example.mongoDB.controller.VehiculoController;
+import org.bson.Document;
+import org.bson.types.ObjectId;
+import org.example.neo4j.model.Envio;
+import org.example.neo4j.model.Ubicacion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.text.SimpleDateFormat;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class EnviosPanelController {
 
     private final EnviosPanel view;
-
-    private final EnvioController envioController;
+    private final ControllerNeo4j neo4j;
     private final ClienteController clienteController;
     private final ContenedorController contenedorController;
+    private final VehiculoController vehiculoController;
 
     private final Map<String, String> clientesPorNombre;
     private final Map<String, String> contenedoresPorCodigo;
+    private final Map<String, String> vehiculosPorEtiqueta;
 
-    // Guarda los IDs en el mismo orden que las filas de la tabla
     private final List<String> idsEnvios;
 
-    // null = alta / distinto de null = edición
     private String envioIdEnEdicion;
 
+    public EnviosPanelController(EnviosPanel view) {
+        this.view = view;
+        this.neo4j = new ControllerNeo4j();
+        this.clienteController = new ClienteController();
+        this.contenedorController = new ContenedorController();
+        this.vehiculoController = new VehiculoController();
 
-    // =========================================================
-    // CONSTRUCTOR
-    // =========================================================
-
-    public EnviosPanelController(
-            EnviosPanel view
-    ) {
-
-        this.view =
-                view;
-
-        this.envioController =
-                new EnvioController();
-
-        this.clienteController =
-                new ClienteController();
-
-        this.contenedorController =
-                new ContenedorController();
-
-        this.clientesPorNombre =
-                new HashMap<>();
-
-        this.contenedoresPorCodigo =
-                new HashMap<>();
-
-        this.idsEnvios =
-                new ArrayList<>();
-
-        this.envioIdEnEdicion =
-                null;
+        this.clientesPorNombre = new LinkedHashMap<>();
+        this.contenedoresPorCodigo = new LinkedHashMap<>();
+        this.vehiculosPorEtiqueta = new LinkedHashMap<>();
+        this.idsEnvios = new ArrayList<>();
+        this.envioIdEnEdicion = null;
 
         configurarEventos();
-
-        cargarClientes();
-
-        cargarContenedores();
-
-        cargarEnvios();
+        actualizarTodo();
     }
 
-
-    // =========================================================
+    // =====================================================
     // EVENTOS
-    // =========================================================
+    // =====================================================
 
     private void configurarEventos() {
-
-        // -----------------------------------------------------
-        // ACTUALIZAR
-        // -----------------------------------------------------
-
         view.getBtnActualizar()
-                .addActionListener(
-                        e -> actualizarTodo()
-                );
-
-
-        // -----------------------------------------------------
-        // NUEVO ENVÍO
-        // -----------------------------------------------------
+                .addActionListener(e -> actualizarTodo());
 
         view.getBtnMostrarFormulario()
-                .addActionListener(
-                        e -> prepararNuevoEnvio()
-                );
-
-
-        // -----------------------------------------------------
-        // EDITAR
-        // -----------------------------------------------------
+                .addActionListener(e -> prepararNuevoEnvio());
 
         view.getBtnEditar()
-                .addActionListener(
-                        e -> editarEnvioSeleccionado()
-                );
-
-
-        // -----------------------------------------------------
-        // ELIMINAR
-        // -----------------------------------------------------
+                .addActionListener(e -> editarEnvioSeleccionado());
 
         view.getBtnEliminar()
-                .addActionListener(
-                        e -> eliminarEnvioSeleccionado()
-                );
-
-
-        // -----------------------------------------------------
-        // CANCELAR
-        // -----------------------------------------------------
+                .addActionListener(e -> eliminarEnvioSeleccionado());
 
         view.getBtnCancelar()
-                .addActionListener(
-                        e -> cancelar()
-                );
-
-
-        // -----------------------------------------------------
-        // GUARDAR
-        // -----------------------------------------------------
+                .addActionListener(e -> cancelar());
 
         view.getBtnGuardar()
-                .addActionListener(
-                        e -> guardar()
-                );
+                .addActionListener(e -> guardar());
     }
 
-
-    // =========================================================
-    // ACTUALIZAR
-    // =========================================================
-
     private void actualizarTodo() {
-
         cargarClientes();
-
         cargarContenedores();
-
+        cargarVehiculos();
         cargarEnvios();
     }
 
-
-    // =========================================================
-    // PREPARAR NUEVO ENVÍO
-    // =========================================================
-
-    private void prepararNuevoEnvio() {
-
-        envioIdEnEdicion =
-                null;
-
-        cargarClientes();
-
-        cargarContenedores();
-
-        view.limpiarFormulario();
-
-        view.prepararNuevoEnvio();
-
-        view.mostrarFormulario();
-    }
-
-
-    // =========================================================
-    // CARGAR CLIENTES
-    // =========================================================
+    // =====================================================
+    // CLIENTES
+    // =====================================================
 
     private void cargarClientes() {
-
         try {
+            List<Document> clientes = clienteController.listarClientes();
 
-            List<Document> clientes =
-                    clienteController
-                            .listarClientes();
-
-            view.getCmbCliente()
-                    .removeAllItems();
-
+            view.getCmbCliente().removeAllItems();
             clientesPorNombre.clear();
 
             for (Document cliente : clientes) {
+                ObjectId objectId = cliente.getObjectId("_id");
+                String razonSocial = cliente.getString("razon_social");
 
-                ObjectId id =
-                        cliente.getObjectId(
-                                "_id"
-                        );
-
-                String razonSocial =
-                        cliente.getString(
-                                "razon_social"
-                        );
-
-                if (id != null
-                        && razonSocial != null) {
-
-                    view.getCmbCliente()
-                            .addItem(
-                                    razonSocial
-                            );
-
-                    clientesPorNombre.put(
-                            razonSocial,
-                            id.toHexString()
-                    );
+                if (objectId == null
+                        || razonSocial == null
+                        || razonSocial.isBlank()) {
+                    continue;
                 }
+
+                String id = objectId.toHexString();
+                String etiqueta = razonSocial;
+
+                if (clientesPorNombre.containsKey(etiqueta)) {
+                    etiqueta = razonSocial + " (" + id + ")";
+                }
+
+                view.getCmbCliente().addItem(etiqueta);
+                clientesPorNombre.put(etiqueta, id);
             }
 
         } catch (Exception e) {
-
             mostrarError(
-                    "No se pudieron cargar los clientes.",
+                    "No se pudieron cargar los clientes desde MongoDB.",
                     e
             );
         }
     }
 
-
-    // =========================================================
-    // CARGAR CONTENEDORES
-    // =========================================================
+    // =====================================================
+    // CONTENEDORES
+    // =====================================================
 
     private void cargarContenedores() {
-
         try {
-
             List<Document> contenedores =
-                    contenedorController
-                            .listarContenedores();
-
-            DefaultListModel<String> modelo =
-                    new DefaultListModel<>();
+                    contenedorController.listarContenedores();
 
             contenedoresPorCodigo.clear();
 
             for (Document contenedor : contenedores) {
-
-                ObjectId id =
-                        contenedor.getObjectId(
-                                "_id"
-                        );
-
+                ObjectId objectId = contenedor.getObjectId("_id");
                 String codigo =
-                        contenedor.getString(
-                                "codigo_internacional"
-                        );
+                        contenedor.getString("codigo_internacional");
 
-                if (id != null
-                        && codigo != null) {
-
-                    modelo.addElement(
-                            codigo
-                    );
-
-                    contenedoresPorCodigo.put(
-                            codigo,
-                            id.toHexString()
-                    );
-                }
-            }
-
-            view.getListaContenedores()
-                    .setModel(
-                            modelo
-                    );
-
-        } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudieron cargar los contenedores.",
-                    e
-            );
-        }
-    }
-
-
-    // =========================================================
-    // CARGAR ENVÍOS
-    // =========================================================
-
-    private void cargarEnvios() {
-
-        try {
-
-            List<Document> envios =
-                    envioController
-                            .listarEnvios();
-
-            DefaultTableModel modelo =
-                    (DefaultTableModel)
-                            view.getTablaEnvios()
-                                    .getModel();
-
-            modelo.setRowCount(
-                    0
-            );
-
-            idsEnvios.clear();
-
-            SimpleDateFormat formatoFecha =
-                    new SimpleDateFormat(
-                            "dd/MM/yyyy"
-                    );
-
-            for (Document envio : envios) {
-
-                // -------------------------------------------------
-                // ID
-                // -------------------------------------------------
-
-                ObjectId envioId =
-                        envio.getObjectId(
-                                "_id"
-                        );
-
-                if (envioId == null) {
-
+                if (objectId == null
+                        || codigo == null
+                        || codigo.isBlank()) {
                     continue;
                 }
 
+                String id = objectId.toHexString();
+                String etiqueta = codigo;
 
-                // -------------------------------------------------
-                // CLIENTE
-                // -------------------------------------------------
+                if (contenedoresPorCodigo.containsKey(etiqueta)) {
+                    etiqueta = codigo + " (" + id + ")";
+                }
 
-                ObjectId clienteId =
-                        envio.getObjectId(
-                                "cliente_id"
-                        );
-
-                String cliente =
-                        obtenerNombreCliente(
-                                clienteId
-                        );
-
-
-                // -------------------------------------------------
-                // CONTENEDORES
-                // -------------------------------------------------
-
-                List<ObjectId> contenedoresIds =
-                        obtenerListaObjectId(
-                                envio,
-                                "contenedores_ids"
-                        );
-
-                String contenedores =
-                        obtenerCodigosContenedores(
-                                contenedoresIds
-                        );
-
-
-                // -------------------------------------------------
-                // FECHA
-                // -------------------------------------------------
-
-                Date fecha =
-                        envio.getDate(
-                                "fecha_creacion"
-                        );
-
-                String fechaTexto =
-                        fecha != null
-                                ? formatoFecha.format(fecha)
-                                : "";
-
-
-                // -------------------------------------------------
-                // ORIGEN
-                // -------------------------------------------------
-
-                Document origen =
-                        envio.get(
-                                "origen",
-                                Document.class
-                        );
-
-                String origenTexto =
-                        obtenerUbicacionTexto(
-                                origen
-                        );
-
-
-                // -------------------------------------------------
-                // DESTINO
-                // -------------------------------------------------
-
-                Document destino =
-                        envio.get(
-                                "destino",
-                                Document.class
-                        );
-
-                String destinoTexto =
-                        obtenerUbicacionTexto(
-                                destino
-                        );
-
-
-                // -------------------------------------------------
-                // TABLA
-                // -------------------------------------------------
-
-                modelo.addRow(
-                        new Object[]{
-                                cliente,
-                                contenedores,
-                                fechaTexto,
-                                origenTexto,
-                                destinoTexto,
-                                envio.getString(
-                                        "estado"
-                                ),
-                                envio.getString(
-                                        "prioridad"
-                                )
-                        }
-                );
-
-                idsEnvios.add(
-                        envioId.toHexString()
-                );
+                contenedoresPorCodigo.put(etiqueta, id);
             }
 
-            view.getLblEstado()
-                    .setText(
-                            "Envíos registrados: "
-                                    + idsEnvios.size()
-                    );
+            view.setOpcionesContenedores(
+                    new ArrayList<>(contenedoresPorCodigo.keySet())
+            );
 
         } catch (Exception e) {
-
             mostrarError(
-                    "No se pudieron cargar los envíos.",
+                    "No se pudieron cargar los contenedores desde MongoDB.",
                     e
             );
         }
     }
 
+    // =====================================================
+    // VEHÍCULOS
+    // =====================================================
 
-    // =========================================================
-    // EDITAR ENVÍO SELECCIONADO
-    // =========================================================
+    private void cargarVehiculos() {
+        try {
+            List<Document> vehiculos =
+                    vehiculoController.listarVehiculos();
 
-    private void editarEnvioSeleccionado() {
+            JComboBox<String> combo = view.getCmbVehiculo();
 
-        int fila =
-                view.getTablaEnvios()
-                        .getSelectedRow();
+            combo.removeAllItems();
+            vehiculosPorEtiqueta.clear();
 
-        if (fila < 0) {
+            String sinVehiculo = "— Sin vehículo asignado —";
 
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un envío para editar.",
-                    "Envíos",
-                    JOptionPane.WARNING_MESSAGE
+            combo.addItem(sinVehiculo);
+            vehiculosPorEtiqueta.put(sinVehiculo, null);
+
+            for (Document vehiculo : vehiculos) {
+                ObjectId objectId = vehiculo.getObjectId("_id");
+
+                String identificacion =
+                        texto(vehiculo.get("identificacion"));
+
+                String tipo = texto(vehiculo.get("tipo"));
+                String estado = texto(vehiculo.get("estado"));
+
+                if (objectId == null
+                        || identificacion == null
+                        || identificacion.isBlank()) {
+                    continue;
+                }
+
+                // Se excluyen vehículos cuyo estado no sea ACTIVO.
+                if (estado != null
+                        && !estado.isBlank()
+                        && !"ACTIVO".equalsIgnoreCase(estado)) {
+                    continue;
+                }
+
+                String id = objectId.toHexString();
+
+                String etiqueta =
+                        (tipo == null || tipo.isBlank()
+                                ? "Vehículo"
+                                : tipo)
+                                + " - " + identificacion;
+
+                if (vehiculosPorEtiqueta.containsKey(etiqueta)) {
+                    etiqueta += " (" + id + ")";
+                }
+
+                combo.addItem(etiqueta);
+                vehiculosPorEtiqueta.put(etiqueta, id);
+            }
+
+        } catch (Exception e) {
+            mostrarError(
+                    "No se pudieron cargar los vehículos desde MongoDB.",
+                    e
             );
-
-            return;
         }
+    }
 
-        if (fila >= idsEnvios.size()) {
+    // =====================================================
+    // LISTAR ENVÍOS
+    // =====================================================
 
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el envío seleccionado.",
-                    "Envíos",
-                    JOptionPane.WARNING_MESSAGE
-            );
+    private void cargarEnvios() {
+        try {
+            List<Map<String, Object>> envios = neo4j.listarEnvios();
 
-            return;
-        }
+            DefaultTableModel modelo =
+                    (DefaultTableModel) view.getTablaEnvios().getModel();
 
-        String envioId =
-                idsEnvios.get(
-                        fila
+            modelo.setRowCount(0);
+            idsEnvios.clear();
+
+            for (Map<String, Object> envio : envios) {
+                String id = texto(envio.get("id"));
+
+                if (id == null || id.isBlank()) {
+                    continue;
+                }
+
+                String cliente = texto(envio.get("cliente"));
+
+                if (cliente == null || cliente.isBlank()) {
+                    cliente = nombreClientePorId(
+                            texto(envio.get("clienteId"))
+                    );
+                }
+
+                String contenedores =
+                        unirLista(envio.get("contenedores"));
+
+                String fecha =
+                        formatearFecha(texto(envio.get("fechaCreacion")));
+
+                String origen = combinarUbicacion(
+                        texto(envio.get("ciudadOrigen")),
+                        texto(envio.get("paisOrigen"))
                 );
 
-        try {
+                String destino = combinarUbicacion(
+                        texto(envio.get("ciudadDestino")),
+                        texto(envio.get("paisDestino"))
+                );
 
-            Document envio =
-                    envioController.buscarPorId(
-                            envioId
-                    );
+                modelo.addRow(new Object[]{
+                        cliente,
+                        contenedores,
+                        fecha,
+                        origen,
+                        destino,
+                        texto(envio.get("estado")),
+                        texto(envio.get("prioridad"))
+                });
 
-            envioIdEnEdicion =
-                    envioId;
+                idsEnvios.add(id);
+            }
 
-            // Volvemos a cargar para asegurarnos de tener
-            // clientes y contenedores actualizados.
-            cargarClientes();
-
-            cargarContenedores();
-
-            cargarDatosEnFormulario(
-                    envio
+            view.getLblEstado().setText(
+                    "Envíos registrados: " + idsEnvios.size()
             );
 
-            view.prepararEdicion();
+        } catch (Exception e) {
+            mostrarError("No se pudieron cargar los envíos.", e);
+        }
+    }
 
+    // =====================================================
+    // NUEVO ENVÍO
+    // =====================================================
+
+    private void prepararNuevoEnvio() {
+        envioIdEnEdicion = null;
+
+        cargarClientes();
+        cargarContenedores();
+        cargarVehiculos();
+
+        view.limpiarFormulario();
+        view.prepararNuevoEnvio();
+        view.mostrarFormulario();
+    }
+
+    // =====================================================
+    // EDITAR ENVÍO
+    // =====================================================
+
+    private void editarEnvioSeleccionado() {
+        int fila = view.getTablaEnvios().getSelectedRow();
+
+        if (fila < 0) {
+            advertir("Seleccioná un envío para editar.");
+            return;
+        }
+
+        fila = view.getTablaEnvios().convertRowIndexToModel(fila);
+
+        if (fila >= idsEnvios.size()) {
+            advertir("No se pudo identificar el envío seleccionado.");
+            return;
+        }
+
+        String id = idsEnvios.get(fila);
+
+        try {
+            Map<String, Object> envio = neo4j.buscarEnvioPorId(id);
+
+            if (envio == null) {
+                advertir("El envío seleccionado ya no existe.");
+                cargarEnvios();
+                return;
+            }
+
+            envioIdEnEdicion = id;
+
+            cargarClientes();
+            cargarContenedores();
+            cargarVehiculos();
+
+            seleccionarCliente(texto(envio.get("clienteId")));
+
+            seleccionarContenedores(
+                    listaTextos(envio.get("contenedoresIds"))
+            );
+
+            view.getTxtCiudadOrigen().setText(
+                    valorTexto(envio.get("ciudadOrigen"))
+            );
+
+            view.getTxtPaisOrigen().setText(
+                    valorTexto(envio.get("paisOrigen"))
+            );
+
+            view.getTxtCiudadDestino().setText(
+                    valorTexto(envio.get("ciudadDestino"))
+            );
+
+            view.getTxtPaisDestino().setText(
+                    valorTexto(envio.get("paisDestino"))
+            );
+
+            seleccionarCombo(
+                    view.getCmbEstado(),
+                    texto(envio.get("estado"))
+            );
+
+            seleccionarCombo(
+                    view.getCmbPrioridad(),
+                    texto(envio.get("prioridad"))
+            );
+
+            // El vehículo puede venir como ID de MongoDB en la consulta.
+            seleccionarVehiculo(texto(envio.get("vehiculoId")));
+
+            view.prepararEdicion();
             view.mostrarFormulario();
 
         } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo cargar el envío para editar.",
-                    e
-            );
+            mostrarError("No se pudo cargar el envío para editar.", e);
         }
     }
 
-
-    // =========================================================
-    // CARGAR DATOS EN FORMULARIO
-    // =========================================================
-
-    private void cargarDatosEnFormulario(
-            Document envio
-    ) {
-
-        // -----------------------------------------------------
-        // CLIENTE
-        // -----------------------------------------------------
-
-        ObjectId clienteId =
-                envio.getObjectId(
-                        "cliente_id"
-                );
-
-        seleccionarClientePorId(
-                clienteId
-        );
-
-
-        // -----------------------------------------------------
-        // CONTENEDORES
-        // -----------------------------------------------------
-
-        List<ObjectId> contenedoresIds =
-                obtenerListaObjectId(
-                        envio,
-                        "contenedores_ids"
-                );
-
-        seleccionarContenedoresPorId(
-                contenedoresIds
-        );
-
-
-        // -----------------------------------------------------
-        // ORIGEN
-        // -----------------------------------------------------
-
-        Document origen =
-                envio.get(
-                        "origen",
-                        Document.class
-                );
-
-        if (origen != null) {
-
-            String ciudad =
-                    origen.getString(
-                            "ciudad"
-                    );
-
-            String pais =
-                    origen.getString(
-                            "pais"
-                    );
-
-            view.getTxtCiudadOrigen()
-                    .setText(
-                            ciudad != null
-                                    ? ciudad
-                                    : ""
-                    );
-
-            view.getTxtPaisOrigen()
-                    .setText(
-                            pais != null
-                                    ? pais
-                                    : ""
-                    );
-
-        } else {
-
-            view.getTxtCiudadOrigen()
-                    .setText("");
-
-            view.getTxtPaisOrigen()
-                    .setText("");
-        }
-
-
-        // -----------------------------------------------------
-        // DESTINO
-        // -----------------------------------------------------
-
-        Document destino =
-                envio.get(
-                        "destino",
-                        Document.class
-                );
-
-        if (destino != null) {
-
-            String ciudad =
-                    destino.getString(
-                            "ciudad"
-                    );
-
-            String pais =
-                    destino.getString(
-                            "pais"
-                    );
-
-            view.getTxtCiudadDestino()
-                    .setText(
-                            ciudad != null
-                                    ? ciudad
-                                    : ""
-                    );
-
-            view.getTxtPaisDestino()
-                    .setText(
-                            pais != null
-                                    ? pais
-                                    : ""
-                    );
-
-        } else {
-
-            view.getTxtCiudadDestino()
-                    .setText("");
-
-            view.getTxtPaisDestino()
-                    .setText("");
-        }
-
-
-        // -----------------------------------------------------
-        // ESTADO
-        // -----------------------------------------------------
-
-        String estado =
-                envio.getString(
-                        "estado"
-                );
-
-        if (estado != null) {
-
-            view.getCmbEstado()
-                    .setSelectedItem(
-                            estado
-                    );
-        }
-
-
-        // -----------------------------------------------------
-        // PRIORIDAD
-        // -----------------------------------------------------
-
-        String prioridad =
-                envio.getString(
-                        "prioridad"
-                );
-
-        if (prioridad != null) {
-
-            view.getCmbPrioridad()
-                    .setSelectedItem(
-                            prioridad
-                    );
-        }
-    }
-
-
-    // =========================================================
-    // SELECCIONAR CLIENTE POR ID
-    // =========================================================
-
-    private void seleccionarClientePorId(
-            ObjectId clienteId
-    ) {
-
+    private void seleccionarCliente(String clienteId) {
         if (clienteId == null) {
-
             return;
         }
-
-        String idBuscado =
-                clienteId.toHexString();
 
         for (Map.Entry<String, String> entry
                 : clientesPorNombre.entrySet()) {
 
-            if (idBuscado.equals(
-                    entry.getValue()
-            )) {
-
-                view.getCmbCliente()
-                        .setSelectedItem(
-                                entry.getKey()
-                        );
-
+            if (clienteId.equals(entry.getValue())) {
+                view.getCmbCliente().setSelectedItem(entry.getKey());
                 return;
             }
         }
     }
 
+    private void seleccionarContenedores(List<String> ids) {
+        List<String> etiquetasSeleccionadas = new ArrayList<>();
 
-    // =========================================================
-    // SELECCIONAR CONTENEDORES POR ID
-    // =========================================================
+        for (Map.Entry<String, String> entry
+                : contenedoresPorCodigo.entrySet()) {
 
-    private void seleccionarContenedoresPorId(
-            List<ObjectId> ids
-    ) {
-
-        view.getListaContenedores()
-                .clearSelection();
-
-        if (ids == null
-                || ids.isEmpty()) {
-
-            return;
-        }
-
-        List<Integer> indices =
-                new ArrayList<>();
-
-        ListModel<String> modelo =
-                view.getListaContenedores()
-                        .getModel();
-
-        for (int i = 0;
-             i < modelo.getSize();
-             i++) {
-
-            String codigo =
-                    modelo.getElementAt(
-                            i
-                    );
-
-            String idCodigo =
-                    contenedoresPorCodigo.get(
-                            codigo
-                    );
-
-            if (idCodigo == null) {
-
-                continue;
-            }
-
-            for (ObjectId id : ids) {
-
-                if (id != null
-                        && idCodigo.equals(
-                        id.toHexString()
-                )) {
-
-                    indices.add(
-                            i
-                    );
-
-                    break;
-                }
+            if (ids.contains(entry.getValue())) {
+                etiquetasSeleccionadas.add(entry.getKey());
             }
         }
 
-        int[] indicesArray =
-                new int[
-                        indices.size()
-                        ];
-
-        for (int i = 0;
-             i < indices.size();
-             i++) {
-
-            indicesArray[i] =
-                    indices.get(i);
-        }
-
-        view.getListaContenedores()
-                .setSelectedIndices(
-                        indicesArray
-                );
+        view.seleccionarContenedores(etiquetasSeleccionadas);
     }
 
+    private void seleccionarVehiculo(String vehiculoId) {
+        JComboBox<String> combo = view.getCmbVehiculo();
 
-    // =========================================================
-    // ELIMINAR ENVÍO SELECCIONADO
-    // =========================================================
+        if (vehiculoId == null || vehiculoId.isBlank()) {
+            combo.setSelectedIndex(0);
+            return;
+        }
+
+        for (Map.Entry<String, String> entry
+                : vehiculosPorEtiqueta.entrySet()) {
+
+            if (vehiculoId.equals(entry.getValue())) {
+                combo.setSelectedItem(entry.getKey());
+                return;
+            }
+        }
+
+        // Si el vehículo está inactivo o fue eliminado,
+        // se deja seleccionada la opción sin vehículo.
+        combo.setSelectedIndex(0);
+    }
+
+    private void seleccionarCombo(
+            JComboBox<String> combo,
+            String valor
+    ) {
+        if (valor != null) {
+            combo.setSelectedItem(valor);
+        }
+    }
+
+    // =====================================================
+    // ELIMINAR ENVÍO
+    // =====================================================
 
     private void eliminarEnvioSeleccionado() {
-
-        int fila =
-                view.getTablaEnvios()
-                        .getSelectedRow();
+        int fila = view.getTablaEnvios().getSelectedRow();
 
         if (fila < 0) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un envío para eliminar.",
-                    "Envíos",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            advertir("Seleccioná un envío para eliminar.");
             return;
         }
+
+        fila = view.getTablaEnvios().convertRowIndexToModel(fila);
 
         if (fila >= idsEnvios.size()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el envío seleccionado.",
-                    "Envíos",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            advertir("No se pudo identificar el envío seleccionado.");
             return;
         }
 
-        int respuesta =
-                JOptionPane.showConfirmDialog(
-                        view,
-                        "¿Seguro que querés eliminar el envío seleccionado?",
-                        "Eliminar envío",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
+        int respuesta = JOptionPane.showConfirmDialog(
+                view,
+                "¿Seguro que querés eliminar el envío seleccionado?",
+                "Eliminar envío",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
 
-        if (respuesta
-                != JOptionPane.YES_OPTION) {
-
+        if (respuesta != JOptionPane.YES_OPTION) {
             return;
         }
 
-        String envioId =
-                idsEnvios.get(
-                        fila
-                );
+        String id = idsEnvios.get(fila);
 
         try {
+            neo4j.eliminarEnvio(id);
 
-            envioController.eliminarEnvio(
-                    envioId
-            );
+            if (id.equals(envioIdEnEdicion)) {
+                envioIdEnEdicion = null;
+                view.limpiarFormulario();
+                view.ocultarFormulario();
+            }
 
             JOptionPane.showMessageDialog(
                     view,
@@ -872,320 +504,190 @@ public class EnviosPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-            if (envioId.equals(
-                    envioIdEnEdicion
-            )) {
-
-                envioIdEnEdicion =
-                        null;
-
-                view.limpiarFormulario();
-
-                view.ocultarFormulario();
-            }
-
             cargarEnvios();
 
         } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo eliminar el envío.",
-                    e
-            );
+            mostrarError("No se pudo eliminar el envío.", e);
         }
     }
 
-
-    // =========================================================
+    // =====================================================
     // GUARDAR
-    // =========================================================
+    // =====================================================
 
     private void guardar() {
-
-        if (envioIdEnEdicion == null) {
-
-            agregarEnvio();
-
-        } else {
-
-            modificarEnvio();
-        }
-    }
-
-
-    // =========================================================
-    // AGREGAR ENVÍO
-    // =========================================================
-
-    private void agregarEnvio() {
-
-        DatosFormulario datos =
-                obtenerDatosFormulario();
+        DatosFormulario datos = obtenerDatosFormulario();
 
         if (datos == null) {
-
-            return;
-        }
-
-        try {
-
-            envioController.crearEnvio(
-                    datos.clienteId,
-                    datos.contenedoresIds,
-                    datos.ciudadOrigen,
-                    datos.paisOrigen,
-                    datos.ciudadDestino,
-                    datos.paisDestino,
-                    datos.prioridad
-            );
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Envío agregado correctamente.",
-                    "Envíos",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-
-            envioIdEnEdicion =
-                    null;
-
-            view.limpiarFormulario();
-
-            view.ocultarFormulario();
-
-            cargarEnvios();
-
-        } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo agregar el envío.",
-                    e
-            );
-        }
-    }
-
-
-    // =========================================================
-    // MODIFICAR ENVÍO
-    // =========================================================
-
-    private void modificarEnvio() {
-
-        if (envioIdEnEdicion == null) {
-
-            return;
-        }
-
-        DatosFormulario datos =
-                obtenerDatosFormulario();
-
-        if (datos == null) {
-
             return;
         }
 
         Object estadoSeleccionado =
-                view.getCmbEstado()
-                        .getSelectedItem();
+                view.getCmbEstado().getSelectedItem();
 
         if (estadoSeleccionado == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un estado.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            advertir("Seleccioná un estado.");
             return;
         }
 
-        String estado =
-                estadoSeleccionado.toString();
+        String id = envioIdEnEdicion != null
+                ? envioIdEnEdicion
+                : generarIdHexadecimal();
+
+        String fechaCreacion;
+
+        if (envioIdEnEdicion != null) {
+            Map<String, Object> existente = neo4j.buscarEnvioPorId(id);
+
+            fechaCreacion = existente != null
+                    ? texto(existente.get("fechaCreacion"))
+                    : Instant.now().toString();
+        } else {
+            fechaCreacion = Instant.now().toString();
+        }
+
+        Envio envio = new Envio(
+                id,
+                datos.clienteId,
+                datos.contenedoresIds,
+                fechaCreacion,
+                new Ubicacion(
+                        null,
+                        datos.ciudadOrigen,
+                        datos.paisOrigen
+                ),
+                new Ubicacion(
+                        null,
+                        datos.ciudadDestino,
+                        datos.paisDestino
+                ),
+                estadoSeleccionado.toString(),
+                datos.prioridad
+        );
 
         try {
+            if (envioIdEnEdicion == null) {
+                neo4j.crearEnvio(envio);
+            } else {
+                neo4j.modificarEnvio(envio);
+            }
 
-            envioController.modificarEnvio(
-                    envioIdEnEdicion,
-                    datos.clienteId,
-                    datos.contenedoresIds,
-                    datos.ciudadOrigen,
-                    datos.paisOrigen,
-                    datos.ciudadDestino,
-                    datos.paisDestino,
-                    estado,
-                    datos.prioridad
+            Object vehiculoSeleccionado =
+                    view.getCmbVehiculo().getSelectedItem();
+
+            String vehiculoIdMongo = vehiculoSeleccionado == null
+                    ? null
+                    : vehiculosPorEtiqueta.get(
+                    vehiculoSeleccionado.toString()
             );
+
+            // Este método debe eliminar la relación anterior si el ID
+            // recibido es null. No se lo llama con null aquí porque
+            // la firma y el comportamiento actual del DAO deben verificarse.
+            if (vehiculoIdMongo != null
+                    && !vehiculoIdMongo.isBlank()) {
+
+                neo4j.vincularVehiculoMongoAEnvio(
+                        id,
+                        vehiculoIdMongo
+                );
+            }
 
             JOptionPane.showMessageDialog(
                     view,
-                    "Envío modificado correctamente.",
+                    envioIdEnEdicion == null
+                            ? "Envío agregado correctamente."
+                            : "Envío modificado correctamente.",
                     "Envíos",
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-            envioIdEnEdicion =
-                    null;
-
+            envioIdEnEdicion = null;
             view.limpiarFormulario();
-
             view.ocultarFormulario();
 
             cargarEnvios();
 
         } catch (Exception e) {
-
-            mostrarError(
-                    "No se pudo modificar el envío.",
-                    e
-            );
+            mostrarError("No se pudo guardar el envío.", e);
         }
     }
 
-
-    // =========================================================
-    // OBTENER DATOS DEL FORMULARIO
-    // =========================================================
+    // =====================================================
+    // VALIDAR FORMULARIO
+    // =====================================================
 
     private DatosFormulario obtenerDatosFormulario() {
-
-        // -----------------------------------------------------
-        // CLIENTE
-        // -----------------------------------------------------
-
         Object clienteSeleccionado =
-                view.getCmbCliente()
-                        .getSelectedItem();
+                view.getCmbCliente().getSelectedItem();
 
         if (clienteSeleccionado == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un cliente.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            advertir("Seleccioná un cliente.");
             return null;
         }
 
-        String clienteId =
-                clientesPorNombre.get(
-                        clienteSeleccionado.toString()
-                );
+        String clienteId = clientesPorNombre.get(
+                clienteSeleccionado.toString()
+        );
 
         if (clienteId == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el ID del cliente.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            advertir("No se pudo obtener el ID del cliente.");
             return null;
         }
-
-
-        // -----------------------------------------------------
-        // CONTENEDORES
-        // -----------------------------------------------------
 
         List<String> seleccionados =
-                view.getListaContenedores()
-                        .getSelectedValuesList();
+                view.getContenedoresSeleccionados();
 
-        if (seleccionados.isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná al menos un contenedor.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+        if (seleccionados == null || seleccionados.isEmpty()) {
+            advertir("Seleccioná al menos un contenedor.");
             return null;
         }
 
-        List<String> contenedoresIds =
-                new ArrayList<>();
+        List<String> contenedoresIds = new ArrayList<>();
 
-        for (String codigo : seleccionados) {
-
-            String id =
-                    contenedoresPorCodigo.get(
-                            codigo
-                    );
+        for (String etiqueta : seleccionados) {
+            String id = contenedoresPorCodigo.get(etiqueta);
 
             if (id != null) {
-
-                contenedoresIds.add(
-                        id
-                );
+                contenedoresIds.add(id);
             }
         }
 
         if (contenedoresIds.isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudieron obtener los IDs de los contenedores.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            advertir("No se pudieron obtener los IDs de los contenedores.");
             return null;
         }
-
-
-        // -----------------------------------------------------
-        // UBICACIONES
-        // -----------------------------------------------------
 
         String ciudadOrigen =
-                view.getTxtCiudadOrigen()
-                        .getText()
-                        .trim();
+                view.getTxtCiudadOrigen().getText().trim();
 
         String paisOrigen =
-                view.getTxtPaisOrigen()
-                        .getText()
-                        .trim();
+                view.getTxtPaisOrigen().getText().trim();
 
         String ciudadDestino =
-                view.getTxtCiudadDestino()
-                        .getText()
-                        .trim();
+                view.getTxtCiudadDestino().getText().trim();
 
         String paisDestino =
-                view.getTxtPaisDestino()
-                        .getText()
-                        .trim();
+                view.getTxtPaisDestino().getText().trim();
 
+        if (ciudadOrigen.isBlank()
+                || paisOrigen.isBlank()
+                || ciudadDestino.isBlank()
+                || paisDestino.isBlank()) {
 
-        // -----------------------------------------------------
-        // PRIORIDAD
-        // -----------------------------------------------------
-
-        Object prioridadSeleccionada =
-                view.getCmbPrioridad()
-                        .getSelectedItem();
-
-        if (prioridadSeleccionada == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná una prioridad.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
+            advertir(
+                    "Completá la ciudad y el país de origen y destino."
             );
-
             return null;
         }
 
-        String prioridad =
-                prioridadSeleccionada.toString();
+        Object prioridadSeleccionada =
+                view.getCmbPrioridad().getSelectedItem();
 
+        if (prioridadSeleccionada == null) {
+            advertir("Seleccioná una prioridad.");
+            return null;
+        }
 
         return new DatosFormulario(
                 clienteId,
@@ -1194,228 +696,134 @@ public class EnviosPanelController {
                 paisOrigen,
                 ciudadDestino,
                 paisDestino,
-                prioridad
+                prioridadSeleccionada.toString()
         );
     }
 
+    // =====================================================
+    // CANCELAR
+    // =====================================================
 
-    // =========================================================
-    // OBTENER LISTA DE OBJECT ID
-    // =========================================================
+    private void cancelar() {
+        envioIdEnEdicion = null;
+        view.limpiarFormulario();
+        view.ocultarFormulario();
+    }
 
-    private List<ObjectId> obtenerListaObjectId(
-            Document documento,
-            String campo
-    ) {
+    // =====================================================
+    // UTILIDADES
+    // =====================================================
 
-        List<ObjectId> resultado =
-                new ArrayList<>();
-
-        Object valor =
-                documento.get(
-                        campo
-                );
-
-        if (!(valor instanceof List<?> lista)) {
-
-            return resultado;
+    private String nombreClientePorId(String id) {
+        if (id == null) {
+            return "";
         }
 
-        for (Object elemento : lista) {
+        for (Map.Entry<String, String> entry
+                : clientesPorNombre.entrySet()) {
 
-            if (elemento instanceof ObjectId) {
+            if (id.equals(entry.getValue())) {
+                return entry.getKey();
+            }
+        }
 
-                resultado.add(
-                        (ObjectId) elemento
-                );
+        return id;
+    }
+
+    private String unirLista(Object valor) {
+        return String.join(", ", listaTextos(valor));
+    }
+
+    private List<String> listaTextos(Object valor) {
+        List<String> resultado = new ArrayList<>();
+
+        if (valor instanceof List<?> lista) {
+            for (Object elemento : lista) {
+                if (elemento != null) {
+                    resultado.add(elemento.toString());
+                }
             }
         }
 
         return resultado;
     }
 
-
-    // =========================================================
-    // OBTENER CLIENTE
-    // =========================================================
-
-    private String obtenerNombreCliente(
-            ObjectId clienteId
-    ) {
-
-        if (clienteId == null) {
-
+    private String formatearFecha(String fecha) {
+        if (fecha == null || fecha.isBlank()) {
             return "";
         }
 
         try {
-
-            Document cliente =
-                    clienteController
-                            .buscarPorId(
-                                    clienteId.toHexString()
-                            );
-
-            if (cliente == null) {
-
-                return clienteId.toHexString();
-            }
-
-            String razonSocial =
-                    cliente.getString(
-                            "razon_social"
-                    );
-
-            return razonSocial != null
-                    ? razonSocial
-                    : clienteId.toHexString();
-
-        } catch (Exception e) {
-
-            return clienteId.toHexString();
+            return LocalDate.parse(fecha.substring(0, 10))
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } catch (Exception ignored) {
+            return fecha;
         }
     }
 
-
-    // =========================================================
-    // OBTENER CÓDIGOS DE CONTENEDORES
-    // =========================================================
-
-    private String obtenerCodigosContenedores(
-            List<ObjectId> ids
-    ) {
-
-        List<String> codigos =
-                new ArrayList<>();
-
-        for (ObjectId id : ids) {
-
-            try {
-
-                Document contenedor =
-                        contenedorController
-                                .buscarPorId(
-                                        id.toHexString()
-                                );
-
-                if (contenedor != null) {
-
-                    String codigo =
-                            contenedor.getString(
-                                    "codigo_internacional"
-                            );
-
-                    if (codigo != null) {
-
-                        codigos.add(
-                                codigo
-                        );
-
-                        continue;
-                    }
-                }
-
-                codigos.add(
-                        id.toHexString()
-                );
-
-            } catch (Exception e) {
-
-                codigos.add(
-                        id.toHexString()
-                );
-            }
-        }
-
-        return String.join(
-                ", ",
-                codigos
-        );
-    }
-
-
-    // =========================================================
-    // UBICACIÓN
-    // =========================================================
-
-    private String obtenerUbicacionTexto(
-            Document ubicacion
-    ) {
-
-        if (ubicacion == null) {
-
-            return "";
-        }
-
-        String ciudad =
-                ubicacion.getString(
-                        "ciudad"
-                );
-
-        String pais =
-                ubicacion.getString(
-                        "pais"
-                );
-
-        if (ciudad == null) {
-
-            ciudad = "";
-        }
-
-        if (pais == null) {
-
-            pais = "";
-        }
+    private String combinarUbicacion(String ciudad, String pais) {
+        ciudad = valorTexto(ciudad);
+        pais = valorTexto(pais);
 
         if (ciudad.isBlank()) {
-
             return pais;
         }
 
         if (pais.isBlank()) {
-
             return ciudad;
         }
 
-        return ciudad
-                + ", "
-                + pais;
+        return ciudad + ", " + pais;
     }
 
-
-    // =========================================================
-    // CANCELAR
-    // =========================================================
-
-    private void cancelar() {
-
-        envioIdEnEdicion =
-                null;
-
-        view.limpiarFormulario();
-
-        view.ocultarFormulario();
+    private String texto(Object valor) {
+        return valor == null ? null : valor.toString();
     }
 
+    private String valorTexto(Object valor) {
+        String resultado = texto(valor);
+        return resultado == null ? "" : resultado;
+    }
 
-    // =========================================================
-    // DATOS DEL FORMULARIO
-    // =========================================================
+    private String generarIdHexadecimal() {
+        byte[] bytes = new byte[12];
+        new SecureRandom().nextBytes(bytes);
+
+        StringBuilder id = new StringBuilder(24);
+
+        for (byte b : bytes) {
+            id.append(String.format("%02x", b & 0xff));
+        }
+
+        return id.toString();
+    }
+
+    private void advertir(String mensaje) {
+        JOptionPane.showMessageDialog(
+                view,
+                mensaje,
+                "Envíos",
+                JOptionPane.WARNING_MESSAGE
+        );
+    }
+
+    private void mostrarError(String mensaje, Exception e) {
+        JOptionPane.showMessageDialog(
+                view,
+                mensaje + "\n\n" + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
 
     private static class DatosFormulario {
-
         private final String clienteId;
-
         private final List<String> contenedoresIds;
-
         private final String ciudadOrigen;
         private final String paisOrigen;
-
         private final String ciudadDestino;
         private final String paisDestino;
-
         private final String prioridad;
-
 
         private DatosFormulario(
                 String clienteId,
@@ -1426,47 +834,13 @@ public class EnviosPanelController {
                 String paisDestino,
                 String prioridad
         ) {
-
-            this.clienteId =
-                    clienteId;
-
-            this.contenedoresIds =
-                    contenedoresIds;
-
-            this.ciudadOrigen =
-                    ciudadOrigen;
-
-            this.paisOrigen =
-                    paisOrigen;
-
-            this.ciudadDestino =
-                    ciudadDestino;
-
-            this.paisDestino =
-                    paisDestino;
-
-            this.prioridad =
-                    prioridad;
+            this.clienteId = clienteId;
+            this.contenedoresIds = contenedoresIds;
+            this.ciudadOrigen = ciudadOrigen;
+            this.paisOrigen = paisOrigen;
+            this.ciudadDestino = ciudadDestino;
+            this.paisDestino = paisDestino;
+            this.prioridad = prioridad;
         }
-    }
-
-
-    // =========================================================
-    // ERROR
-    // =========================================================
-
-    private void mostrarError(
-            String mensaje,
-            Exception e
-    ) {
-
-        JOptionPane.showMessageDialog(
-                view,
-                mensaje
-                        + "\n\n"
-                        + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE
-        );
     }
 }

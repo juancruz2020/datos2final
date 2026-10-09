@@ -5,26 +5,35 @@ import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
 
 import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
+
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
+
 import org.jxmapviewer.cache.FileBasedLocalCache;
+
 import org.jxmapviewer.painter.CompoundPainter;
 import org.jxmapviewer.painter.Painter;
+
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
 import javax.swing.*;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+
 import java.awt.geom.Point2D;
+
 import java.io.File;
+
 import java.time.Instant;
 import java.time.LocalDate;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -33,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 public class SeguimientoGPSPanelController {
 
@@ -82,6 +92,7 @@ public class SeguimientoGPSPanelController {
                         "https://tile.openstreetmap.org"
                 );
 
+
         DefaultTileFactory tileFactory =
                 new DefaultTileFactory(info);
 
@@ -97,12 +108,14 @@ public class SeguimientoGPSPanelController {
                                 + ".jxmapviewer2"
                 );
 
+
         tileFactory.setLocalCache(
                 new FileBasedLocalCache(
                         cacheDir,
                         false
                 )
         );
+
 
         mapa.setTileFactory(
                 tileFactory
@@ -130,9 +143,11 @@ public class SeguimientoGPSPanelController {
         PanMouseInputListener pan =
                 new PanMouseInputListener(mapa);
 
+
         mapa.addMouseListener(
                 pan
         );
+
 
         mapa.addMouseMotionListener(
                 pan
@@ -155,7 +170,19 @@ public class SeguimientoGPSPanelController {
 
     private void configurarEventos() {
 
+        /*
+         * Botón actualizar.
+         */
         view.getBtnActualizar()
+                .addActionListener(
+                        e -> cargarPosiciones()
+                );
+
+
+        /*
+         * Cambio de sensor en el ComboBox.
+         */
+        view.getComboSensores()
                 .addActionListener(
                         e -> cargarPosiciones()
                 );
@@ -177,12 +204,62 @@ public class SeguimientoGPSPanelController {
 
 
             // =================================================
-            // CONSULTAR CASSANDRA
+            // SENSOR SELECCIONADO
             // =================================================
 
-            List<Row> posiciones =
-                    monitoreoController
-                            .obtenerTodasLasPosicionesGPS();
+            String sensorSeleccionado =
+                    (String)
+                            view.getComboSensores()
+                                    .getSelectedItem();
+
+
+            List<Row> posiciones;
+
+
+            // =================================================
+            // TODOS LOS SENSORES
+            // =================================================
+
+            if (
+                    sensorSeleccionado == null
+                            || sensorSeleccionado.equals(
+                            "Todos los sensores"
+                    )
+            ) {
+
+                posiciones =
+                        monitoreoController
+                                .obtenerTodasLasPosicionesGPS();
+            }
+
+
+            // =================================================
+            // UN SENSOR
+            // =================================================
+
+            else {
+
+                posiciones =
+                        monitoreoController
+                                .obtenerTodasLasPosicionesGPS();
+
+                posiciones =
+                        posiciones.stream()
+                                .filter(row ->
+                                        sensorSeleccionado.equals(
+                                                row.getString("sensor_id")
+                                        )
+                                )
+                                .toList();
+            }
+
+            // =================================================
+            // ACTUALIZAR COMBO
+            // =================================================
+
+            actualizarComboSensores(
+                    posiciones
+            );
 
 
             // =================================================
@@ -205,13 +282,32 @@ public class SeguimientoGPSPanelController {
                     );
 
 
-            view.getLblEstado()
-                    .setText(
-                            "Posiciones cargadas correctamente."
-                    );
+            if (
+                    sensorSeleccionado == null
+                            || sensorSeleccionado.equals(
+                            "Todos los sensores"
+                    )
+            ) {
+
+                view.getLblEstado()
+                        .setText(
+                                "Mostrando todos los sensores."
+                        );
+
+            } else {
+
+                view.getLblEstado()
+                        .setText(
+                                "Mostrando sensor: "
+                                        + sensorSeleccionado
+                        );
+            }
 
 
         } catch (Exception e) {
+
+            e.printStackTrace();
+
 
             view.getLblEstado()
                     .setText(
@@ -227,6 +323,136 @@ public class SeguimientoGPSPanelController {
                     JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+
+    // =========================================================
+    // ACTUALIZAR COMBO DE SENSORES
+    // =========================================================
+
+    private void actualizarComboSensores(
+            List<Row> posiciones
+    ) {
+
+        /*
+         * Guardamos el sensor que estaba seleccionado.
+         */
+        String seleccionado =
+                (String)
+                        view.getComboSensores()
+                                .getSelectedItem();
+
+
+        /*
+         * Obtener IDs únicos.
+         */
+        Set<String> sensores =
+                new HashSet<>();
+
+
+        for (Row row : posiciones) {
+
+            try {
+
+                String sensorId =
+                        row.getString(
+                                "sensor_id"
+                        );
+
+
+                if (
+                        sensorId != null
+                                && !sensorId.isBlank()
+                ) {
+
+                    sensores.add(
+                            sensorId
+                    );
+                }
+
+            } catch (Exception e) {
+
+                System.err.println(
+                        "No se pudo obtener sensor_id: "
+                                + e.getMessage()
+                );
+            }
+        }
+
+
+        /*
+         * Evitamos que el ActionListener
+         * dispare nuevamente mientras
+         * modificamos el combo.
+         */
+        view.getComboSensores()
+                .removeActionListener(
+                        view.getComboSensores()
+                                .getActionListeners()[0]
+                );
+
+
+        /*
+         * Limpiar combo.
+         */
+        view.getComboSensores()
+                .removeAllItems();
+
+
+        /*
+         * Primera opción.
+         */
+        view.getComboSensores()
+                .addItem(
+                        "Todos los sensores"
+                );
+
+
+        /*
+         * Agregar sensores.
+         */
+        sensores.stream()
+                .sorted()
+                .forEach(
+                        sensorId ->
+                                view.getComboSensores()
+                                        .addItem(
+                                                sensorId
+                                        )
+                );
+
+
+        /*
+         * Intentar mantener la selección.
+         */
+        if (
+                seleccionado != null
+                        && sensores.contains(
+                        seleccionado
+                )
+        ) {
+
+            view.getComboSensores()
+                    .setSelectedItem(
+                            seleccionado
+                    );
+
+        } else {
+
+            view.getComboSensores()
+                    .setSelectedItem(
+                            "Todos los sensores"
+                    );
+        }
+
+
+        /*
+         * Volver a registrar el evento.
+         */
+        view.getComboSensores()
+                .addActionListener(
+                        e -> cargarPosiciones()
+                );
     }
 
 
@@ -276,6 +502,7 @@ public class SeguimientoGPSPanelController {
                                 "sensor_id"
                         );
 
+
                 if (sensorId == null) {
                     continue;
                 }
@@ -305,15 +532,18 @@ public class SeguimientoGPSPanelController {
                 // VALIDAR COORDENADAS
                 // =============================================
 
-                if (latitud < -90 ||
-                        latitud > 90) {
-
+                if (
+                        latitud < -90
+                                || latitud > 90
+                ) {
                     continue;
                 }
 
-                if (longitud < -180 ||
-                        longitud > 180) {
 
+                if (
+                        longitud < -180
+                                || longitud > 180
+                ) {
                     continue;
                 }
 
@@ -330,7 +560,6 @@ public class SeguimientoGPSPanelController {
 
                 // =============================================
                 // FECHA Y HORA
-                //
                 // Cassandra timestamp -> Instant
                 // =============================================
 
@@ -395,16 +624,65 @@ public class SeguimientoGPSPanelController {
         List<Color> colores =
                 Arrays.asList(
 
-                        new Color(220, 38, 38),    // Rojo
-                        new Color(37, 99, 235),    // Azul
-                        new Color(22, 163, 74),    // Verde
-                        new Color(147, 51, 234),   // Violeta
-                        new Color(234, 88, 12),    // Naranja
-                        new Color(8, 145, 178),    // Celeste
-                        new Color(219, 39, 119),   // Rosa
-                        new Color(101, 163, 13),   // Verde lima
-                        new Color(124, 58, 237),   // Violeta oscuro
-                        new Color(202, 138, 4)     // Amarillo
+                        new Color(
+                                220,
+                                38,
+                                38
+                        ),
+
+                        new Color(
+                                37,
+                                99,
+                                235
+                        ),
+
+                        new Color(
+                                22,
+                                163,
+                                74
+                        ),
+
+                        new Color(
+                                147,
+                                51,
+                                234
+                        ),
+
+                        new Color(
+                                234,
+                                88,
+                                12
+                        ),
+
+                        new Color(
+                                8,
+                                145,
+                                178
+                        ),
+
+                        new Color(
+                                219,
+                                39,
+                                119
+                        ),
+
+                        new Color(
+                                101,
+                                163,
+                                13
+                        ),
+
+                        new Color(
+                                124,
+                                58,
+                                237
+                        ),
+
+                        new Color(
+                                202,
+                                138,
+                                4
+                        )
                 );
 
 
@@ -431,6 +709,7 @@ public class SeguimientoGPSPanelController {
             String sensorId =
                     entry.getKey();
 
+
             List<PosicionGPS> ruta =
                     entry.getValue();
 
@@ -456,6 +735,7 @@ public class SeguimientoGPSPanelController {
                                     % colores.size()
                     );
 
+
             indiceColor++;
 
 
@@ -469,7 +749,10 @@ public class SeguimientoGPSPanelController {
                         new ArrayList<>();
 
 
-                for (PosicionGPS posicion : ruta) {
+                for (
+                        PosicionGPS posicion
+                        : ruta
+                ) {
 
                     puntosRuta.add(
                             new GeoPosition(
@@ -494,7 +777,8 @@ public class SeguimientoGPSPanelController {
         // PAINTER DE LOS PUNTOS
         // =====================================================
 
-        WaypointPainter<Waypoint> waypointPainter =
+        WaypointPainter<Waypoint>
+                waypointPainter =
                 new WaypointPainter<>();
 
 
@@ -512,7 +796,8 @@ public class SeguimientoGPSPanelController {
         // COMBINAR RUTAS + PUNTOS
         // =====================================================
 
-        CompoundPainter<JXMapViewer> compoundPainter =
+        CompoundPainter<JXMapViewer>
+                compoundPainter =
                 new CompoundPainter<>(
                         painters
                 );
