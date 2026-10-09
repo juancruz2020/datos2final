@@ -59,6 +59,13 @@ public class LogisticaNeo4jService {
     }
 
     public void crearEnvio(Envio envio) {
+        if (envio == null || envio.getId() == null || envio.getId().isBlank()
+                || envio.getOrigen() == null || envio.getDestino() == null) {
+            throw new IllegalArgumentException(
+                    "El envío, su ID, origen y destino son obligatorios."
+            );
+        }
+
         envioDAO.crearEnvio(
                 envio.getId(),
                 envio.getClienteId(),
@@ -289,8 +296,11 @@ public class LogisticaNeo4jService {
         // Eliminar las relaciones anteriores.
         envioDAO.eliminarRelacionesContenedores(envio.getId());
         envioDAO.eliminarRelacionCliente(envio.getId());
+        envioDAO.eliminarRelacionesVehiculo(envio.getId());
+        envioDAO.eliminarRelacionesUbicacion(envio.getId());
 
         // Actualizar el envío y reconstruir sus relaciones.
         crearEnvio(envio);
+        envioDAO.eliminarNodosHuerfanos();
     }
 }

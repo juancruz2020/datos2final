@@ -262,8 +262,12 @@ public class EnviosPanelController {
                     );
                 }
 
-                String contenedores =
-                        unirLista(envio.get("contenedores"));
+                String contenedores = etiquetasContenedores(envio);
+
+                String vehiculo = etiquetaVehiculo(
+                        texto(envio.get("vehiculoId")),
+                        texto(envio.get("vehiculo"))
+                );
 
                 String fecha =
                         formatearFecha(texto(envio.get("fechaCreacion")));
@@ -281,6 +285,7 @@ public class EnviosPanelController {
                 modelo.addRow(new Object[]{
                         cliente,
                         contenedores,
+                        vehiculo,
                         fecha,
                         origen,
                         destino,
@@ -732,6 +737,39 @@ public class EnviosPanelController {
 
     private String unirLista(Object valor) {
         return String.join(", ", listaTextos(valor));
+    }
+
+    private String etiquetasContenedores(Map<String, Object> envio) {
+        List<String> etiquetas = listaTextos(envio.get("contenedores"));
+        if (!etiquetas.isEmpty()) {
+            return unirLista(etiquetas);
+        }
+
+        List<String> ids = listaTextos(envio.get("contenedoresIds"));
+        List<String> resultado = new ArrayList<>();
+        for (String id : ids) {
+            resultado.add(etiquetaPorId(contenedoresPorCodigo, id));
+        }
+        return String.join(", ", resultado);
+    }
+
+    private String etiquetaVehiculo(String id, String etiquetaNeo4j) {
+        if (etiquetaNeo4j != null && !etiquetaNeo4j.isBlank()) {
+            return etiquetaNeo4j;
+        }
+        if (id == null || id.isBlank()) {
+            return "";
+        }
+        return etiquetaPorId(vehiculosPorEtiqueta, id);
+    }
+
+    private String etiquetaPorId(Map<String, String> etiquetasPorNombre, String id) {
+        for (Map.Entry<String, String> entry : etiquetasPorNombre.entrySet()) {
+            if (id.equals(entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return id;
     }
 
     private List<String> listaTextos(Object valor) {

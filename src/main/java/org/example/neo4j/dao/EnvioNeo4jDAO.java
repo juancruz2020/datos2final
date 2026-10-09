@@ -237,6 +237,30 @@ public class EnvioNeo4jDAO {
         }
     }
 
+    /** Elimina la relación del envío con cualquier vehículo asignado. */
+    public void eliminarRelacionesVehiculo(String envioId) {
+        String cypher = """
+                MATCH (e:Envio {id: $id})-[r:UTILIZA]->(:Vehiculo)
+                DELETE r
+                """;
+
+        try (Session session = driver.session()) {
+            session.run(cypher, Map.of("id", envioId));
+        }
+    }
+
+    /** Elimina las relaciones de origen y destino para evitar ubicaciones obsoletas. */
+    public void eliminarRelacionesUbicacion(String envioId) {
+        String cypher = """
+                MATCH (e:Envio {id: $id})-[r:SALE_DE|LLEGA_A]->(:Ubicacion)
+                DELETE r
+                """;
+
+        try (Session session = driver.session()) {
+            session.run(cypher, Map.of("id", envioId));
+        }
+    }
+
     // =====================================================
     // ELIMINAR ENVÍO
     // =====================================================
@@ -250,6 +274,25 @@ public class EnvioNeo4jDAO {
 
         try (Session session = driver.session()) {
             session.run(cypher, Map.of("id", id));
+        }
+
+        eliminarNodosHuerfanos();
+    }
+
+    /**
+     * Elimina únicamente nodos logísticos aislados. Los nodos que todavía
+     * tengan cualquier relación con el grafo se conservan.
+     */
+    public void eliminarNodosHuerfanos() {
+        String cypher = """
+                MATCH (n)
+                WHERE (n:Vehiculo OR n:Contenedor OR n:Ubicacion)
+                  AND NOT (n)--()
+                DELETE n
+                """;
+
+        try (Session session = driver.session()) {
+            session.run(cypher);
         }
     }
 
