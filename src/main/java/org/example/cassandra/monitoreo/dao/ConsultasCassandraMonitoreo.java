@@ -350,12 +350,7 @@ public class ConsultasCassandraMonitoreo {
     public List<Row> obtenerTodasLasPosicionesGPS() {
 
         String cql = """
-        SELECT sensor_id,
-               contenedor_id,
-               fecha_dia,
-               fecha_hora,
-               latitud,
-               longitud
+        SELECT *
         FROM logistica.lecturas_sensor
         """;
 

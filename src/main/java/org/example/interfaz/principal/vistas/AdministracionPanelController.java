@@ -28,6 +28,7 @@ public class AdministracionPanelController {
     private final SesionController sesionController;
 
     private Timer timer;
+    private final Map<String, String> mailsPorUsuario = new java.util.HashMap<>();
 
 
     // =========================================================
@@ -62,6 +63,13 @@ public class AdministracionPanelController {
 
         actualizarFormularioCliente();
 
+        view.getTablaSesiones().getColumnModel().getColumn(0)
+                .setCellRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+                    @Override
+                    protected void setValue(Object value) {
+                        super.setValue(mailDeUsuario(String.valueOf(value)));
+                    }
+                });
         cargarSesiones();
 
         iniciarActualizacionAutomatica();
@@ -565,7 +573,30 @@ public class AdministracionPanelController {
     // CARGAR SESIONES
     // =========================================================
 
+    private String mailDeUsuario(String id) {
+        return mailsPorUsuario.getOrDefault(id, "Mail no disponible");
+    }
+
+    private void actualizarMailsDeUsuarios() {
+        try {
+            Map<String, String> mails = new java.util.HashMap<>();
+            for (Document usuario : usuarioController.listarUsuarios()) {
+                ObjectId id = usuario.getObjectId("_id");
+                String email = usuario.getString("email");
+                if (id != null && email != null && !email.isBlank()) {
+                    mails.put(id.toHexString(), email);
+                }
+            }
+            mailsPorUsuario.clear();
+            mailsPorUsuario.putAll(mails);
+        } catch (Exception e) {
+            // La información visual no debe impedir administrar las sesiones.
+            System.err.println("No se pudieron cargar los mails de las sesiones: " + e.getMessage());
+        }
+    }
+
     private void cargarSesiones() {
+        actualizarMailsDeUsuarios();
 
         try {
 
@@ -1036,7 +1067,7 @@ public class AdministracionPanelController {
                 JOptionPane.showConfirmDialog(
                         view,
                         "¿Querés cerrar la sesión de \""
-                                + usuario
+                                + mailDeUsuario(usuario)
                                 + "\"?",
                         "Cerrar sesión",
                         JOptionPane.YES_NO_OPTION,

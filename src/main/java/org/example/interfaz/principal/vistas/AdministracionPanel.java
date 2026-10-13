@@ -356,7 +356,7 @@ public class AdministracionPanel extends JPanel {
                 new DefaultTableModel(
                         new Object[][]{},
                         new String[]{
-                                "Usuario",
+                                "Mail",
                                 "Tiempo restante"
                         }
                 ) {

@@ -10,9 +10,10 @@ import org.example.mongoDB.model.Contenedor;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.unset;
 
 public class ContenedorMongoDAO {
 
@@ -26,6 +27,33 @@ public class ContenedorMongoDAO {
         this.coleccion = database.getCollection("contenedores");
     }
 
+
+    /** Reserva mediante comparación atómica para evitar asignaciones simultáneas. */
+    public Document reservarParaEnvio(String id, String envioId, boolean propio) {
+        var disponible = or(eq("estado", "DISPONIBLE"), eq("estado", "ACTIVO"));
+        var permitido = propio
+                ? or(disponible, eq("envio_asignado", envioId),
+                    and(eq("estado", "EN_USO"), exists("envio_asignado", false)))
+                : disponible;
+        return coleccion.findOneAndUpdate(
+                and(eq("_id", new ObjectId(id)), permitido),
+                combine(set("estado", "EN_USO"), set("envio_asignado", envioId)));
+    }
+
+    public void restaurarReserva(Document anterior, String envioId) {
+        var propietario = anterior.containsKey("envio_asignado")
+                ? set("envio_asignado", anterior.get("envio_asignado"))
+                : unset("envio_asignado");
+        coleccion.updateOne(and(eq("_id", anterior.getObjectId("_id")),
+                        eq("envio_asignado", envioId)),
+                combine(set("estado", anterior.get("estado")), propietario));
+    }
+
+    public void liberarDeEnvio(String id, String envioId) {
+        coleccion.updateOne(and(eq("_id", new ObjectId(id)),
+                        or(eq("envio_asignado", envioId), exists("envio_asignado", false))),
+                combine(set("estado", "DISPONIBLE"), unset("envio_asignado")));
+    }
 
     // =========================
     // AGREGAR CONTENEDOR

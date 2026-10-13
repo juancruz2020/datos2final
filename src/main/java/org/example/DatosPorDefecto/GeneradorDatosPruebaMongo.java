@@ -410,7 +410,7 @@ public class GeneradorDatosPruebaMongo {
 
         Contenedor contenedor1 =
 
-                new Contenedor(null, "CONT-001", "SECO", 30000, "DISPONIBLE");
+                new Contenedor(null, "CONT-001", "SECO", 30000, "EN_USO");
 
         Contenedor contenedor2 =
 
@@ -422,11 +422,11 @@ public class GeneradorDatosPruebaMongo {
 
         Contenedor contenedor4 =
 
-                new Contenedor(null, "CONT-004", "TANQUE", 28000, "EN_USO");
+                new Contenedor(null, "CONT-004", "TANQUE", 28000, "DISPONIBLE");
 
         Contenedor contenedor5 =
 
-                new Contenedor(null, "CONT-005", "REFRIGERADO", 26000, "DISPONIBLE");
+                new Contenedor(null, "CONT-005", "REFRIGERADO", 26000, "EN_USO");
 
         contenedorDAO.agregar(contenedor1);
 
@@ -437,6 +437,11 @@ public class GeneradorDatosPruebaMongo {
         contenedorDAO.agregar(contenedor4);
 
         contenedorDAO.agregar(contenedor5);
+
+        // Un contenedor diferente por cada envío de prueba (ENV-001 a ENV-008).
+        contenedorDAO.agregar(new Contenedor(null, "CONT-006", "SECO", 30000, "DISPONIBLE"));
+        contenedorDAO.agregar(new Contenedor(null, "CONT-007", "SECO", 30000, "DISPONIBLE"));
+        contenedorDAO.agregar(new Contenedor(null, "CONT-008", "REFRIGERADO", 26000, "EN_USO"));
 
         // =====================================================
 

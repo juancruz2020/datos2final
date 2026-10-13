@@ -35,8 +35,8 @@ public class DatosPruebaTotal {
 
             generador.generarDatos();
 
-            // Los envíos Neo4j usan los IDs definidos por
-            // GeneradorDatosPruebaNeo (ENV-001 a ENV-008).
+            // Los envíos conservan ENV-001 a ENV-008 y sus referencias
+            // se vinculan a los IDs reales de MongoDB.
             GeneradorDatosPruebaNeo.generar();
 
             // =====================================================
@@ -118,6 +118,10 @@ public class DatosPruebaTotal {
             System.out.println(
                     "Datos de prueba cargados correctamente."
             );
+        } else {
+            // También reparar los datos de prueba cargados con versiones anteriores.
+            GeneradorDatosPruebaNeo.sincronizarReferenciasMongo();
         }
+        new org.example.neo4j.dao.EnvioNeo4jDAO().normalizarEnviosExistentes();
     }
 }

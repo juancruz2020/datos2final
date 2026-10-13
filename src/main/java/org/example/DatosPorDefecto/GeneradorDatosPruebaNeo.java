@@ -5,6 +5,11 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 
 import java.util.Map;
+import java.util.List;
+import org.bson.Document;
+import org.example.mongoDB.controller.ClienteController;
+import org.example.mongoDB.controller.ContenedorController;
+import org.example.mongoDB.controller.VehiculoController;
 
 public class GeneradorDatosPruebaNeo {
 
@@ -34,9 +39,81 @@ public class GeneradorDatosPruebaNeo {
             crearEnvios(session);
 
             crearRelaciones(session);
+            sincronizarReferenciasMongo();
 
             System.out.println();
             System.out.println("Datos de prueba generados correctamente.");
+        }
+    }
+
+    /** Repara únicamente las referencias antiguas de los datos de prueba.
+     * Conserva los nodos y sus relaciones, usando los IDs reales de MongoDB.
+     */
+    public static void sincronizarReferenciasMongo() {
+        try (Session session = Neo4jSingleton.getInstance().session()) {
+            // No consultar MongoDB si no quedan referencias de prueba antiguas.
+            if (!session.run("""
+                    MATCH (n)
+                    WHERE (n:Cliente AND n.id IN ['CLI-001', 'CLI-002', 'CLI-003'])
+                       OR (n:Contenedor AND n.id IN ['CONT-001', 'CONT-002', 'CONT-003', 'CONT-004', 'CONT-005', 'CONT-006', 'CONT-007', 'CONT-008'])
+                       OR (n:Vehiculo AND n.id IN ['VEH-001', 'VEH-002', 'VEH-003'])
+                    RETURN n LIMIT 1
+                    """).hasNext()) {
+                return;
+            }
+            sincronizarReferencias(session, "Cliente",
+                    new ClienteController().listarClientes(), "cuit",
+                    List.of("30-71111111-1", "30-72222222-2", "30-73333333-3"), "CLI-",
+                    "SET n.razonSocial = $nombre, n.cuit = $clave", "razon_social");
+            sincronizarReferencias(session, "Contenedor",
+                    new ContenedorController().listarContenedores(), "codigo_internacional",
+                    List.of("CONT-001", "CONT-002", "CONT-003", "CONT-004",
+                            "CONT-005", "CONT-006", "CONT-007", "CONT-008"), "CONT-",
+                    "SET n.codigo = $clave", "codigo_internacional");
+            sincronizarReferencias(session, "Vehiculo",
+                    new VehiculoController().listarVehiculos(), "identificacion",
+                    List.of("AA123BB", "AB456CD", "AC789EF"), "VEH-",
+                    "SET n.identificacion = $clave, n.patente = $clave, n.tipo = $nombre", "tipo");
+        }
+    }
+
+    private static void sincronizarReferencias(
+            Session session, String etiqueta, List<Document> documentos,
+            String campoClave, List<String> claves, String prefijo,
+            String actualizarPropiedades, String campoNombre) {
+        for (int i = 0; i < claves.size(); i++) {
+            String clave = claves.get(i);
+            String idAnterior = prefijo + String.format("%03d", i + 1);
+            if (!session.run("MATCH (n:" + etiqueta + " {id: $id}) RETURN n LIMIT 1",
+                    Map.of("id", idAnterior)).hasNext()) {
+                continue;
+            }
+            List<Document> coincidencias = documentos.stream()
+                    .filter(d -> clave.equals(d.getString(campoClave)))
+                    .toList();
+            // Evitar asociar un envío a un registro ambiguo o inexistente.
+            if (coincidencias.size() != 1) {
+                throw new IllegalStateException("No se puede vincular el dato de prueba "
+                        + prefijo + String.format("%03d", i + 1)
+                        + ": se esperaba un único registro MongoDB para " + clave);
+            }
+            Document documento = coincidencias.get(0);
+            String idMongo = documento.getObjectId("_id").toHexString();
+            session.executeWrite(tx -> {
+                tx.run("MATCH (n:" + etiqueta + " {id: $anterior}) "
+                                + "SET n.id = $id " + actualizarPropiedades,
+                        Map.of("anterior", idAnterior, "id", idMongo,
+                                "clave", clave, "nombre", documento.getString(campoNombre))).consume();
+                if ("Cliente".equals(etiqueta)) {
+                    tx.run("""
+                            MATCH (e:Envio {clienteId: $anterior})
+                            MATCH (c:Cliente {id: $id})
+                            MERGE (c)-[:REALIZA]->(e)
+                            REMOVE e.clienteId
+                            """, Map.of("anterior", idAnterior, "id", idMongo)).consume();
+                }
+                return null;
+            });
         }
     }
 
@@ -80,11 +157,11 @@ public class GeneradorDatosPruebaNeo {
         crearEnvio(session, "ENV-001", "CLI-001", "CONT-001", "VEH-001", "2026-09-01T08:00:00Z", "Buenos Aires", "Argentina", "Montevideo", "Uruguay", "EN_TRANSITO", "ALTA");
         crearEnvio(session, "ENV-002", "CLI-002", "CONT-002", "VEH-002", "2026-09-02T08:00:00Z", "Buenos Aires", "Argentina", "Santiago", "Chile", "DEMORADO", "ALTA");
         crearEnvio(session, "ENV-003", "CLI-003", "CONT-003", "VEH-003", "2026-09-03T08:00:00Z", "Sao Paulo", "Brasil", "Buenos Aires", "Argentina", "ENTREGADO", "MEDIA");
-        crearEnvio(session, "ENV-004", "CLI-001", "CONT-002", "VEH-001", "2026-09-04T08:00:00Z", "Montevideo", "Uruguay", "Sao Paulo", "Brasil", "PENDIENTE", "BAJA");
-        crearEnvio(session, "ENV-005", "CLI-002", "CONT-003", "VEH-002", "2026-09-05T08:00:00Z", "Santiago", "Chile", "Buenos Aires", "Argentina", "EN_TRANSITO", "MEDIA");
-        crearEnvio(session, "ENV-006", "CLI-003", "CONT-001", "VEH-003", "2026-09-06T08:00:00Z", "Buenos Aires", "Argentina", "Sao Paulo", "Brasil", "PENDIENTE", "ALTA");
-        crearEnvio(session, "ENV-007", "CLI-001", "CONT-003", "VEH-001", "2026-09-07T08:00:00Z", "Sao Paulo", "Brasil", "Montevideo", "Uruguay", "CANCELADO", "BAJA");
-        crearEnvio(session, "ENV-008", "CLI-002", "CONT-002", "VEH-002", "2026-09-08T08:00:00Z", "Montevideo", "Uruguay", "Santiago", "Chile", "EN_TRANSITO", "ALTA");
+        crearEnvio(session, "ENV-004", "CLI-001", "CONT-004", "VEH-001", "2026-09-04T08:00:00Z", "Montevideo", "Uruguay", "Sao Paulo", "Brasil", "PENDIENTE", "BAJA");
+        crearEnvio(session, "ENV-005", "CLI-002", "CONT-005", "VEH-002", "2026-09-05T08:00:00Z", "Santiago", "Chile", "Buenos Aires", "Argentina", "EN_TRANSITO", "MEDIA");
+        crearEnvio(session, "ENV-006", "CLI-003", "CONT-006", "VEH-003", "2026-09-06T08:00:00Z", "Buenos Aires", "Argentina", "Sao Paulo", "Brasil", "PENDIENTE", "ALTA");
+        crearEnvio(session, "ENV-007", "CLI-001", "CONT-007", "VEH-001", "2026-09-07T08:00:00Z", "Sao Paulo", "Brasil", "Montevideo", "Uruguay", "CANCELADO", "BAJA");
+        crearEnvio(session, "ENV-008", "CLI-002", "CONT-008", "VEH-002", "2026-09-08T08:00:00Z", "Montevideo", "Uruguay", "Santiago", "Chile", "EN_TRANSITO", "ALTA");
     }
 
     private static void crearEnvio(
@@ -103,14 +180,11 @@ public class GeneradorDatosPruebaNeo {
     ) {
         session.run("""
                 MERGE (e:Envio {id: $envioId})
-                SET e.clienteId = $clienteId,
-                    e.fechaCreacion = $fechaCreacion,
-                    e.ciudadOrigen = $ciudadOrigen,
-                    e.paisOrigen = $paisOrigen,
-                    e.ciudadDestino = $ciudadDestino,
-                    e.paisDestino = $paisDestino,
+                SET e.fechaCreacion = $fechaCreacion,
                     e.estado = $estado,
                     e.prioridad = $prioridad
+                REMOVE e.clienteId, e.ciudadOrigen, e.paisOrigen,
+                       e.ciudadDestino, e.paisDestino
                 WITH e
                 MATCH (c:Cliente {id: $clienteId})
                 MERGE (c)-[:REALIZA]->(e)
@@ -250,6 +324,11 @@ public class GeneradorDatosPruebaNeo {
                 tipo: 'Open Top'
             })
         """);
+        for (int i = 4; i <= 8; i++) {
+            String codigo = "CONT-" + String.format("%03d", i);
+            session.run("MERGE (c:Contenedor {id: $id}) SET c.codigo = $id, c.tipo = 'Seco'",
+                    Map.of("id", codigo));
+        }
     }
 
     // =====================================================

@@ -129,6 +129,17 @@ public class EnviosPanelController {
 
     private void cargarContenedores() {
         try {
+            Map<String, Object> envio = envioIdEnEdicion == null
+                    ? null : neo4j.buscarEnvioPorId(envioIdEnEdicion);
+            cargarContenedores(envio == null
+                    ? List.of() : listaTextos(envio.get("contenedoresIds")));
+        } catch (Exception e) {
+            mostrarError("No se pudieron cargar los contenedores del envío.", e);
+        }
+    }
+
+    private void cargarContenedores(List<String> asignadosAlEnvio) {
+        try {
             List<Document> contenedores =
                     contenedorController.listarContenedores();
 
@@ -146,6 +157,14 @@ public class EnviosPanelController {
                 }
 
                 String id = objectId.toHexString();
+                String estado = texto(contenedor.get("estado"));
+                String propietario = texto(contenedor.get("envio_asignado"));
+                boolean propioEnUso = asignadosAlEnvio.contains(id)
+                        && "EN_USO".equals(estado)
+                        && (propietario == null || propietario.equals(envioIdEnEdicion));
+                if (!"DISPONIBLE".equals(estado) && !propioEnUso) {
+                    continue;
+                }
                 String etiqueta = codigo;
 
                 if (contenedoresPorCodigo.containsKey(etiqueta)) {
@@ -354,7 +373,7 @@ public class EnviosPanelController {
             envioIdEnEdicion = id;
 
             cargarClientes();
-            cargarContenedores();
+            cargarContenedores(listaTextos(envio.get("contenedoresIds")));
             cargarVehiculos();
 
             seleccionarCliente(texto(envio.get("clienteId")));

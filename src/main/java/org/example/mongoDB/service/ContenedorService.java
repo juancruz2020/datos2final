@@ -87,7 +87,7 @@ public class ContenedorService {
                         codigoInternacional.trim(),
                         tipo.trim(),
                         capacidad,
-                        "ACTIVO"
+                        "DISPONIBLE"
                 );
 
 

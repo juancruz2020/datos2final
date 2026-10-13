@@ -19,6 +19,107 @@ public class EnvioNeo4jDAO {
         this.driver = Neo4jSingleton.getInstance();
     }
 
+    /** Guarda el envío y sus relaciones en una única transacción Neo4j. */
+    public void guardarCompleto(org.example.neo4j.model.Envio envio) {
+        Map<String, Object> parametros = new LinkedHashMap<>();
+        parametros.put("id", envio.getId());
+        parametros.put("cliente", envio.getClienteId());
+        parametros.put("fecha", envio.getFechaCreacion());
+        parametros.put("estado", envio.getEstado());
+        parametros.put("prioridad", envio.getPrioridad());
+        parametros.put("contenedores", envio.getContenedoresIds());
+        parametros.put("ciudadOrigen", envio.getOrigen().getCiudad());
+        parametros.put("paisOrigen", envio.getOrigen().getPais());
+        parametros.put("ciudadDestino", envio.getDestino().getCiudad());
+        parametros.put("paisDestino", envio.getDestino().getPais());
+        parametros.put("claveOrigen", envio.getOrigen().getCiudad().trim().toLowerCase()
+                + "|" + envio.getOrigen().getPais().trim().toLowerCase());
+        parametros.put("claveDestino", envio.getDestino().getCiudad().trim().toLowerCase()
+                + "|" + envio.getDestino().getPais().trim().toLowerCase());
+        try (Session session = driver.session()) {
+            session.executeWrite(tx -> {
+                tx.run("""
+                        MERGE (e:Envio {id: $id})
+                        SET e.fechaCreacion = $fecha, e.estado = $estado, e.prioridad = $prioridad
+                        REMOVE e.clienteId, e.ciudadOrigen, e.paisOrigen,
+                               e.ciudadDestino, e.paisDestino
+                        WITH e
+                        OPTIONAL MATCH (e)-[r:TRANSPORTA|SALE_DE|LLEGA_A]-()
+                        DELETE r
+                        """, parametros).consume();
+                tx.run("MATCH (:Cliente)-[r:REALIZA]->(:Envio {id: $id}) DELETE r", parametros).consume();
+                tx.run("""
+                        MATCH (e:Envio {id: $id})
+                        MERGE (c:Cliente {id: $cliente}) MERGE (c)-[:REALIZA]->(e)
+                        MERGE (o:Ubicacion {clave: $claveOrigen})
+                        SET o.ciudad = $ciudadOrigen, o.pais = $paisOrigen
+                        MERGE (e)-[:SALE_DE]->(o)
+                        MERGE (d:Ubicacion {clave: $claveDestino})
+                        SET d.ciudad = $ciudadDestino, d.pais = $paisDestino
+                        MERGE (e)-[:LLEGA_A]->(d)
+                        WITH e UNWIND $contenedores AS idContenedor
+                        MERGE (co:Contenedor {id: idContenedor})
+                        MERGE (e)-[:TRANSPORTA]->(co)
+                        """, parametros).consume();
+                return null;
+            });
+        }
+    }
+
+    public boolean contenedorOcupadoPorOtro(String contenedorId, String envioId) {
+        try (Session session = driver.session()) {
+            return session.run("""
+                    MATCH (e:Envio)-[:TRANSPORTA]->(:Contenedor {id: $contenedor})
+                    WHERE e.id <> $envio AND e.estado IN ['EN_TRANSITO', 'DEMORADO']
+                    RETURN e.id LIMIT 1
+                    """, Map.of("contenedor", contenedorId, "envio", envioId)).hasNext();
+        }
+    }
+
+    /** Migra los atributos antiguos antes de eliminarlos, conservando sus relaciones. */
+    public void normalizarEnviosExistentes() {
+        try (Session session = driver.session()) {
+            session.executeWrite(tx -> {
+                tx.run("""
+                        MATCH (e:Envio)
+                        WHERE e.ciudadOrigen IS NOT NULL AND e.paisOrigen IS NOT NULL
+                          AND NOT EXISTS { MATCH (e)-[:SALE_DE]->(:Ubicacion) }
+                        MERGE (o:Ubicacion {clave: toLower(trim(e.ciudadOrigen)) + '|' + toLower(trim(e.paisOrigen))})
+                        SET o.ciudad = e.ciudadOrigen, o.pais = e.paisOrigen
+                        MERGE (e)-[:SALE_DE]->(o)
+                        """).consume();
+                tx.run("""
+                        MATCH (e:Envio)
+                        WHERE e.ciudadDestino IS NOT NULL AND e.paisDestino IS NOT NULL
+                          AND NOT EXISTS { MATCH (e)-[:LLEGA_A]->(:Ubicacion) }
+                        MERGE (d:Ubicacion {clave: toLower(trim(e.ciudadDestino)) + '|' + toLower(trim(e.paisDestino))})
+                        SET d.ciudad = e.ciudadDestino, d.pais = e.paisDestino
+                        MERGE (e)-[:LLEGA_A]->(d)
+                        """).consume();
+                tx.run("""
+                        MATCH (e:Envio)
+                        WHERE e.clienteId IS NOT NULL
+                          AND NOT EXISTS { MATCH (:Cliente)-[:REALIZA]->(e) }
+                        MERGE (c:Cliente {id: e.clienteId})
+                        MERGE (c)-[:REALIZA]->(e)
+                        """).consume();
+                tx.run("""
+                        MATCH (e:Envio)-[:SALE_DE]->(:Ubicacion)
+                        REMOVE e.ciudadOrigen, e.paisOrigen
+                        """).consume();
+                tx.run("""
+                        MATCH (e:Envio)-[:LLEGA_A]->(:Ubicacion)
+                        REMOVE e.ciudadDestino, e.paisDestino
+                        """).consume();
+                tx.run("""
+                        MATCH (:Cliente)-[:REALIZA]->(e:Envio)
+                        REMOVE e.clienteId
+                        """).consume();
+                return null;
+            });
+        }
+    }
+
     // =====================================================
     // LISTAR TODOS LOS ENVÍOS
     // =====================================================
@@ -30,15 +131,17 @@ public class EnvioNeo4jDAO {
                 OPTIONAL MATCH (cliente:Cliente)-[:REALIZA]->(e)
                 OPTIONAL MATCH (e)-[:TRANSPORTA]->(co:Contenedor)
                 OPTIONAL MATCH (e)-[:UTILIZA]->(v:Vehiculo)
+                OPTIONAL MATCH (e)-[:SALE_DE]->(origen:Ubicacion)
+                OPTIONAL MATCH (e)-[:LLEGA_A]->(destino:Ubicacion)
                 RETURN
                     e.id AS id,
-                    e.clienteId AS clienteId,
+                    cliente.id AS clienteId,
                     cliente.razonSocial AS cliente,
                     e.fechaCreacion AS fechaCreacion,
-                    e.ciudadOrigen AS ciudadOrigen,
-                    e.paisOrigen AS paisOrigen,
-                    e.ciudadDestino AS ciudadDestino,
-                    e.paisDestino AS paisDestino,
+                    origen.ciudad AS ciudadOrigen,
+                    origen.pais AS paisOrigen,
+                    destino.ciudad AS ciudadDestino,
+                    destino.pais AS paisDestino,
                     e.estado AS estado,
                     e.prioridad AS prioridad,
                     v.id AS vehiculoId,
@@ -73,15 +176,17 @@ public class EnvioNeo4jDAO {
                 OPTIONAL MATCH (cliente:Cliente)-[:REALIZA]->(e)
                 OPTIONAL MATCH (e)-[:TRANSPORTA]->(co:Contenedor)
                 OPTIONAL MATCH (e)-[:UTILIZA]->(v:Vehiculo)
+                OPTIONAL MATCH (e)-[:SALE_DE]->(origen:Ubicacion)
+                OPTIONAL MATCH (e)-[:LLEGA_A]->(destino:Ubicacion)
                 RETURN
                     e.id AS id,
-                    e.clienteId AS clienteId,
+                    cliente.id AS clienteId,
                     cliente.razonSocial AS cliente,
                     e.fechaCreacion AS fechaCreacion,
-                    e.ciudadOrigen AS ciudadOrigen,
-                    e.paisOrigen AS paisOrigen,
-                    e.ciudadDestino AS ciudadDestino,
-                    e.paisDestino AS paisDestino,
+                    origen.ciudad AS ciudadOrigen,
+                    origen.pais AS paisOrigen,
+                    destino.ciudad AS ciudadDestino,
+                    destino.pais AS paisDestino,
                     e.estado AS estado,
                     e.prioridad AS prioridad,
                     v.id AS vehiculoId,
@@ -118,45 +223,11 @@ public class EnvioNeo4jDAO {
             String prioridad
     ) {
 
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El ID del envío es obligatorio."
-            );
-        }
-
-        if (clienteId == null || clienteId.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El ID del cliente es obligatorio."
-            );
-        }
-
-        String cypher = """
-                MERGE (e:Envio {id: $id})
-                SET e.clienteId = $clienteId,
-                    e.fechaCreacion = $fechaCreacion,
-                    e.ciudadOrigen = $ciudadOrigen,
-                    e.paisOrigen = $paisOrigen,
-                    e.ciudadDestino = $ciudadDestino,
-                    e.paisDestino = $paisDestino,
-                    e.estado = $estado,
-                    e.prioridad = $prioridad
-                """;
-
-        Map<String, Object> parametros = new LinkedHashMap<>();
-
-        parametros.put("id", id);
-        parametros.put("clienteId", clienteId);
-        parametros.put("fechaCreacion", fechaCreacion);
-        parametros.put("ciudadOrigen", ciudadOrigen);
-        parametros.put("paisOrigen", paisOrigen);
-        parametros.put("ciudadDestino", ciudadDestino);
-        parametros.put("paisDestino", paisDestino);
-        parametros.put("estado", estado);
-        parametros.put("prioridad", prioridad);
-
-        try (Session session = driver.session()) {
-            session.run(cypher, parametros);
-        }
+        guardarCompleto(new org.example.neo4j.model.Envio(
+                id, clienteId, List.of(), fechaCreacion,
+                new org.example.neo4j.model.Ubicacion(null, ciudadOrigen, paisOrigen),
+                new org.example.neo4j.model.Ubicacion(null, ciudadDestino, paisDestino),
+                estado, prioridad));
     }
 
     // =====================================================
@@ -276,7 +347,6 @@ public class EnvioNeo4jDAO {
             session.run(cypher, Map.of("id", id));
         }
 
-        eliminarNodosHuerfanos();
     }
 
     /**

@@ -24,6 +24,7 @@ public class LogisticaNeo4jService {
     private final VehiculoNeo4jDAO vehiculoDAO;
 
     private final GrafoNeo4jDAO grafoDAO;
+    private final DisponibilidadContenedores disponibilidad;
 
     public LogisticaNeo4jService() {
         clienteDAO = new ClienteNeo4jDAO();
@@ -31,6 +32,21 @@ public class LogisticaNeo4jService {
         vehiculoDAO = new VehiculoNeo4jDAO();
 
         grafoDAO = new GrafoNeo4jDAO();
+        var contenedores = new org.example.mongoDB.dao.ContenedorMongoDAO();
+        disponibilidad = new DisponibilidadContenedores(new DisponibilidadContenedores.Repositorio() {
+            public org.bson.Document reservar(String id, String envio, boolean propio) {
+                return contenedores.reservarParaEnvio(id, envio, propio);
+            }
+            public void restaurar(org.bson.Document anterior, String envio) {
+                contenedores.restaurarReserva(anterior, envio);
+            }
+            public void liberar(String id, String envio) {
+                contenedores.liberarDeEnvio(id, envio);
+            }
+            public boolean ocupadoPorOtro(String id, String envio) {
+                return envioDAO.contenedorOcupadoPorOtro(id, envio);
+            }
+        });
     }
 
     // =====================================================
@@ -53,46 +69,20 @@ public class LogisticaNeo4jService {
             );
         }
 
-        envioDAO.crearEnvio(
-                envio.getId(),
-                envio.getClienteId(),
-                envio.getFechaCreacion(),
-                envio.getOrigen().getCiudad(),
-                envio.getOrigen().getPais(),
-                envio.getDestino().getCiudad(),
-                envio.getDestino().getPais(),
-                envio.getEstado(),
-                envio.getPrioridad()
-        );
+        if (envio.getClienteId() == null || envio.getClienteId().isBlank()
+                || envio.getContenedoresIds() == null || envio.getContenedoresIds().isEmpty()) {
+            throw new IllegalArgumentException("El cliente y al menos un contenedor son obligatorios.");
+        }
+        Map<String, Object> existente = envioDAO.buscarPorId(envio.getId());
+        List<String> anteriores = existente == null ? List.of() : obtenerIdsContenedores(existente);
+        disponibilidad.guardar(envio.getId(), anteriores, envio.getContenedoresIds(),
+                envio.getEstado(), () -> envioDAO.guardarCompleto(envio));
+    }
 
-        if (envio.getClienteId() != null) {
-            relacionarClienteEnvio(
-                    envio.getClienteId(),
-                    envio.getId()
-            );
-        }
-
-        // El envío se conecta directamente con sus ubicaciones; no hay nodos Tramo.
-        if (envio.getOrigen() != null) {
-            relacionarEnvioOrigen(envio.getId(),
-                    envio.getOrigen().getCiudad(), envio.getOrigen().getPais());
-        }
-        if (envio.getDestino() != null) {
-            relacionarEnvioDestino(envio.getId(),
-                    envio.getDestino().getCiudad(), envio.getDestino().getPais());
-        }
-
-        if (envio.getContenedoresIds() != null) {
-            for (String contenedorId : envio.getContenedoresIds()) {
-                if (contenedorId == null || contenedorId.isBlank()) {
-                    continue;
-                }
-                relacionarEnvioContenedor(
-                        envio.getId(),
-                        contenedorId
-                );
-            }
-        }
+    private List<String> obtenerIdsContenedores(Map<String, Object> envio) {
+        Object ids = envio.get("contenedoresIds");
+        return ids instanceof List<?> lista
+                ? lista.stream().map(Object::toString).toList() : List.of();
     }
 
     public void crearVehiculo(Vehiculo vehiculo) {
@@ -140,7 +130,12 @@ public class LogisticaNeo4jService {
     }
 
     public void eliminarEnvio(String id) {
+        Map<String, Object> existente = envioDAO.buscarPorId(id);
+        if (existente == null) {
+            return;
+        }
         envioDAO.eliminarEnvio(id);
+        disponibilidad.liberar(id, obtenerIdsContenedores(existente));
     }
 
     // =====================================================
@@ -202,12 +197,7 @@ public class LogisticaNeo4jService {
         if (envioDAO.buscarPorId(envio.getId()) == null) {
             throw new IllegalArgumentException("No existe un envío con ID: " + envio.getId());
         }
-        envioDAO.eliminarRelacionesContenedores(envio.getId());
-        envioDAO.eliminarRelacionCliente(envio.getId());
-        envioDAO.eliminarRelacionesVehiculo(envio.getId());
-        envioDAO.eliminarRelacionesUbicacion(envio.getId());
         crearEnvio(envio);
-        envioDAO.eliminarNodosHuerfanos();
     }
 
 

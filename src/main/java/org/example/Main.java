@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
 
 
-       // EliminarDatos.eliminarDatosDePrueba();
+        EliminarDatos.eliminarDatosDePrueba();
 
         DatosPruebaTotal datos =
                 new DatosPruebaTotal();

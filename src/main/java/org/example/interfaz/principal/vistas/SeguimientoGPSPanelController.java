@@ -49,6 +49,12 @@ public class SeguimientoGPSPanelController {
     private final SeguimientoGPSPanel view;
 
     private final ControllerMonitoreo monitoreoController;
+    private final org.example.mongoDB.controller.SensorController sensorController =
+            new org.example.mongoDB.controller.SensorController();
+    private final Map<String, org.bson.Document> sensoresPorId = new HashMap<>();
+    private final List<GPSWaypoint> puntosVisibles = new ArrayList<>();
+    private boolean actualizandoCombo;
+    private JPopupMenu detallePunto;
 
 
     // =========================================================
@@ -184,8 +190,16 @@ public class SeguimientoGPSPanelController {
          */
         view.getComboSensores()
                 .addActionListener(
-                        e -> cargarPosiciones()
+                        e -> {
+                            if (!actualizandoCombo) cargarPosiciones();
+                        }
                 );
+        view.getMapa().addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) mostrarDetallePunto(e);
+            }
+        });
     }
 
 
@@ -213,54 +227,17 @@ public class SeguimientoGPSPanelController {
                                     .getSelectedItem();
 
 
-            List<Row> posiciones;
-
-
-            // =================================================
-            // TODOS LOS SENSORES
-            // =================================================
-
-            if (
-                    sensorSeleccionado == null
-                            || sensorSeleccionado.equals(
-                            "Todos los sensores"
-                    )
-            ) {
-
-                posiciones =
-                        monitoreoController
-                                .obtenerTodasLasPosicionesGPS();
-            }
-
-
-            // =================================================
-            // UN SENSOR
-            // =================================================
-
-            else {
-
-                posiciones =
-                        monitoreoController
-                                .obtenerTodasLasPosicionesGPS();
-
-                posiciones =
-                        posiciones.stream()
-                                .filter(row ->
-                                        sensorSeleccionado.equals(
-                                                row.getString("sensor_id")
-                                        )
-                                )
-                                .toList();
-            }
-
-            // =================================================
-            // ACTUALIZAR COMBO
-            // =================================================
-
-            actualizarComboSensores(
-                    posiciones
-            );
-
+            if (detallePunto != null) detallePunto.setVisible(false);
+            List<Row> todasLasPosiciones = monitoreoController.obtenerTodasLasPosicionesGPS();
+            cargarInformacionSensores();
+            actualizarComboSensores(todasLasPosiciones);
+            sensorSeleccionado = (String) view.getComboSensores().getSelectedItem();
+            String sensorFiltrado = sensorSeleccionado;
+            List<Row> posiciones = sensorFiltrado == null || "Todos los sensores".equals(sensorFiltrado)
+                    ? todasLasPosiciones
+                    : todasLasPosiciones.stream()
+                        .filter(row -> sensorFiltrado.equals(row.getString("sensor_id")))
+                        .toList();
 
             // =================================================
             // MOSTRAR EN MAPA
@@ -300,6 +277,7 @@ public class SeguimientoGPSPanelController {
                         .setText(
                                 "Mostrando sensor: "
                                         + sensorSeleccionado
+                                        + " · Hacé clic en un punto para ver su información."
                         );
             }
 
@@ -330,131 +308,120 @@ public class SeguimientoGPSPanelController {
     // ACTUALIZAR COMBO DE SENSORES
     // =========================================================
 
-    private void actualizarComboSensores(
-            List<Row> posiciones
-    ) {
-
-        /*
-         * Guardamos el sensor que estaba seleccionado.
-         */
-        String seleccionado =
-                (String)
-                        view.getComboSensores()
-                                .getSelectedItem();
-
-
-        /*
-         * Obtener IDs únicos.
-         */
-        Set<String> sensores =
-                new HashSet<>();
-
-
-        for (Row row : posiciones) {
-
-            try {
-
-                String sensorId =
-                        row.getString(
-                                "sensor_id"
-                        );
-
-
-                if (
-                        sensorId != null
-                                && !sensorId.isBlank()
-                ) {
-
-                    sensores.add(
-                            sensorId
-                    );
-                }
-
-            } catch (Exception e) {
-
-                System.err.println(
-                        "No se pudo obtener sensor_id: "
-                                + e.getMessage()
-                );
+    private void cargarInformacionSensores() {
+        try {
+            Map<String, org.bson.Document> sensores = new HashMap<>();
+            for (org.bson.Document sensor : sensorController.listarSensores()) {
+                Object id = sensor.get("_id");
+                if (id != null) sensores.put(id.toString(), sensor);
             }
+            sensoresPorId.clear();
+            sensoresPorId.putAll(sensores);
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar la información de los sensores: " + e.getMessage());
         }
-
-
-        /*
-         * Evitamos que el ActionListener
-         * dispare nuevamente mientras
-         * modificamos el combo.
-         */
-        view.getComboSensores()
-                .removeActionListener(
-                        view.getComboSensores()
-                                .getActionListeners()[0]
-                );
-
-
-        /*
-         * Limpiar combo.
-         */
-        view.getComboSensores()
-                .removeAllItems();
-
-
-        /*
-         * Primera opción.
-         */
-        view.getComboSensores()
-                .addItem(
-                        "Todos los sensores"
-                );
-
-
-        /*
-         * Agregar sensores.
-         */
-        sensores.stream()
-                .sorted()
-                .forEach(
-                        sensorId ->
-                                view.getComboSensores()
-                                        .addItem(
-                                                sensorId
-                                        )
-                );
-
-
-        /*
-         * Intentar mantener la selección.
-         */
-        if (
-                seleccionado != null
-                        && sensores.contains(
-                        seleccionado
-                )
-        ) {
-
-            view.getComboSensores()
-                    .setSelectedItem(
-                            seleccionado
-                    );
-
-        } else {
-
-            view.getComboSensores()
-                    .setSelectedItem(
-                            "Todos los sensores"
-                    );
-        }
-
-
-        /*
-         * Volver a registrar el evento.
-         */
-        view.getComboSensores()
-                .addActionListener(
-                        e -> cargarPosiciones()
-                );
     }
 
+    private void actualizarComboSensores(List<Row> posiciones) {
+        String seleccionado = (String) view.getComboSensores().getSelectedItem();
+        Set<String> sensores = new java.util.TreeSet<>(sensoresPorId.keySet());
+        for (Row row : posiciones) {
+            String sensorId = row.getString("sensor_id");
+            if (sensorId != null && !sensorId.isBlank()) sensores.add(sensorId);
+        }
+        actualizandoCombo = true;
+        try {
+            JComboBox<String> combo = view.getComboSensores();
+            combo.removeAllItems();
+            combo.addItem("Todos los sensores");
+            sensores.forEach(combo::addItem);
+            combo.setSelectedItem(seleccionado != null && sensores.contains(seleccionado)
+                    ? seleccionado : "Todos los sensores");
+        } finally {
+            actualizandoCombo = false;
+        }
+    }
+
+    private void mostrarDetallePunto(java.awt.event.MouseEvent evento) {
+        String seleccionado = (String) view.getComboSensores().getSelectedItem();
+        if (seleccionado == null || "Todos los sensores".equals(seleccionado)) return;
+        JXMapViewer mapa = view.getMapa();
+        Rectangle viewport = mapa.getViewportBounds();
+        List<GPSWaypoint> cercanos = new ArrayList<>();
+        for (GPSWaypoint punto : puntosVisibles) {
+            Point2D pixel = mapa.getTileFactory().geoToPixel(punto.getPosition(), mapa.getZoom());
+            // El marcador tiene su punta en la coordenada y se dibuja hacia arriba.
+            double x = pixel.getX() - viewport.x;
+            double y = pixel.getY() - viewport.y;
+            if (Math.abs(evento.getX() - x) <= 14
+                    && evento.getY() >= y - 28 && evento.getY() <= y + 8) {
+                cercanos.add(punto);
+            }
+        }
+        if (cercanos.isEmpty()) return;
+        if (detallePunto != null) detallePunto.setVisible(false);
+        cercanos.sort(Comparator.comparing(p -> p.datos.getInstant("fecha_hora"),
+                Comparator.nullsLast(Comparator.naturalOrder())));
+        JTabbedPane lecturas = new JTabbedPane();
+        for (int i = 0; i < cercanos.size(); i++) {
+            GPSWaypoint punto = cercanos.get(i);
+            javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(
+                    new String[]{"Dato", "Valor"}, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) { return false; }
+            };
+            org.bson.Document sensor = sensoresPorId.get(seleccionado);
+            if (sensor != null) {
+                sensor.forEach((campo, valor) -> modelo.addRow(
+                        new Object[]{"Sensor · " + nombreCampo(campo), textoDetalle(valor)}));
+            } else {
+                modelo.addRow(new Object[]{"Sensor", seleccionado});
+                modelo.addRow(new Object[]{"Información del sensor", "No disponible en MongoDB"});
+            }
+            for (var columna : punto.datos.getColumnDefinitions()) {
+                String campo = columna.getName().asInternal();
+                modelo.addRow(new Object[]{"Lectura · " + nombreCampo(campo),
+                        textoDetalle(punto.datos.getObject(campo))});
+            }
+            JTable tabla = new JTable(modelo);
+            tabla.setRowHeight(24);
+            tabla.getColumnModel().getColumn(0).setPreferredWidth(190);
+            tabla.getColumnModel().getColumn(1).setPreferredWidth(290);
+            lecturas.addTab(cercanos.size() == 1 ? "Información del punto" : "Lectura " + (i + 1),
+                    new JScrollPane(tabla));
+        }
+        lecturas.setPreferredSize(new java.awt.Dimension(500, 360));
+        detallePunto = new JPopupMenu();
+        detallePunto.add(lecturas);
+        detallePunto.show(mapa, evento.getX(), evento.getY());
+    }
+
+    private static String nombreCampo(String campo) {
+        return switch (campo) {
+            case "_id" -> "ID";
+            case "sensor_id" -> "Sensor";
+            case "contenedor_id" -> "Contenedor";
+            case "fecha_dia" -> "Fecha";
+            case "fecha_hora" -> "Fecha y hora";
+            case "fecha_instalacion" -> "Fecha de instalación";
+            case "temperatura" -> "Temperatura";
+            case "humedad" -> "Humedad";
+            case "vibracion" -> "Vibración";
+            case "bateria" -> "Batería";
+            case "pais" -> "País";
+            default -> Character.toUpperCase(campo.charAt(0)) + campo.substring(1).replace('_', ' ');
+        };
+    }
+
+    private static String textoDetalle(Object valor) {
+        if (valor == null) return "Sin dato";
+        if (valor instanceof Instant fecha) {
+            return java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss z")
+                    .withZone(java.time.ZoneId.of("America/Argentina/Buenos_Aires")).format(fecha);
+        }
+        if (valor instanceof java.util.Date fecha) return textoDetalle(fecha.toInstant());
+        return valor.toString();
+    }
 
     // =========================================================
     // MOSTRAR POSICIONES
@@ -472,8 +439,8 @@ public class SeguimientoGPSPanelController {
         // TODOS LOS PUNTOS
         // =====================================================
 
-        Set<Waypoint> waypoints =
-                new HashSet<>();
+        Set<Waypoint> waypoints = new HashSet<>();
+        puntosVisibles.clear();
 
 
         // =====================================================
@@ -587,12 +554,9 @@ public class SeguimientoGPSPanelController {
                 // AGREGAR PUNTO
                 // =============================================
 
-                waypoints.add(
-                        new GPSWaypoint(
-                                latitud,
-                                longitud
-                        )
-                );
+                GPSWaypoint punto = new GPSWaypoint(latitud, longitud, row);
+                waypoints.add(punto);
+                puntosVisibles.add(punto);
 
 
                 // =============================================
@@ -720,7 +684,8 @@ public class SeguimientoGPSPanelController {
 
             ruta.sort(
                     Comparator.comparing(
-                            PosicionGPS::getFechaHora
+                            PosicionGPS::getFechaHora,
+                            Comparator.nullsLast(Comparator.naturalOrder())
                     )
             );
 
@@ -1020,13 +985,15 @@ public class SeguimientoGPSPanelController {
             implements Waypoint {
 
         private final GeoPosition posicion;
-
+        private final Row datos;
 
         public GPSWaypoint(
                 double latitud,
-                double longitud
+                double longitud,
+                Row datos
         ) {
 
+            this.datos = datos;
             this.posicion =
                     new GeoPosition(
                             latitud,
