@@ -1,271 +1,171 @@
-CLIENTE
-─────────────────────────
-_id: ObjectId
-razon_social: String
-cuit: String
-email: String
-telefono: String
-
-direccion: {
-    calle: String
-    numero: String
-    ciudad: String
-    codigo_postal: String
-}
-
-pais: String
-estado: String
-
-USUARIO
-─────────────────────────
-_id: ObjectId
-cliente_id: ObjectId
-rol_id: ObjectId
-nombre: String
-apellido: String
-email: String
-contraseña_encriptada: String
-estado: String
-fecha_registro: Date
-
-ROL
-─────────────────────────
-_id: ObjectId
-descripcion: String
-nivel_permisos: Int
-
-CONTENEDOR
-─────────────────────────
-_id: ObjectId
-codigo_internacional: String
-tipo: String
-capacidad: Double
-estado: String
-
-
-SENSOR
-─────────────────────────
-_id: ObjectId
-contenedor_id: ObjectId
-tipo: String
-fabricante: String
-fecha_instalacion: Date
-estado: String
-
-ENVIO
-─────────────────────────
-_id: ObjectId
-cliente_id: ObjectId
-contenedores_ids: [ObjectId]
-
-fecha_creacion: Date
-
-origen: {
-    ciudad: String
-    pais: String
-}
-
-destino: {
-    ciudad: String
-    pais: String
-}
-
-estado: String
-prioridad: String
-
-tramos: [
-    {
-        _id: ObjectId
-        medio_transporte: String
-        origen: String
-        destino: String
-        fecha_salida: Date
-        fecha_llegada_estimada: Date
-    }
-]
-
-
-
-EVENTO_LOGISTICO
-─────────────────────────
-_id: ObjectId
-envio_id: ObjectId
-fecha_hora: Date
-tipo_evento: String
-ubicacion: String
-descripcion: String
-
-
-INCIDENTE
-─────────────────────────
-_id: ObjectId
-envio_id: ObjectId
-tipo: String
-fecha: Date
-severidad: String
-estado: String
-descripcion: String
-
-
-ALERTA
-─────────────────────────
-_id: ObjectId
-sensor_id: ObjectId
-evento_id: ObjectId
-tipo: String
-fecha: Date
-estado: String
-
-
-REPORTE
-─────────────────────────
-_id: ObjectId
-usuario_id: ObjectId
-tipo: String
-fecha_generacion: Date
-formato: String
-estado: String
-
-FACTURA
-─────────────────────────
-_id: ObjectId
-cliente_id: ObjectId
-fecha_emision: Date
-importe_total: Decimal128
-estado: String
-
-PAGO
-─────────────────────────
-_id: ObjectId
-factura_id: ObjectId
-fecha: Date
-monto: Decimal128
-medio_pago: String
-
-
-CUENTA_CORRIENTE
-─────────────────────────
-_id: ObjectId
-cliente_id: ObjectId
-saldo: Decimal128
-fecha_actualizacion: Date
-
-
-
-RELACIONES ENTRE COLECCIONES
-
-CLIENTE 1 ───── N USUARIO
-ROL     1 ───── N USUARIO
-
-CLIENTE 1 ───── N ENVÍO
-ENVÍO   N ───── N CONTENEDOR
-CONTENEDOR 1 ── N SENSOR
-
-ENVÍO   1 ───── N EVENTO_LOGÍSTICO
-ENVÍO   1 ───── N INCIDENTE
-
-SENSOR  1 ───── N ALERTA
-EVENTO_LOGÍSTICO 1 ───── N ALERTA
-
-USUARIO 1 ───── N REPORTE
-
-CLIENTE 1 ───── N FACTURA
-FACTURA 1 ───── N PAGO
-CLIENTE 1 ───── 1 CUENTA_CORRIENTE
-
-
-
-RELACIÓN EMBEBIDA
-
-ENVÍO 1 ───── N TRAMO
-
-
-
-ÍNDICES
-
-CLIENTE
-- cuit: índice único
-
-USUARIO
-- email: índice único
-- cliente_id: índice
-
-ROL
-- descripcion: índice único
-
-CONTENEDOR
-- codigo_internacional: índice único
-
-SENSOR
-- contenedor_id: índice
-
-ENVIO
-- cliente_id: índice
-- origen.pais: índice
-- destino.pais: índice
-- estado: índice
-
-EVENTO_LOGISTICO
-- envio_id + fecha_hora: índice compuesto
-
-INCIDENTE
-- envio_id: índice
-- estado: índice
-
-ALERTA
-- sensor_id: índice
-
-REPORTE
-- usuario_id: índice
-
-FACTURA
-- cliente_id: índice
-
-PAGO
-- factura_id: índice
-
-CUENTA_CORRIENTE
-- cliente_id: índice único
-
-
-RESTRICCIONES
-
-CLIENTE
-- cuit debe ser único.
-- estado puede ser ACTIVO o INACTIVO.
-
-USUARIO
-- email debe ser único.
-- estado puede ser ACTIVO o INACTIVO.
-
-ROL
-- descripcion debe ser única.
-
-CONTENEDOR
-- codigo_internacional debe ser único.
-- capacidad debe ser mayor a 0.
-
-SENSOR
-- estado puede ser ACTIVO o INACTIVO.
-
-ENVIO
-- estado puede ser:
-  CREADO, EN_TRANSITO, DEMORADO, ENTREGADO o CANCELADO.
-- prioridad puede ser:
-  BAJA, MEDIA o ALTA.
-
-INCIDENTE
-- severidad puede ser:
-  BAJA, MEDIA, ALTA o CRITICA.
-- estado puede ser:
-  ABIERTO, EN_PROCESO o RESUELTO.
-
-FACTURA
-- importe_total debe ser mayor o igual a 0.
-
-PAGO
-- monto debe ser mayor a 0.
-
-CUENTA_CORRIENTE
-- cliente_id debe ser único.
-
+MODELO FISICO DE MONGODB
+Base: datos2. Fecha de revisión: 13/10/2026.
+Fuente de campos y tipos: src/main/java/org/example/mongoDB/dao/*MongoDAO.java y sus modelos.
+Envíos y ubicaciones se guardan en Neo4j. EnvioController es un adaptador de consulta; no inserta documentos de envío. No hay colección envios ni tramos en el modelo actual.
+
+CLIENTES
+  _id ObjectId
+  razon_social String
+  cuit String
+  email String
+  telefono String
+  direccion Document {calle, numero, ciudad, codigo_postal: String}
+  pais String
+  estado String
+  Fuente: mongoDB/dao/ClienteMongoDAO.java
+
+USUARIOS
+  _id ObjectId
+  cliente_id ObjectId o null
+  rol_id ObjectId
+  nombre String
+  apellido String
+  email String
+  contraseña_encriptada String
+  estado String
+  fecha_registro Date
+  Fuente: mongoDB/dao/UsuarioMongoDAO.java
+
+ROLES
+  _id ObjectId
+  descripcion String
+  nivel_permisos Int32
+  Fuente: mongoDB/dao/RolMongoDAO.java
+
+CONTENEDORES
+  _id ObjectId
+  codigo_internacional String
+  tipo String
+  capacidad Double
+  estado String
+  envio_asignado String opcional
+  Fuente: mongoDB/dao/ContenedorMongoDAO.java
+
+VEHICULOS
+  _id ObjectId
+  tipo String
+  identificacion String
+  empresa_operadora String
+  estado String
+  Fuente: mongoDB/dao/VehiculoMongoDAO.java
+
+SENSORES
+  _id ObjectId
+  contenedor_id ObjectId
+  tipo String
+  fabricante String
+  fecha_instalacion Date
+  estado String
+  Fuente: mongoDB/dao/SensorMongoDAO.java
+
+EVENTOS_LOGISTICOS
+  _id ObjectId
+  envio_id String
+  fecha_hora Date
+  tipo_evento String
+  ubicacion String
+  descripcion String
+  Fuente: mongoDB/dao/EventoLogisticoMongoDAO.java
+
+INCIDENTES
+  _id ObjectId
+  envio_id String
+  tipo String
+  fecha Date
+  severidad String
+  estado String
+  descripcion String
+  Fuente: mongoDB/dao/IncidenteMongoDAO.java
+
+ALERTAS
+  _id ObjectId
+  sensor_id ObjectId
+  evento_id ObjectId
+  tipo String
+  fecha Date
+  estado String
+  Fuente: mongoDB/dao/AlertaMongoDAO.java
+
+REPORTES
+  _id ObjectId
+  usuario_id ObjectId
+  tipo String
+  fecha_generacion Date
+  formato String
+  estado String
+  Fuente: mongoDB/dao/ReporteMongoDAO.java
+
+FACTURAS
+  _id ObjectId
+  cliente_id ObjectId
+  fecha_emision Date
+  importe_total Decimal128
+  estado String
+  Fuente: mongoDB/dao/FacturaMongoDAO.java
+
+PAGOS
+  _id ObjectId
+  factura_id ObjectId
+  fecha Date
+  monto Decimal128
+  medio_pago String
+  Fuente: mongoDB/dao/PagoMongoDAO.java
+
+CUENTAS_CORRIENTES
+  _id ObjectId
+  cliente_id ObjectId
+  saldo Decimal128
+  fecha_actualizacion Date
+  Fuente: mongoDB/dao/CuentaCorrienteMongoDAO.java
+
+CONVERSACIONES
+  _id ObjectId
+  nombre String
+  tipo String
+  participantes_ids Array<String>
+  fecha_creacion Date
+  Fuente: mongoDB/dao/ConversacionMongoDAO.java
+
+MENSAJES
+  _id ObjectId
+  conversacion_id String
+  remitente_id String
+  contenido String
+  fecha_envio Date
+  Fuente: mongoDB/dao/MensajeMongoDAO.java
+
+REFERENCIAS ENTRE DOCUMENTOS Y MOTORES
+usuarios.cliente_id -> clientes._id (ObjectId; puede ser null)
+usuarios.rol_id -> roles._id (ObjectId)
+sensores.contenedor_id -> contenedores._id (ObjectId)
+eventos_logisticos.envio_id -> Envio.id de Neo4j (String)
+incidentes.envio_id -> Envio.id de Neo4j (String)
+alertas.sensor_id -> sensores._id (ObjectId)
+alertas.evento_id -> eventos_logisticos._id (ObjectId)
+reportes.usuario_id -> usuarios._id (ObjectId)
+facturas.cliente_id -> clientes._id (ObjectId)
+pagos.factura_id -> facturas._id (ObjectId)
+cuentas_corrientes.cliente_id -> clientes._id (ObjectId)
+conversaciones.participantes_ids -> usuarios._id convertido a String
+mensajes.conversacion_id -> conversaciones._id convertido a String
+mensajes.remitente_id -> usuarios._id convertido a String
+contenedores.envio_asignado -> Envio.id de Neo4j (String opcional)
+
+INDICES Y RESTRICCIONES FISICAS
+El código Java no ejecuta createIndex ni configura validadores JSON Schema. El script de esta carpeta reproduce ese alcance: no añade índices únicos o secundarios que el arranque no crea.
+Las colecciones conservan el índice estándar de _id de MongoDB. Las referencias anteriores no son claves foráneas declaradas.
+No hay sharding, clave de partición ni replica set declarados en Docker Compose o en los DAO. Docker Compose levanta un servicio MongoDB con un volumen de datos.
+
+VALIDACIONES DE APLICACION
+ClienteService: campos obligatorios y comprobación de CUIT existente antes de insertar o modificar.
+UsuarioService: existencia del rol, formato ObjectId del cliente cuando corresponde y comprobación de email existente. No consulta la existencia del cliente en la creación. AutenticacionService compara el texto de contraseña; el nombre contraseña_encriptada no implica que exista cifrado o hash.
+RolService valida el formato de ID y la descripción para consultas; no expone alta de roles. ContenedorService comprueba código existente. ContenedorService exige capacidad positiva y crea el estado DISPONIBLE.
+DisponibilidadContenedores y ContenedorMongoDAO: reserva atómica con estado EN_USO y envio_asignado; restauración de reservas ante fallo del guardado en Neo4j; liberación al eliminar, quitar del envío o pasar a un estado que no ocupa.
+FacturaService exige un importe mayor a cero y un cliente existente. Los DAO de pagos y cuentas corrientes no implementan una liquidación contable automática.
+MensajeService exige pertenencia a la conversación al enviar y autoría al modificar o eliminar. ConversacionService usa PRIVADA y GRUPAL.
+Estas comprobaciones Java no sustituyen una restricción única de base de datos frente a escrituras concurrentes o externas.
+
+REGLA DE DISPONIBILIDAD
+EN_USO solo para EN_TRANSITO o DEMORADO. PENDIENTE, ENTREGADO y CANCELADO dejan DISPONIBLE después de guardar. El selector de nuevos envíos muestra DISPONIBLE; en edición puede mostrar el propio EN_USO.
+La aplicación permite varios contenedores por envío. Los datos de prueba tienen exactamente un contenedor distinto para cada uno de los ocho envíos.
+ContenedorMongoDAO también admite ACTIVO en la reserva como compatibilidad; el selector no ofrece ese estado.

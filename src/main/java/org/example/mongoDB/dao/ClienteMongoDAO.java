@@ -1,7 +1,10 @@
+
 package org.example.mongoDB.dao;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
@@ -9,23 +12,60 @@ import org.example.mongoDB.model.Cliente;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.inc;
 import static com.mongodb.client.model.Updates.set;
 
 public class ClienteMongoDAO {
 
     private final MongoCollection<Document> coleccion;
+    private final MongoCollection<Document> contadores;
+
+    // =========================
+    // CONSTRUCTOR
+    // =========================
 
     public ClienteMongoDAO() {
+
         MongoDatabase database = MongoSingleton
                 .getInstance()
                 .getDatabase("datos2");
 
         this.coleccion = database.getCollection("clientes");
+        this.contadores = database.getCollection("contadores");
     }
 
+    // =========================
+    // GENERAR CODIGO AUTOMATICO
+    // =========================
+
+    private String generarCodigo() {
+
+        Document contador = contadores.findOneAndUpdate(
+                eq("_id", "clientes"),
+                inc("secuencia", 1),
+                new FindOneAndUpdateOptions()
+                        .upsert(true)
+                        .returnDocument(ReturnDocument.AFTER)
+        );
+
+        if (contador == null) {
+            throw new IllegalStateException(
+                    "No se pudo generar el código del cliente."
+            );
+        }
+
+        int numero = ((Number) contador.get("secuencia")).intValue();
+
+        return String.format(
+                Locale.ROOT,
+                "CLI-%03d",
+                numero
+        );
+    }
 
     // =========================
     // AGREGAR CLIENTE
@@ -33,13 +73,19 @@ public class ClienteMongoDAO {
 
     public void agregar(Cliente cliente) {
 
+        String codigo = generarCodigo();
+
         Document direccion = new Document()
                 .append("calle", cliente.getDireccion().getCalle())
                 .append("numero", cliente.getDireccion().getNumero())
                 .append("ciudad", cliente.getDireccion().getCiudad())
-                .append("codigo_postal", cliente.getDireccion().getCodigoPostal());
+                .append(
+                        "codigo_postal",
+                        cliente.getDireccion().getCodigoPostal()
+                );
 
         Document documento = new Document()
+                .append("codigo", codigo)
                 .append("razon_social", cliente.getRazonSocial())
                 .append("cuit", cliente.getCuit())
                 .append("email", cliente.getEmail())
@@ -53,8 +99,9 @@ public class ClienteMongoDAO {
         cliente.setId(
                 documento.getObjectId("_id").toHexString()
         );
-    }
 
+        cliente.setCodigo(codigo);
+    }
 
     // =========================
     // MODIFICAR CLIENTE
@@ -91,8 +138,9 @@ public class ClienteMongoDAO {
                         set("estado", cliente.getEstado())
                 )
         );
-    }
 
+        // El codigo no se modifica.
+    }
 
     // =========================
     // ELIMINAR CLIENTE
@@ -105,7 +153,6 @@ public class ClienteMongoDAO {
         );
     }
 
-
     // =========================
     // BUSCAR CLIENTE POR ID
     // =========================
@@ -117,7 +164,6 @@ public class ClienteMongoDAO {
         ).first();
     }
 
-
     // =========================
     // LISTAR TODOS LOS CLIENTES
     // =========================
@@ -127,7 +173,6 @@ public class ClienteMongoDAO {
         return coleccion.find()
                 .into(new ArrayList<>());
     }
-
 
     // =========================
     // OBTENER TODOS LOS IDS
@@ -149,7 +194,6 @@ public class ClienteMongoDAO {
         return ids;
     }
 
-
     // =========================
     // VERIFICAR SI EXISTE POR ID
     // =========================
@@ -163,7 +207,6 @@ public class ClienteMongoDAO {
         return documento != null;
     }
 
-
     // =========================
     // BUSCAR CLIENTE POR CUIT
     // =========================
@@ -172,6 +215,17 @@ public class ClienteMongoDAO {
 
         return coleccion.find(
                 eq("cuit", cuit)
+        ).first();
+    }
+
+    // =========================
+    // BUSCAR CLIENTE POR CODIGO
+    // =========================
+
+    public Document buscarPorCodigo(String codigo) {
+
+        return coleccion.find(
+                eq("codigo", codigo)
         ).first();
     }
 }

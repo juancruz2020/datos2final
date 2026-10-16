@@ -1,10 +1,16 @@
 package org.example.mongoDB.dao;
 
+import java.math.BigDecimal;
+import java.util.Date;
+
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.CuentaCorriente;
 
@@ -20,13 +26,13 @@ public class CuentaCorrienteMongoDAO {
     private final MongoCollection<Document> coleccion;
 
     public CuentaCorrienteMongoDAO() {
+
         MongoDatabase database = MongoSingleton
                 .getInstance()
                 .getDatabase("datos2");
 
         this.coleccion = database.getCollection("cuentas_corrientes");
     }
-
 
     // =========================
     // AGREGAR CUENTA CORRIENTE
@@ -55,7 +61,6 @@ public class CuentaCorrienteMongoDAO {
         );
     }
 
-
     // =========================
     // MODIFICAR CUENTA CORRIENTE
     // =========================
@@ -81,7 +86,6 @@ public class CuentaCorrienteMongoDAO {
         );
     }
 
-
     // =========================
     // ELIMINAR CUENTA CORRIENTE
     // =========================
@@ -92,7 +96,6 @@ public class CuentaCorrienteMongoDAO {
                 eq("_id", new ObjectId(id))
         );
     }
-
 
     // =========================
     // BUSCAR CUENTA CORRIENTE POR ID
@@ -105,7 +108,6 @@ public class CuentaCorrienteMongoDAO {
         ).first();
     }
 
-
     // =========================
     // LISTAR CUENTAS CORRIENTES
     // =========================
@@ -115,7 +117,6 @@ public class CuentaCorrienteMongoDAO {
         return coleccion.find()
                 .into(new ArrayList<>());
     }
-
 
     // =========================
     // OBTENER TODOS LOS IDS
@@ -137,7 +138,6 @@ public class CuentaCorrienteMongoDAO {
         return ids;
     }
 
-
     // =========================
     // VERIFICAR SI EXISTE POR ID
     // =========================
@@ -151,7 +151,6 @@ public class CuentaCorrienteMongoDAO {
         return documento != null;
     }
 
-
     // =========================
     // BUSCAR CUENTA CORRIENTE POR CLIENTE
     // =========================
@@ -164,5 +163,64 @@ public class CuentaCorrienteMongoDAO {
                         new ObjectId(clienteId)
                 )
         ).first();
+    }
+
+    // =========================
+    // ACTUALIZAR SALDO
+    // =========================
+
+    public void actualizarSaldo(
+            String cuentaId,
+            BigDecimal nuevoSaldo
+    ) {
+
+        coleccion.updateOne(
+                eq("_id", new ObjectId(cuentaId)),
+                combine(
+                        set("saldo", new Decimal128(nuevoSaldo)),
+                        set("fecha_actualizacion", new Date())
+                )
+        );
+    }
+
+    // =========================================
+    // BUSCAR POR ID CON TRANSACCIÓN
+    // =========================================
+
+    public Document buscarPorId(
+            ClientSession session,
+            String cuentaId
+    ) {
+
+        return coleccion.find(
+                session,
+                eq("_id", new ObjectId(cuentaId))
+        ).first();
+    }
+
+    // =========================================
+    // ACTUALIZAR SALDO CON TRANSACCIÓN
+    // =========================================
+
+    public void actualizarSaldo(
+            ClientSession session,
+            String cuentaId,
+            BigDecimal nuevoSaldo
+    ) {
+
+        var resultado = coleccion.updateOne(
+                session,
+                eq("_id", new ObjectId(cuentaId)),
+                combine(
+                        set("saldo", new Decimal128(nuevoSaldo)),
+                        set("fecha_actualizacion", new Date())
+                )
+        );
+
+        if (resultado.getMatchedCount() == 0) {
+            throw new IllegalArgumentException(
+                    "No se encontró la cuenta corriente."
+            );
+        }
     }
 }

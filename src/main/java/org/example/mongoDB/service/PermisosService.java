@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.service;
 
 import org.bson.Document;
@@ -5,11 +6,12 @@ import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 
+import java.util.Locale;
+
 public class PermisosService {
 
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
-
 
     // =========================
     // CONSTRUCTOR
@@ -20,14 +22,15 @@ public class PermisosService {
         this.rolDAO = new RolMongoDAO();
     }
 
-
     // =========================
     // OBTENER ROL DEL USUARIO
     // =========================
 
     public String obtenerRolUsuario(String usuarioId) {
 
-        if (!ObjectId.isValid(usuarioId)) {
+        if (usuarioId == null
+                || !ObjectId.isValid(usuarioId)) {
+
             throw new IllegalArgumentException(
                     "El ID del usuario no es válido"
             );
@@ -52,9 +55,7 @@ public class PermisosService {
         }
 
         Document rol =
-                rolDAO.buscarPorId(
-                        rolId.toHexString()
-                );
+                rolDAO.buscarPorId(rolId.toHexString());
 
         if (rol == null) {
             throw new IllegalStateException(
@@ -73,9 +74,8 @@ public class PermisosService {
             );
         }
 
-        return descripcion;
+        return descripcion.trim();
     }
-
 
     // =========================
     // VERIFICAR ADMINISTRADOR
@@ -83,12 +83,10 @@ public class PermisosService {
 
     public boolean esAdmin(String usuarioId) {
 
-        return "Administrador"
-                .equalsIgnoreCase(
-                        obtenerRolUsuario(usuarioId)
-                );
+        return "Administrador".equalsIgnoreCase(
+                obtenerRolUsuario(usuarioId)
+        );
     }
-
 
     // =========================
     // VERIFICAR OPERADOR
@@ -96,12 +94,10 @@ public class PermisosService {
 
     public boolean esOperador(String usuarioId) {
 
-        return "Operador"
-                .equalsIgnoreCase(
-                        obtenerRolUsuario(usuarioId)
-                );
+        return "Operador".equalsIgnoreCase(
+                obtenerRolUsuario(usuarioId)
+        );
     }
-
 
     // =========================
     // VERIFICAR CLIENTE
@@ -109,12 +105,10 @@ public class PermisosService {
 
     public boolean esCliente(String usuarioId) {
 
-        return "Cliente"
-                .equalsIgnoreCase(
-                        obtenerRolUsuario(usuarioId)
-                );
+        return "Cliente".equalsIgnoreCase(
+                obtenerRolUsuario(usuarioId)
+        );
     }
-
 
     // =========================
     // EXIGIR ADMINISTRADOR
@@ -130,7 +124,6 @@ public class PermisosService {
         }
     }
 
-
     // =========================
     // EXIGIR ADMINISTRADOR
     // U OPERADOR
@@ -140,15 +133,11 @@ public class PermisosService {
             String usuarioId
     ) {
 
-        String rol =
-                obtenerRolUsuario(usuarioId);
+        String rol = obtenerRolUsuario(usuarioId);
 
         boolean permitido =
-                "Administrador"
-                        .equalsIgnoreCase(rol)
-                        ||
-                        "Operador"
-                                .equalsIgnoreCase(rol);
+                "Administrador".equalsIgnoreCase(rol)
+                        || "Operador".equalsIgnoreCase(rol);
 
         if (!permitido) {
 
@@ -158,14 +147,11 @@ public class PermisosService {
         }
     }
 
-
     // =========================
     // EXIGIR CLIENTE
     // =========================
 
-    public void exigirCliente(
-            String usuarioId
-    ) {
+    public void exigirCliente(String usuarioId) {
 
         if (!esCliente(usuarioId)) {
 
@@ -175,17 +161,16 @@ public class PermisosService {
         }
     }
 
-
     // =========================
-    // OBTENER CLIENTE
-    // DEL USUARIO
+    // OBTENER CLIENTE DEL USUARIO
     // =========================
 
     public String obtenerClienteId(
             String usuarioId
     ) {
 
-        if (!ObjectId.isValid(usuarioId)) {
+        if (usuarioId == null
+                || !ObjectId.isValid(usuarioId)) {
 
             throw new IllegalArgumentException(
                     "El ID del usuario no es válido"
@@ -193,9 +178,7 @@ public class PermisosService {
         }
 
         Document usuario =
-                usuarioDAO.buscarPorId(
-                        usuarioId
-                );
+                usuarioDAO.buscarPorId(usuarioId);
 
         if (usuario == null) {
 
@@ -205,9 +188,7 @@ public class PermisosService {
         }
 
         ObjectId clienteId =
-                usuario.getObjectId(
-                        "cliente_id"
-                );
+                usuario.getObjectId("cliente_id");
 
         if (clienteId == null) {
             return null;
@@ -216,10 +197,9 @@ public class PermisosService {
         return clienteId.toHexString();
     }
 
-
     // =========================
-    // VERIFICAR SI EL USUARIO
-    // PERTENECE A UN CLIENTE
+    // VERIFICAR PERTENENCIA
+    // A UN CLIENTE
     // =========================
 
     public boolean perteneceAlCliente(
@@ -227,7 +207,8 @@ public class PermisosService {
             String clienteId
     ) {
 
-        if (!ObjectId.isValid(clienteId)) {
+        if (clienteId == null
+                || !ObjectId.isValid(clienteId)) {
 
             throw new IllegalArgumentException(
                     "El ID del cliente no es válido"
@@ -235,23 +216,17 @@ public class PermisosService {
         }
 
         String clienteUsuario =
-                obtenerClienteId(
-                        usuarioId
-                );
+                obtenerClienteId(usuarioId);
 
         if (clienteUsuario == null) {
             return false;
         }
 
-        return clienteUsuario.equals(
-                clienteId
-        );
+        return clienteUsuario.equals(clienteId);
     }
 
-
     // =========================
-    // EXIGIR QUE EL USUARIO
-    // PERTENEZCA AL CLIENTE
+    // EXIGIR MISMO CLIENTE
     // =========================
 
     public void exigirMismoCliente(
@@ -259,21 +234,17 @@ public class PermisosService {
             String clienteId
     ) {
 
-        if (!perteneceAlCliente(
-                usuarioId,
-                clienteId
-        )) {
+        if (!perteneceAlCliente(usuarioId, clienteId)) {
 
             throw new SecurityException(
-                    "El usuario no tiene permiso para acceder a los datos de este cliente"
+                    "El usuario no tiene permiso para acceder "
+                            + "a los datos de este cliente"
             );
         }
     }
 
-
     // =========================
-    // VERIFICAR ACCESO
-    // A UNA VISTA
+    // VERIFICAR ACCESO A UNA VISTA
     // =========================
 
     public boolean puedeAccederVista(
@@ -281,76 +252,70 @@ public class PermisosService {
             String vista
     ) {
 
-        if (vista == null
-                || vista.isBlank()) {
-
+        if (vista == null || vista.isBlank()) {
             return false;
         }
 
-        String rol =
-                obtenerRolUsuario(
-                        usuarioId
-                );
+        String rol = obtenerRolUsuario(usuarioId);
 
         String vistaNormalizada =
-                vista.toUpperCase();
-
+                vista.trim().toUpperCase(Locale.ROOT);
 
         // =========================
         // ADMINISTRADOR
         // =========================
 
-        if ("Administrador"
-                .equalsIgnoreCase(rol)) {
-
+        if ("Administrador".equalsIgnoreCase(rol)) {
             return true;
         }
-
 
         // =========================
         // OPERADOR
         // =========================
 
-        if ("Operador"
-                .equalsIgnoreCase(rol)) {
+        if ("Operador".equalsIgnoreCase(rol)) {
 
             return switch (vistaNormalizada) {
 
-                case "DASHBOARD",
-                     "ENVIOS",
+                case "ENVIOS",
+                     "CLIENTES",
                      "CONTENEDORES",
                      "SENSORES",
                      "MONITOREO",
                      "TRAZABILIDAD",
+                     "SEGUIMIENTO",
+                     "SEGUIMIENTO_GPS",
                      "COMUNICACIONES",
-                     "RIESGOS" -> true;
+                     "RIESGOS",
+                     "FACTURACION",
+                     "CUENTAS_CORRIENTES",
+                     "VEHICULOS",
+                     "EVENTOS_LOGISTICOS" -> true;
 
                 default -> false;
             };
         }
-
 
         // =========================
         // CLIENTE
         // =========================
 
-        if ("Cliente"
-                .equalsIgnoreCase(rol)) {
+        if ("Cliente".equalsIgnoreCase(rol)) {
 
             return switch (vistaNormalizada) {
 
-                case "DASHBOARD",
-                     "ENVIOS",
-                     "CONTENEDORES",
-                     "MONITOREO",
-                     "TRAZABILIDAD",
+                case "ENVIOS",
+                     "REPORTES",
                      "COMUNICACIONES",
-                     "FACTURACION" -> true;
+                     "FACTURACION",
+                     "SEGUIMIENTO",
+                     "SEGUIMIENTO_GPS",
+                     "RIESGOS",
+                     "EVENTOS_LOGISTICOS" -> true;
 
                 default -> false;
             };
         }
-
 
         // =========================
         // ROL DESCONOCIDO

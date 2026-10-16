@@ -1,7 +1,10 @@
+
 package org.example.mongoDB.dao;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
@@ -9,23 +12,60 @@ import org.example.mongoDB.model.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.inc;
 import static com.mongodb.client.model.Updates.set;
 
 public class SensorMongoDAO {
 
     private final MongoCollection<Document> coleccion;
+    private final MongoCollection<Document> contadores;
+
+    // =========================
+    // CONSTRUCTOR
+    // =========================
 
     public SensorMongoDAO() {
+
         MongoDatabase database = MongoSingleton
                 .getInstance()
                 .getDatabase("datos2");
 
         this.coleccion = database.getCollection("sensores");
+        this.contadores = database.getCollection("contadores");
     }
 
+    // =========================
+    // GENERAR CODIGO AUTOMATICO
+    // =========================
+
+    private String generarCodigo() {
+
+        Document contador = contadores.findOneAndUpdate(
+                eq("_id", "sensores"),
+                inc("secuencia", 1),
+                new FindOneAndUpdateOptions()
+                        .upsert(true)
+                        .returnDocument(ReturnDocument.AFTER)
+        );
+
+        if (contador == null) {
+            throw new IllegalStateException(
+                    "No se pudo generar el código del sensor."
+            );
+        }
+
+        int numero = ((Number) contador.get("secuencia")).intValue();
+
+        return String.format(
+                Locale.ROOT,
+                "SEN-%03d",
+                numero
+        );
+    }
 
     // =========================
     // AGREGAR SENSOR
@@ -33,14 +73,20 @@ public class SensorMongoDAO {
 
     public void agregar(Sensor sensor) {
 
+        String codigo = generarCodigo();
+
         Document documento = new Document()
+                .append("codigo", codigo)
                 .append(
                         "contenedor_id",
                         new ObjectId(sensor.getContenedorId())
                 )
                 .append("tipo", sensor.getTipo())
                 .append("fabricante", sensor.getFabricante())
-                .append("fecha_instalacion", sensor.getFechaInstalacion())
+                .append(
+                        "fecha_instalacion",
+                        sensor.getFechaInstalacion()
+                )
                 .append("estado", sensor.getEstado());
 
         coleccion.insertOne(documento);
@@ -48,8 +94,9 @@ public class SensorMongoDAO {
         sensor.setId(
                 documento.getObjectId("_id").toHexString()
         );
-    }
 
+        sensor.setCodigo(codigo);
+    }
 
     // =========================
     // MODIFICAR SENSOR
@@ -73,8 +120,9 @@ public class SensorMongoDAO {
                         set("estado", sensor.getEstado())
                 )
         );
-    }
 
+        // El código del sensor no se modifica.
+    }
 
     // =========================
     // ELIMINAR SENSOR
@@ -87,7 +135,6 @@ public class SensorMongoDAO {
         );
     }
 
-
     // =========================
     // BUSCAR SENSOR POR ID
     // =========================
@@ -99,7 +146,6 @@ public class SensorMongoDAO {
         ).first();
     }
 
-
     // =========================
     // LISTAR SENSORES
     // =========================
@@ -109,7 +155,6 @@ public class SensorMongoDAO {
         return coleccion.find()
                 .into(new ArrayList<>());
     }
-
 
     // =========================
     // OBTENER TODOS LOS IDS
@@ -131,7 +176,6 @@ public class SensorMongoDAO {
         return ids;
     }
 
-
     // =========================
     // VERIFICAR SI EXISTE POR ID
     // =========================
@@ -145,6 +189,16 @@ public class SensorMongoDAO {
         return documento != null;
     }
 
+    // =========================
+    // BUSCAR SENSOR POR CODIGO
+    // =========================
+
+    public Document buscarPorCodigo(String codigo) {
+
+        return coleccion.find(
+                eq("codigo", codigo)
+        ).first();
+    }
 
     // =========================
     // BUSCAR SENSORES POR CONTENEDOR
@@ -159,7 +213,6 @@ public class SensorMongoDAO {
                 )
         ).into(new ArrayList<>());
     }
-
 
     // =========================
     // BUSCAR SENSORES POR ESTADO

@@ -446,4 +446,18 @@ public class UsuarioMongoDAO {
                 )
         );
     }
+    // =========================
+        // VERIFICAR SI UN CLIENTE YA TIENE USUARIO
+        // =========================
+
+        public boolean existeUsuarioPorCliente(String clienteId) {
+
+        if (clienteId == null || !ObjectId.isValid(clienteId)) {
+                return false;
+        }
+
+        return coleccion.find(
+                eq("cliente_id", new ObjectId(clienteId))
+        ).first() != null;
+        }
 }

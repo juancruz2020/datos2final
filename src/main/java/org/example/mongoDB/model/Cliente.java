@@ -1,8 +1,10 @@
+
 package org.example.mongoDB.model;
 
 public class Cliente {
 
     private String id;
+    private String codigo;
     private String razonSocial;
     private String cuit;
     private String email;
@@ -10,6 +12,10 @@ public class Cliente {
     private Direccion direccion;
     private String pais;
     private String estado;
+
+    // =========================
+    // CONSTRUCTOR ORIGINAL
+    // =========================
 
     public Cliente(
             String id,
@@ -22,6 +28,7 @@ public class Cliente {
             String estado
     ) {
         this.id = id;
+        this.codigo = null;
         this.razonSocial = razonSocial;
         this.cuit = cuit;
         this.email = email;
@@ -31,12 +38,50 @@ public class Cliente {
         this.estado = estado;
     }
 
+    // =========================
+    // CONSTRUCTOR CON CODIGO
+    // =========================
+
+    public Cliente(
+            String id,
+            String codigo,
+            String razonSocial,
+            String cuit,
+            String email,
+            String telefono,
+            Direccion direccion,
+            String pais,
+            String estado
+    ) {
+        this.id = id;
+        this.codigo = codigo;
+        this.razonSocial = razonSocial;
+        this.cuit = cuit;
+        this.email = email;
+        this.telefono = telefono;
+        this.direccion = direccion;
+        this.pais = pais;
+        this.estado = estado;
+    }
+
+    // =========================
+    // GETTERS Y SETTERS
+    // =========================
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public String getRazonSocial() {

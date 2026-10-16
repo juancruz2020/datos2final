@@ -6,8 +6,6 @@ import org.example.mongoDB.model.*;
 
 import java.math.BigDecimal;
 
-import java.util.Arrays;
-
 import java.util.Date;
 
 public class GeneradorDatosPruebaMongo {
@@ -262,7 +260,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                cliente1.getId(),
+                null,
 
                 administrador.getId(),
 
@@ -284,7 +282,7 @@ public class GeneradorDatosPruebaMongo {
 
                 null,
 
-                cliente2.getId(),
+                null,
 
                 operador.getId(),
 
@@ -330,7 +328,7 @@ public class GeneradorDatosPruebaMongo {
 
                 cliente4.getId(),
 
-                operador.getId(),
+                clienteRol.getId(),
 
                 "Sofia",
 
@@ -390,6 +388,34 @@ public class GeneradorDatosPruebaMongo {
 
         );
 
+        // UNA CUENTA CLIENTE POR CADA EMPRESA
+        // Juan y Maria conservan sus roles internos, sin cliente asociado.
+        // Sofia utiliza el rol Cliente para Exportadora Pampeana.
+
+        Usuario usuario6 = new Usuario(
+                null,
+                cliente1.getId(),
+                clienteRol.getId(),
+                "Carolina",
+                "Ruiz",
+                "carolina@logisticadelsur.com",
+                "clave6",
+                "ACTIVO",
+                new Date()
+        );
+
+        Usuario usuario7 = new Usuario(
+                null,
+                cliente2.getId(),
+                clienteRol.getId(),
+                "Diego",
+                "Torres",
+                "diego@transportesandinos.com",
+                "clave7",
+                "ACTIVO",
+                new Date()
+        );
+
         usuarioDAO.agregar(usuario1);
 
         usuarioDAO.agregar(usuario2);
@@ -401,6 +427,8 @@ public class GeneradorDatosPruebaMongo {
         usuarioDAO.agregar(usuario5);
 
         usuarioDAO.agregar(usuarioAdministrador);
+        usuarioDAO.agregar(usuario6);
+        usuarioDAO.agregar(usuario7);
 
         // =====================================================
 
@@ -439,8 +467,11 @@ public class GeneradorDatosPruebaMongo {
         contenedorDAO.agregar(contenedor5);
 
         // Un contenedor diferente por cada envío de prueba (ENV-001 a ENV-008).
+
         contenedorDAO.agregar(new Contenedor(null, "CONT-006", "SECO", 30000, "DISPONIBLE"));
+
         contenedorDAO.agregar(new Contenedor(null, "CONT-007", "SECO", 30000, "DISPONIBLE"));
+
         contenedorDAO.agregar(new Contenedor(null, "CONT-008", "REFRIGERADO", 26000, "EN_USO"));
 
         // =====================================================
@@ -450,54 +481,93 @@ public class GeneradorDatosPruebaMongo {
         // =====================================================
 
         Vehiculo vehiculo1 =
+
                 new Vehiculo(
+
                         null,
+
                         "CAMION",
+
                         "AA123BB",
+
                         "Logistica del Sur",
+
                         "ACTIVO"
+
                 );
 
         Vehiculo vehiculo2 =
+
                 new Vehiculo(
+
                         null,
+
                         "CAMION",
+
                         "AB456CD",
+
                         "Transportes Andinos",
+
                         "ACTIVO"
+
                 );
 
         Vehiculo vehiculo3 =
+
                 new Vehiculo(
+
                         null,
+
                         "FURGON",
+
                         "AC789EF",
+
                         "Comercio Internacional SA",
+
                         "ACTIVO"
+
                 );
 
         Vehiculo vehiculo4 =
+
                 new Vehiculo(
+
                         null,
+
                         "CAMION",
+
                         "AD321GH",
+
                         "Exportadora Pampeana",
+
                         "INACTIVO"
+
                 );
 
         Vehiculo vehiculo5 =
+
                 new Vehiculo(
+
                         null,
+
                         "CAMION",
+
                         "AE654IJ",
+
                         "Patagonia Cargo",
+
                         "ACTIVO"
+
                 );
 
         vehiculoDAO.agregar(vehiculo1);
+
         vehiculoDAO.agregar(vehiculo2);
+
         vehiculoDAO.agregar(vehiculo3);
+
         vehiculoDAO.agregar(vehiculo4);
+
         vehiculoDAO.agregar(vehiculo5);
 
         // =====================================================
@@ -1403,5 +1473,4 @@ public class GeneradorDatosPruebaMongo {
         generador.generarDatos();
 
     }
-
 }

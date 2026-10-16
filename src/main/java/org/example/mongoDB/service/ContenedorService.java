@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.service;
 
 import org.bson.Document;
@@ -11,17 +12,9 @@ public class ContenedorService {
 
     private final ContenedorMongoDAO contenedorDAO;
 
-
-    // =========================================================
-    // CONSTRUCTOR
-    // =========================================================
-
     public ContenedorService() {
-
-        this.contenedorDAO =
-                new ContenedorMongoDAO();
+        this.contenedorDAO = new ContenedorMongoDAO();
     }
-
 
     // =========================================================
     // CREAR CONTENEDOR
@@ -33,69 +26,29 @@ public class ContenedorService {
             double capacidad
     ) {
 
-        if (codigoInternacional == null
-                || codigoInternacional.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El código internacional es obligatorio."
-            );
-        }
-
-
-        if (tipo == null
-                || tipo.isBlank()) {
-
+        if (tipo == null || tipo.isBlank()) {
             throw new IllegalArgumentException(
                     "El tipo es obligatorio."
             );
         }
 
-
-        if (capacidad <= 0) {
-
+        if (capacidad <= 0 || !Double.isFinite(capacidad)) {
             throw new IllegalArgumentException(
-                    "La capacidad debe ser mayor a 0."
+                    "La capacidad debe ser un número mayor a 0."
             );
         }
 
-
-        // -----------------------------------------------------
-        // EVITAR CÓDIGOS REPETIDOS
-        // -----------------------------------------------------
-
-        Document existente =
-                contenedorDAO.buscarPorCodigo(
-                        codigoInternacional.trim()
-                );
-
-
-        if (existente != null) {
-
-            throw new IllegalArgumentException(
-                    "Ya existe un contenedor con ese código internacional."
-            );
-        }
-
-
-        // -----------------------------------------------------
-        // CREAR CONTENEDOR
-        // -----------------------------------------------------
-
-        Contenedor contenedor =
-                new Contenedor(
-                        null,
-                        codigoInternacional.trim(),
-                        tipo.trim(),
-                        capacidad,
-                        "DISPONIBLE"
-                );
-
-
-        contenedorDAO.agregar(
-                contenedor
+        // El código se genera automáticamente en el DAO.
+        Contenedor contenedor = new Contenedor(
+                null,
+                null,
+                tipo.trim(),
+                capacidad,
+                "DISPONIBLE"
         );
-    }
 
+        contenedorDAO.agregar(contenedor);
+    }
 
     // =========================================================
     // MODIFICAR CONTENEDOR
@@ -109,274 +62,149 @@ public class ContenedorService {
             String estado
     ) {
 
-        // -----------------------------------------------------
-        // VALIDAR ID
-        // -----------------------------------------------------
+        validarObjectId(id);
 
-        validarObjectId(
-                id
-        );
+        Document actual = contenedorDAO.buscarPorId(id);
 
-
-        if (!contenedorDAO.existePorId(id)) {
-
+        if (actual == null) {
             throw new IllegalArgumentException(
                     "El contenedor no existe."
             );
         }
 
-
-        // -----------------------------------------------------
-        // VALIDAR CÓDIGO
-        // -----------------------------------------------------
-
-        if (codigoInternacional == null
-                || codigoInternacional.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "El código internacional es obligatorio."
-            );
-        }
-
-
-        // -----------------------------------------------------
-        // VALIDAR TIPO
-        // -----------------------------------------------------
-
-        if (tipo == null
-                || tipo.isBlank()) {
-
+        if (tipo == null || tipo.isBlank()) {
             throw new IllegalArgumentException(
                     "El tipo es obligatorio."
             );
         }
 
-
-        // -----------------------------------------------------
-        // VALIDAR CAPACIDAD
-        // -----------------------------------------------------
-
-        if (capacidad <= 0) {
-
+        if (capacidad <= 0 || !Double.isFinite(capacidad)) {
             throw new IllegalArgumentException(
-                    "La capacidad debe ser mayor a 0."
+                    "La capacidad debe ser un número mayor a 0."
             );
         }
 
-
-        // -----------------------------------------------------
-        // VALIDAR ESTADO
-        // -----------------------------------------------------
-
-        if (estado == null
-                || estado.isBlank()) {
-
+        if (estado == null || estado.isBlank()) {
             throw new IllegalArgumentException(
                     "El estado es obligatorio."
             );
         }
 
-
-        // -----------------------------------------------------
-        // EVITAR CÓDIGO DUPLICADO
-        // -----------------------------------------------------
-
-        Document existente =
-                contenedorDAO.buscarPorCodigo(
-                        codigoInternacional.trim()
-                );
-
-
-        if (existente != null) {
-
-            ObjectId idExistente =
-                    existente.getObjectId(
-                            "_id"
-                    );
-
-
-            if (idExistente != null
-                    && !idExistente
-                    .toHexString()
-                    .equals(id)) {
-
-                throw new IllegalArgumentException(
-                        "Ya existe otro contenedor con ese código internacional."
-                );
-            }
-        }
-
-
-        // -----------------------------------------------------
-        // MODIFICAR CONTENEDOR
-        // -----------------------------------------------------
-
-        Contenedor contenedor =
-                new Contenedor(
-                        id,
-                        codigoInternacional.trim(),
-                        tipo.trim(),
-                        capacidad,
-                        estado.trim()
-                );
-
-
-        contenedorDAO.modificar(
-                contenedor
+        // Recuperamos el código original de MongoDB.
+        // No permitimos modificarlo desde el formulario.
+        String codigoOriginal = actual.getString(
+                "codigo_internacional"
         );
-    }
 
+        Contenedor contenedor = new Contenedor(
+                id,
+                codigoOriginal,
+                tipo.trim(),
+                capacidad,
+                estado.trim()
+        );
+
+        contenedorDAO.modificar(contenedor);
+    }
 
     // =========================================================
     // ELIMINAR CONTENEDOR
     // =========================================================
 
-    public void eliminarContenedor(
-            String id
-    ) {
+    public void eliminarContenedor(String id) {
 
-        validarObjectId(
-                id
-        );
-
+        validarObjectId(id);
 
         if (!contenedorDAO.existePorId(id)) {
-
             throw new IllegalArgumentException(
                     "El contenedor no existe."
             );
         }
 
-
-        contenedorDAO.eliminar(
-                id
-        );
+        contenedorDAO.eliminar(id);
     }
-
 
     // =========================================================
     // LISTAR CONTENEDORES
     // =========================================================
 
     public List<Document> listarContenedores() {
-
         return contenedorDAO.listarTodos();
     }
-
 
     // =========================================================
     // BUSCAR POR ID
     // =========================================================
 
-    public Document buscarPorId(
-            String id
-    ) {
+    public Document buscarPorId(String id) {
 
-        validarObjectId(
-                id
-        );
+        validarObjectId(id);
 
-
-        Document contenedor =
-                contenedorDAO.buscarPorId(
-                        id
-                );
-
+        Document contenedor = contenedorDAO.buscarPorId(id);
 
         if (contenedor == null) {
-
             throw new IllegalArgumentException(
                     "El contenedor no existe."
             );
         }
 
-
         return contenedor;
     }
-
 
     // =========================================================
     // EXISTE POR ID
     // =========================================================
 
-    public boolean existePorId(
-            String id
-    ) {
+    public boolean existePorId(String id) {
 
-        validarObjectId(
-                id
-        );
+        validarObjectId(id);
 
-
-        return contenedorDAO.existePorId(
-                id
-        );
+        return contenedorDAO.existePorId(id);
     }
-
 
     // =========================================================
     // OBTENER TODOS LOS IDS
     // =========================================================
 
     public List<String> obtenerTodosLosIds() {
-
         return contenedorDAO.obtenerTodosLosIds();
     }
-
 
     // =========================================================
     // BUSCAR POR CÓDIGO
     // =========================================================
 
-    public Document buscarPorCodigo(
-            String codigo
-    ) {
+    public Document buscarPorCodigo(String codigo) {
 
-        if (codigo == null
-                || codigo.isBlank()) {
-
+        if (codigo == null || codigo.isBlank()) {
             throw new IllegalArgumentException(
                     "El código internacional es obligatorio."
             );
         }
 
-
-        return contenedorDAO.buscarPorCodigo(
-                codigo.trim()
-        );
+        return contenedorDAO.buscarPorCodigo(codigo.trim());
     }
-
 
     // =========================================================
     // BUSCAR POR ESTADO
     // =========================================================
 
-    public List<Document> buscarPorEstado(
-            String estado
-    ) {
+    public List<Document> buscarPorEstado(String estado) {
 
-        if (estado == null
-                || estado.isBlank()) {
-
+        if (estado == null || estado.isBlank()) {
             throw new IllegalArgumentException(
                     "El estado es obligatorio."
             );
         }
 
-
-        return contenedorDAO.buscarPorEstado(
-                estado.trim()
-        );
+        return contenedorDAO.buscarPorEstado(estado.trim());
     }
-
 
     // =========================================================
     // VALIDAR OBJECT ID
     // =========================================================
 
-    private void validarObjectId(
-            String id
-    ) {
+    private void validarObjectId(String id) {
 
         if (id == null
                 || id.isBlank()

@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import javax.swing.*;
@@ -7,9 +8,16 @@ import java.awt.*;
 
 public class ReportesPanel extends JPanel {
 
-    private final JComboBox<String> comboUsuario;
-    private final JTextField txtTipo;
+    private final JTextField txtUsuario;
+    private final JComboBox<String> comboCliente;
+    private final JComboBox<String> comboTipo;
+    private final JComboBox<String> comboEstado;
+    private final JComboBox<String> comboPais;
     private final JComboBox<String> comboFormato;
+
+    private final JLabel lblCliente;
+    private final JLabel lblEstado;
+    private final JLabel lblPais;
 
     private final JButton btnGenerar;
     private final JButton btnActualizar;
@@ -17,337 +25,343 @@ public class ReportesPanel extends JPanel {
     private final JTable tablaReportes;
     private final DefaultTableModel modeloTabla;
 
-
-    // =========================================================
-    // CONSTRUCTOR
-    // =========================================================
-
     public ReportesPanel() {
 
-        setLayout(
-                new BorderLayout(
-                        15,
-                        15
-                )
+        setLayout(new BorderLayout(15, 15));
+        setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        JLabel titulo = new JLabel("Reportes");
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 24));
+
+        add(titulo, BorderLayout.NORTH);
+
+        JPanel panelCentral = new JPanel(
+                new BorderLayout(15, 15)
         );
 
-        setBorder(
-                new EmptyBorder(
-                        20,
-                        20,
-                        20,
-                        20
-                )
+        JPanel formulario = new JPanel(
+                new GridBagLayout()
         );
-
-
-        // =====================================================
-        // TÍTULO
-        // =====================================================
-
-        JLabel titulo =
-                new JLabel(
-                        "Reportes"
-                );
-
-        titulo.setFont(
-                new Font(
-                        "SansSerif",
-                        Font.BOLD,
-                        24
-                )
-        );
-
-        add(
-                titulo,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================================
-        // PANEL CENTRAL
-        // =====================================================
-
-        JPanel panelCentral =
-                new JPanel(
-                        new BorderLayout(
-                                15,
-                                15
-                        )
-                );
-
-
-        // =====================================================
-        // FORMULARIO
-        // =====================================================
-
-        JPanel formulario =
-                new JPanel(
-                        new GridBagLayout()
-                );
 
         formulario.setBorder(
-                BorderFactory.createTitledBorder(
-                        "Generar reporte"
-                )
+                BorderFactory.createTitledBorder("Generar reporte")
         );
 
+        GridBagConstraints gbc = new GridBagConstraints();
 
-        GridBagConstraints gbc =
-                new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.insets =
-                new Insets(
-                        5,
-                        5,
-                        5,
-                        5
-                );
-
-        gbc.fill =
-                GridBagConstraints.HORIZONTAL;
-
-
-        // -----------------------------------------------------
-        // USUARIO
-        // -----------------------------------------------------
+        // =========================================================
+        // USUARIO AUTENTICADO
+        // =========================================================
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0;
 
-        formulario.add(
-                new JLabel("Usuario:"),
-                gbc
-        );
+        formulario.add(new JLabel("Usuario:"), gbc);
 
-
-        comboUsuario =
-                new JComboBox<>();
+        txtUsuario = new JTextField();
+        txtUsuario.setEditable(false);
 
         gbc.gridx = 1;
         gbc.weightx = 1;
 
-        formulario.add(
-                comboUsuario,
-                gbc
-        );
+        formulario.add(txtUsuario, gbc);
 
-
-        // -----------------------------------------------------
-        // TIPO
-        // -----------------------------------------------------
+        // =========================================================
+        // TIPO DE REPORTE
+        // =========================================================
 
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
 
         formulario.add(
-                new JLabel("Tipo:"),
+                new JLabel("Tipo de reporte:"),
                 gbc
         );
 
-
-        txtTipo =
-                new JTextField();
+        comboTipo = new JComboBox<>(
+                new String[]{
+                        "Envíos por cliente",
+                        "Envíos por estado",
+                        "Envíos por país",
+                        "Envíos demorados",
+                        "Incidentes abiertos",
+                        "Promedio de incidentes por país",
+                        "Promedio de incidentes por estado",
+                        "Promedio de incidentes por cliente"
+                }
+        );
 
         gbc.gridx = 1;
         gbc.weightx = 1;
 
-        formulario.add(
-                txtTipo,
-                gbc
-        );
+        formulario.add(comboTipo, gbc);
 
+        // =========================================================
+        // CLIENTE
+        // =========================================================
 
-        // -----------------------------------------------------
-        // FORMATO
-        // -----------------------------------------------------
+        lblCliente = new JLabel("Cliente:");
 
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.weightx = 0;
 
-        formulario.add(
-                new JLabel("Formato:"),
-                gbc
-        );
+        formulario.add(lblCliente, gbc);
 
-
-        comboFormato =
-                new JComboBox<>(
-                        new String[]{
-                                "PDF",
-                                "CSV",
-                                "XLSX"
-                        }
-                );
+        comboCliente = new JComboBox<>();
 
         gbc.gridx = 1;
         gbc.weightx = 1;
 
-        formulario.add(
-                comboFormato,
-                gbc
-        );
+        formulario.add(comboCliente, gbc);
 
+        // =========================================================
+        // ESTADO
+        // =========================================================
 
-        // -----------------------------------------------------
-        // GENERAR
-        // -----------------------------------------------------
+        lblEstado = new JLabel("Estado:");
 
-        btnGenerar =
-                new JButton(
-                        "Generar reporte"
-                );
-
-        gbc.gridx = 1;
+        gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.weightx = 0;
 
-        formulario.add(
-                btnGenerar,
-                gbc
+        formulario.add(lblEstado, gbc);
+
+        comboEstado = new JComboBox<>(
+                new String[]{
+                        "PENDIENTE",
+                        "EN_TRANSITO",
+                        "ENTREGADO",
+                        "CANCELADO"
+                }
         );
 
+        gbc.gridx = 1;
+        gbc.weightx = 1;
 
-        panelCentral.add(
-                formulario,
-                BorderLayout.NORTH
+        formulario.add(comboEstado, gbc);
+
+        // =========================================================
+        // PAIS
+        // =========================================================
+
+        lblPais = new JLabel("País:");
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.weightx = 0;
+
+        formulario.add(lblPais, gbc);
+
+        comboPais = new JComboBox<>();
+
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+
+        formulario.add(comboPais, gbc);
+
+        // =========================================================
+        // FORMATO PDF FIJO, SIN FLECHITAS
+        // =========================================================
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weightx = 0;
+
+        formulario.add(new JLabel("Formato:"), gbc);
+
+        comboFormato = new JComboBox<>(
+                new String[]{"PDF"}
         );
 
+        comboFormato.setEditable(true);
 
-        // =====================================================
-        // TABLA
-        // =====================================================
+        JTextField campoFormato =
+                (JTextField) comboFormato.getEditor()
+                        .getEditorComponent();
 
-        modeloTabla =
-                new DefaultTableModel(
-                        new Object[]{
-                                "ID",
-                                "Usuario",
-                                "Tipo",
-                                "Fecha de generación",
-                                "Formato",
-                                "Estado"
-                        },
-                        0
-                ) {
+        campoFormato.setEditable(false);
+        campoFormato.setFocusable(false);
 
+        comboFormato.setUI(
+                new javax.swing.plaf.basic.BasicComboBoxUI() {
                     @Override
-                    public boolean isCellEditable(
-                            int row,
-                            int column
-                    ) {
-
-                        return false;
+                    protected JButton createArrowButton() {
+                        JButton boton = new JButton();
+                        boton.setVisible(false);
+                        boton.setPreferredSize(
+                                new Dimension(0, 0)
+                        );
+                        return boton;
                     }
-                };
+                }
+        );
 
+        gbc.gridx = 1;
+        gbc.weightx = 1;
 
-        tablaReportes =
-                new JTable(
-                        modeloTabla
-                );
+        formulario.add(comboFormato, gbc);
+
+        // =========================================================
+        // GENERAR
+        // =========================================================
+
+        btnGenerar = new JButton("Generar reporte");
+
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        gbc.weightx = 0;
+
+        formulario.add(btnGenerar, gbc);
+
+        panelCentral.add(formulario, BorderLayout.NORTH);
+
+        // =========================================================
+        // TABLA
+        // =========================================================
+
+        modeloTabla = new DefaultTableModel(
+                new Object[]{
+                        "ID",
+                        "Usuario",
+                        "Tipo",
+                        "Fecha de generación",
+                        "Formato",
+                        "Estado"
+                },
+                0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        tablaReportes = new JTable(modeloTabla);
 
         tablaReportes.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
 
-
-        JScrollPane scrollTabla =
-                new JScrollPane(
-                        tablaReportes
-                );
-
-
         panelCentral.add(
-                scrollTabla,
+                new JScrollPane(tablaReportes),
                 BorderLayout.CENTER
         );
 
-
-        // =====================================================
+        // =========================================================
         // ACTUALIZAR
-        // =====================================================
+        // =========================================================
 
-        JPanel panelBotones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-
-        btnActualizar =
-                new JButton(
-                        "Actualizar"
-                );
-
-
-        panelBotones.add(
-                btnActualizar
+        JPanel panelBotones = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT)
         );
 
+        btnActualizar = new JButton("Actualizar");
+
+        panelBotones.add(btnActualizar);
 
         panelCentral.add(
                 panelBotones,
                 BorderLayout.SOUTH
         );
 
+        add(panelCentral, BorderLayout.CENTER);
 
-        add(
-                panelCentral,
-                BorderLayout.CENTER
+        comboTipo.addActionListener(
+                e -> actualizarFiltros()
         );
+
+        actualizarFiltros();
     }
 
+    // =========================================================
+    // MOSTRAR FILTROS SEGUN EL TIPO DE REPORTE
+    // =========================================================
+
+    public void actualizarFiltros() {
+
+        String tipo =
+                (String) comboTipo.getSelectedItem();
+
+        boolean porCliente =
+                "Envíos por cliente".equals(tipo);
+
+        boolean porEstado =
+                "Envíos por estado".equals(tipo);
+
+        boolean porPais =
+                "Envíos por país".equals(tipo);
+
+        lblCliente.setVisible(porCliente);
+        comboCliente.setVisible(porCliente);
+
+        lblEstado.setVisible(porEstado);
+        comboEstado.setVisible(porEstado);
+
+        lblPais.setVisible(porPais);
+        comboPais.setVisible(porPais);
+
+        // Los siguientes reportes no necesitan
+        // filtros adicionales:
+        //
+        // - Envíos demorados
+        // - Incidentes abiertos
+        // - Promedio de incidentes por país
+        // - Promedio de incidentes por estado
+        // - Promedio de incidentes por cliente
+
+        revalidate();
+        repaint();
+    }
 
     // =========================================================
     // GETTERS
     // =========================================================
 
-    public JComboBox<String> getComboUsuario() {
-
-        return comboUsuario;
+    public JTextField getTxtUsuario() {
+        return txtUsuario;
     }
 
-
-    public JTextField getTxtTipo() {
-
-        return txtTipo;
+    public JComboBox<String> getComboCliente() {
+        return comboCliente;
     }
 
+    public JComboBox<String> getComboTipo() {
+        return comboTipo;
+    }
+
+    public JComboBox<String> getComboEstado() {
+        return comboEstado;
+    }
+
+    public JComboBox<String> getComboPais() {
+        return comboPais;
+    }
 
     public JComboBox<String> getComboFormato() {
-
         return comboFormato;
     }
 
-
     public JButton getBtnGenerar() {
-
         return btnGenerar;
     }
 
-
     public JButton getBtnActualizar() {
-
         return btnActualizar;
     }
 
-
     public JTable getTablaReportes() {
-
         return tablaReportes;
     }
 
-
     public DefaultTableModel getModeloTabla() {
-
         return modeloTabla;
     }
-
 
     // =========================================================
     // LIMPIAR FORMULARIO
@@ -355,16 +369,22 @@ public class ReportesPanel extends JPanel {
 
     public void limpiarFormulario() {
 
-        txtTipo.setText("");
+        comboTipo.setSelectedIndex(0);
 
-        if (comboUsuario.getItemCount() > 0) {
-
-            comboUsuario.setSelectedIndex(0);
+        if (comboCliente.getItemCount() > 0) {
+            comboCliente.setSelectedIndex(0);
         }
 
-        if (comboFormato.getItemCount() > 0) {
-
-            comboFormato.setSelectedIndex(0);
+        if (comboEstado.getItemCount() > 0) {
+            comboEstado.setSelectedIndex(0);
         }
+
+        if (comboPais.getItemCount() > 0) {
+            comboPais.setSelectedIndex(0);
+        }
+
+        comboFormato.setSelectedIndex(0);
+
+        actualizarFiltros();
     }
 }
