@@ -1,3 +1,4 @@
+
 package org.example.cassandra.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 public class InsertarCassandraMonitoreo {
 
     // =====================================================
-    // INSERTAR LECTURA DE SENSOR
+    // INSERTAR LECTURA DE SENSOR Y SU POSICIÓN
     // =====================================================
 
     public static void insertarLecturaSensor(
@@ -27,6 +28,10 @@ public class InsertarCassandraMonitoreo {
             BigDecimal bateria,
             String pais,
             String region) {
+
+        // =====================================================
+        // 1. INSERTAR LECTURA COMPLETA
+        // =====================================================
 
         String cql = """
             INSERT INTO logistica.lecturas_sensor (
@@ -63,8 +68,38 @@ public class InsertarCassandraMonitoreo {
                 )
         );
 
-        // Después de guardar la lectura,
-        // actualizamos automáticamente las métricas.
+        // =====================================================
+        // 2. INSERTAR POSICIÓN EN LA TABLA NUEVA
+        // =====================================================
+
+        String cqlPosicion = """
+            INSERT INTO logistica.posiciones_sensor (
+                sensor_id,
+                fecha_hora,
+                contenedor_id,
+                latitud,
+                longitud,
+                pais,
+                region
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """;
+
+        session.execute(
+                session.prepare(cqlPosicion).bind(
+                        sensorId,
+                        fechaHora,
+                        contenedorId,
+                        latitud,
+                        longitud,
+                        pais,
+                        region
+                )
+        );
+
+        // =====================================================
+        // 3. ACTUALIZAR MÉTRICAS
+        // =====================================================
 
         actualizarMetricaRegion(
                 session,
@@ -82,7 +117,6 @@ public class InsertarCassandraMonitoreo {
                 humedad
         );
     }
-
 
     // =====================================================
     // ACTUALIZAR MÉTRICA DE REGIÓN
@@ -117,10 +151,6 @@ public class InsertarCassandraMonitoreo {
         BigDecimal humedadPromedio;
         long cantidadLecturas;
 
-        // -------------------------------------------------
-        // PRIMERA LECTURA DE ESA REGIÓN EN ESE DÍA
-        // -------------------------------------------------
-
         if (existente == null) {
 
             temperaturaMin = temperatura;
@@ -129,10 +159,6 @@ public class InsertarCassandraMonitoreo {
             cantidadLecturas = 1;
 
         } else {
-
-            // -------------------------------------------------
-            // YA EXISTEN LECTURAS
-            // -------------------------------------------------
 
             BigDecimal minAnterior =
                     existente.getBigDecimal("temperatura_min");
@@ -193,7 +219,6 @@ public class InsertarCassandraMonitoreo {
         );
     }
 
-
     // =====================================================
     // ACTUALIZAR MÉTRICA DE PAÍS
     // =====================================================
@@ -224,10 +249,6 @@ public class InsertarCassandraMonitoreo {
         BigDecimal humedadPromedio;
         BigDecimal temperaturaPromedio;
         long cantidadLecturas;
-
-        // -------------------------------------------------
-        // PRIMERA LECTURA DEL PAÍS EN ESE DÍA
-        // -------------------------------------------------
 
         if (existente == null) {
 

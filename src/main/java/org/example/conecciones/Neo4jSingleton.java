@@ -2,8 +2,12 @@ package org.example.conecciones;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public class Neo4jSingleton {
 
@@ -13,7 +17,7 @@ public class Neo4jSingleton {
         // Evita crear objetos de esta clase
     }
 
-    public static Driver getInstance() {
+    public static synchronized Driver getInstance() {
 
         if (driver == null) {
 
@@ -23,17 +27,23 @@ public class Neo4jSingleton {
             String user = dotenv.get("NEO4J_USER");
             String password = dotenv.get("NEO4J_PASSWORD");
 
+            Config config = Config.builder()
+                    .withConnectionTimeout(30, TimeUnit.SECONDS)
+                    .withConnectionAcquisitionTimeout(60, TimeUnit.SECONDS)
+                    .withMaxConnectionLifetime(600, TimeUnit.MINUTES)
+                    .build();
+
             driver = GraphDatabase.driver(
                     uri,
-                    AuthTokens.basic(user, password)
+                    AuthTokens.basic(user, password),
+                    config
             );
         }
 
         return driver;
     }
 
-    public static void close() {
-
+    public static synchronized void close() {
         if (driver != null) {
             driver.close();
             driver = null;

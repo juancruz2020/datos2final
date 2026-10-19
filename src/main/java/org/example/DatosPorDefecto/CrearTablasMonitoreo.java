@@ -83,7 +83,23 @@ public class CrearTablasMonitoreo {
             )
             WITH CLUSTERING ORDER BY (fecha_dia DESC)
             """);
+        // =====================================================
+        // POSICIONES
+        // =====================================================
 
+        session.execute("""
+    CREATE TABLE IF NOT EXISTS logistica.posiciones_sensor (
+        sensor_id text,
+        fecha_hora timestamp,
+        contenedor_id text,
+        latitud decimal,
+        longitud decimal,
+        pais text,
+        region text,
+        PRIMARY KEY ((sensor_id), fecha_hora)
+    )
+    WITH CLUSTERING ORDER BY (fecha_hora DESC)
+    """);
 
         System.out.println(
                 "Tablas de monitoreo creadas/verificadas correctamente."

@@ -1,3 +1,4 @@
+
 package org.example.DatosPorDefecto;
 
 import com.datastax.oss.driver.api.core.CqlSession;
@@ -71,9 +72,8 @@ public class DatosDePruebaCassandra {
             "Caaguazú"
     );
 
-
     // =====================================================
-    // INSERTAR 60 LECTURAS
+    // INSERTAR 60 LECTURAS Y SUS POSICIONES
     // =====================================================
 
     public void insertarDatos(
@@ -92,69 +92,41 @@ public class DatosDePruebaCassandra {
             );
         }
 
-        // =================================================
-        // INICIALIZAR CASSANDRA
-        // =================================================
-
-        CqlSession session =
-                CassandraSingleton.getInstance();
-
-        // =================================================
-        // GENERAR 60 LECTURAS
-        // =================================================
+        CqlSession session = CassandraSingleton.getInstance();
 
         for (int i = 0; i < 60; i++) {
 
-            // Sensor de la lista recibida
+            // Sensor y contenedor
             String sensorId = sensorIds.get(
                     random.nextInt(sensorIds.size())
             );
 
-            // Contenedor de la lista recibida
             String contenedorId = contenedorIds.get(
                     random.nextInt(contenedorIds.size())
             );
 
-            // Fecha
-            LocalDate fechaDia =
-                    generarFechaAleatoria();
-
             // Fecha y hora
-            Instant fechaHora =
-                    generarFechaHoraAleatoria(fechaDia);
+            LocalDate fechaDia = generarFechaAleatoria();
+            Instant fechaHora = generarFechaHoraAleatoria(fechaDia);
 
-            // País
-            String pais =
-                    paises.get(
-                            random.nextInt(paises.size())
-                    );
+            // Ubicación geográfica
+            String pais = paises.get(
+                    random.nextInt(paises.size())
+            );
 
-            // Región compatible con el país
-            String region =
-                    obtenerRegionAleatoria(pais);
+            String region = obtenerRegionAleatoria(pais);
+
+            BigDecimal latitud = generarLatitud(pais);
+            BigDecimal longitud = generarLongitud(pais);
 
             // Datos del sensor
-            BigDecimal temperatura =
-                    generarDecimal(5, 40);
-
-            BigDecimal humedad =
-                    generarDecimal(20, 95);
-
-            BigDecimal vibracion =
-                    generarDecimal(0, 2);
-
-            BigDecimal bateria =
-                    generarDecimal(20, 100);
-
-            // GPS
-            BigDecimal latitud =
-                    generarLatitud(pais);
-
-            BigDecimal longitud =
-                    generarLongitud(pais);
+            BigDecimal temperatura = generarDecimal(5, 40);
+            BigDecimal humedad = generarDecimal(20, 95);
+            BigDecimal vibracion = generarDecimal(0, 2);
+            BigDecimal bateria = generarDecimal(20, 100);
 
             // =================================================
-            // INSERTAR EN CASSANDRA
+            // 1. INSERTAR LECTURA DEL SENSOR
             // =================================================
 
             InsertarCassandraMonitoreo.insertarLecturaSensor(
@@ -173,12 +145,7 @@ public class DatosDePruebaCassandra {
                     region
             );
         }
-
-        System.out.println(
-                "60 lecturas aleatorias cargadas correctamente."
-        );
     }
-
 
     // =====================================================
     // FECHA ALEATORIA
@@ -186,49 +153,33 @@ public class DatosDePruebaCassandra {
 
     private LocalDate generarFechaAleatoria() {
 
-        LocalDate inicio =
-                LocalDate.of(2026, 9, 1);
+        LocalDate inicio = LocalDate.of(2026, 9, 1);
+        LocalDate fin = LocalDate.of(2026, 10, 6);
 
-        LocalDate fin =
-                LocalDate.of(2026, 10, 6);
+        long inicioDia = inicio.toEpochDay();
+        long finDia = fin.toEpochDay();
 
-        long inicioDia =
-                inicio.toEpochDay();
-
-        long finDia =
-                fin.toEpochDay();
-
-        long dia =
-                inicioDia +
-                        random.nextInt(
-                                (int) (finDia - inicioDia + 1)
-                        );
+        long dia = inicioDia + random.nextInt(
+                (int) (finDia - inicioDia + 1)
+        );
 
         return LocalDate.ofEpochDay(dia);
     }
-
 
     // =====================================================
     // FECHA Y HORA ALEATORIA
     // =====================================================
 
-    private Instant generarFechaHoraAleatoria(
-            LocalDate fecha) {
+    private Instant generarFechaHoraAleatoria(LocalDate fecha) {
 
-        int hora =
-                random.nextInt(24);
-
-        int minuto =
-                random.nextInt(60);
-
-        int segundo =
-                random.nextInt(60);
+        int hora = random.nextInt(24);
+        int minuto = random.nextInt(60);
+        int segundo = random.nextInt(60);
 
         return fecha
                 .atTime(hora, minuto, segundo)
                 .toInstant(ZoneOffset.UTC);
     }
-
 
     // =====================================================
     // DECIMAL ALEATORIO
@@ -238,31 +189,25 @@ public class DatosDePruebaCassandra {
             double minimo,
             double maximo) {
 
-        double valor =
-                minimo +
-                        (maximo - minimo) *
-                                random.nextDouble();
+        double valor = minimo
+                + (maximo - minimo) * random.nextDouble();
 
-        return BigDecimal
-                .valueOf(valor)
+        return BigDecimal.valueOf(valor)
                 .setScale(
                         2,
                         java.math.RoundingMode.HALF_UP
                 );
     }
 
-
     // =====================================================
     // REGIÓN SEGÚN PAÍS
     // =====================================================
 
-    private String obtenerRegionAleatoria(
-            String pais) {
+    private String obtenerRegionAleatoria(String pais) {
 
         List<String> regiones;
 
         switch (pais) {
-
             case "Argentina":
                 regiones = regionesArgentina;
                 break;
@@ -289,68 +234,38 @@ public class DatosDePruebaCassandra {
                 );
         }
 
-        return regiones.get(
-                random.nextInt(regiones.size())
-        );
+        return regiones.get(random.nextInt(regiones.size()));
     }
-
 
     // =====================================================
     // LATITUD
     // =====================================================
 
-    private BigDecimal generarLatitud(
-            String pais) {
+    private BigDecimal generarLatitud(String pais) {
 
         return switch (pais) {
-
-            case "Argentina" ->
-                    generarDecimal(-55, -22);
-
-            case "Brasil" ->
-                    generarDecimal(-33, 5);
-
-            case "Chile" ->
-                    generarDecimal(-56, -17);
-
-            case "Uruguay" ->
-                    generarDecimal(-35, -30);
-
-            case "Paraguay" ->
-                    generarDecimal(-28, -19);
-
-            default ->
-                    BigDecimal.ZERO;
+            case "Argentina" -> generarDecimal(-55, -22);
+            case "Brasil" -> generarDecimal(-33, 5);
+            case "Chile" -> generarDecimal(-56, -17);
+            case "Uruguay" -> generarDecimal(-35, -30);
+            case "Paraguay" -> generarDecimal(-28, -19);
+            default -> BigDecimal.ZERO;
         };
     }
-
 
     // =====================================================
     // LONGITUD
     // =====================================================
 
-    private BigDecimal generarLongitud(
-            String pais) {
+    private BigDecimal generarLongitud(String pais) {
 
         return switch (pais) {
-
-            case "Argentina" ->
-                    generarDecimal(-73, -53);
-
-            case "Brasil" ->
-                    generarDecimal(-74, -34);
-
-            case "Chile" ->
-                    generarDecimal(-76, -66);
-
-            case "Uruguay" ->
-                    generarDecimal(-59, -53);
-
-            case "Paraguay" ->
-                    generarDecimal(-63, -54);
-
-            default ->
-                    BigDecimal.ZERO;
+            case "Argentina" -> generarDecimal(-73, -53);
+            case "Brasil" -> generarDecimal(-74, -34);
+            case "Chile" -> generarDecimal(-76, -66);
+            case "Uruguay" -> generarDecimal(-59, -53);
+            case "Paraguay" -> generarDecimal(-63, -54);
+            default -> BigDecimal.ZERO;
         };
     }
 }

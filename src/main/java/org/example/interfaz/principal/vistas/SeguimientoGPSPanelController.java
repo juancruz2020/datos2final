@@ -236,8 +236,8 @@ public class SeguimientoGPSPanelController {
             List<Row> posiciones = sensorFiltrado == null || "Todos los sensores".equals(sensorFiltrado)
                     ? todasLasPosiciones
                     : todasLasPosiciones.stream()
-                        .filter(row -> sensorFiltrado.equals(row.getString("sensor_id")))
-                        .toList();
+                    .filter(row -> sensorFiltrado.equals(row.getString("sensor_id")))
+                    .toList();
 
             // =================================================
             // MOSTRAR EN MAPA
@@ -516,24 +516,25 @@ public class SeguimientoGPSPanelController {
 
 
                 // =============================================
-                // FECHA DEL DÍA
-                // =============================================
-
-                LocalDate fechaDia =
-                        row.getLocalDate(
-                                "fecha_dia"
-                        );
-
-
-                // =============================================
                 // FECHA Y HORA
-                // Cassandra timestamp -> Instant
+                // posiciones_sensor no contiene fecha_dia;
+                // Cassandra timestamp se obtiene como Instant.
                 // =============================================
 
-                Instant fechaHora =
-                        row.getInstant(
-                                "fecha_hora"
-                        );
+                Instant fechaHora = row.getInstant("fecha_hora");
+
+                if (fechaHora == null) {
+                    System.err.println(
+                            "Se omitió una posición GPS sin fecha_hora."
+                    );
+                    continue;
+                }
+
+                // Derivar la fecha del día desde fecha_hora en UTC.
+                LocalDate fechaDia = LocalDate.ofInstant(
+                        fechaHora,
+                        java.time.ZoneOffset.UTC
+                );
 
 
                 // =============================================

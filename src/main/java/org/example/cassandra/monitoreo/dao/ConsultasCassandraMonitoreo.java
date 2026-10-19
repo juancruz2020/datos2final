@@ -1,3 +1,4 @@
+
 package org.example.cassandra.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
@@ -5,8 +6,10 @@ import com.datastax.oss.driver.api.core.cql.PreparedStatement;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,10 +39,7 @@ public class ConsultasCassandraMonitoreo {
         PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
-                statement.bind(
-                        sensorId,
-                        fechaDia
-                )
+                statement.bind(sensorId, fechaDia)
         );
 
         List<Row> lecturas = new ArrayList<>();
@@ -50,7 +50,6 @@ public class ConsultasCassandraMonitoreo {
 
         return lecturas;
     }
-
 
     // ============================================================
     // 2. LECTURAS ENTRE DOS HORARIOS
@@ -91,7 +90,6 @@ public class ConsultasCassandraMonitoreo {
         return lecturas;
     }
 
-
     // ============================================================
     // 3. TEMPERATURA HISTÓRICA
     // ============================================================
@@ -110,10 +108,7 @@ public class ConsultasCassandraMonitoreo {
         PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
-                statement.bind(
-                        sensorId,
-                        fechaDia
-                )
+                statement.bind(sensorId, fechaDia)
         );
 
         List<Row> temperaturas = new ArrayList<>();
@@ -124,7 +119,6 @@ public class ConsultasCassandraMonitoreo {
 
         return temperaturas;
     }
-
 
     // ============================================================
     // 4. BATERÍA HISTÓRICA
@@ -144,10 +138,7 @@ public class ConsultasCassandraMonitoreo {
         PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
-                statement.bind(
-                        sensorId,
-                        fechaDia
-                )
+                statement.bind(sensorId, fechaDia)
         );
 
         List<Row> bateria = new ArrayList<>();
@@ -159,29 +150,36 @@ public class ConsultasCassandraMonitoreo {
         return bateria;
     }
 
-
     // ============================================================
-    // 5. POSICIÓN GPS
+    // 5. POSICIONES GPS DE UN SENSOR POR DÍA
     // ============================================================
 
     public List<Row> obtenerPosicionesGPS(
             String sensorId,
             LocalDate fechaDia) {
 
+        Instant desde = fechaDia
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC);
+
+        Instant hasta = fechaDia
+                .plusDays(1)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC);
+
         String cql = """
-            SELECT fecha_hora, latitud, longitud
-            FROM logistica.lecturas_sensor
+            SELECT fecha_hora, latitud, longitud,
+                   contenedor_id, pais, region
+            FROM logistica.posiciones_sensor
             WHERE sensor_id = ?
-            AND fecha_dia = ?
+            AND fecha_hora >= ?
+            AND fecha_hora < ?
             """;
 
         PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
-                statement.bind(
-                        sensorId,
-                        fechaDia
-                )
+                statement.bind(sensorId, desde, hasta)
         );
 
         List<Row> posiciones = new ArrayList<>();
@@ -192,7 +190,6 @@ public class ConsultasCassandraMonitoreo {
 
         return posiciones;
     }
-
 
     // ============================================================
     // 6. MÉTRICAS DE UNA REGIÓN
@@ -218,11 +215,7 @@ public class ConsultasCassandraMonitoreo {
         PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
-                statement.bind(
-                        region,
-                        desde,
-                        hasta
-                )
+                statement.bind(region, desde, hasta)
         );
 
         List<Row> metricas = new ArrayList<>();
@@ -233,7 +226,6 @@ public class ConsultasCassandraMonitoreo {
 
         return metricas;
     }
-
 
     // ============================================================
     // 7. MÉTRICAS DE UN PAÍS
@@ -258,11 +250,7 @@ public class ConsultasCassandraMonitoreo {
         PreparedStatement statement = session.prepare(cql);
 
         ResultSet result = session.execute(
-                statement.bind(
-                        pais,
-                        desde,
-                        hasta
-                )
+                statement.bind(pais, desde, hasta)
         );
 
         List<Row> metricas = new ArrayList<>();
@@ -273,7 +261,6 @@ public class ConsultasCassandraMonitoreo {
 
         return metricas;
     }
-
 
     // ============================================================
     // 8. TABLA COMPLETA DE LECTURAS
@@ -297,7 +284,6 @@ public class ConsultasCassandraMonitoreo {
         return lecturas;
     }
 
-
     // ============================================================
     // 9. TABLA COMPLETA DE MÉTRICAS POR REGIÓN
     // ============================================================
@@ -319,7 +305,6 @@ public class ConsultasCassandraMonitoreo {
 
         return metricas;
     }
-
 
     // ============================================================
     // 10. TABLA COMPLETA DE MÉTRICAS POR PAÍS
@@ -344,15 +329,15 @@ public class ConsultasCassandraMonitoreo {
     }
 
     // ============================================================
-// 11. POSICIONES GPS DE TODOS LOS SENSORES
-// ============================================================
+    // 11. POSICIONES GPS DE TODOS LOS SENSORES
+    // ============================================================
 
     public List<Row> obtenerTodasLasPosicionesGPS() {
 
         String cql = """
-        SELECT *
-        FROM logistica.lecturas_sensor
-        """;
+            SELECT *
+            FROM logistica.posiciones_sensor
+            """;
 
         ResultSet result = session.execute(cql);
 
