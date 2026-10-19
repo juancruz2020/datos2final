@@ -9,6 +9,8 @@ public class Envio {
     private String clienteId;
     private List<String> contenedoresIds;
     private String fechaCreacion;
+    private String fechaSalida;
+    private String fechaEntrega;
     private Ubicacion origen;
     private Ubicacion destino;
     private String estado;
@@ -49,6 +51,24 @@ public class Envio {
         this.prioridad = prioridad;
     }
 
+    public Envio(
+            String id,
+            String clienteId,
+            List<String> contenedoresIds,
+            String fechaCreacion,
+            String fechaSalida,
+            String fechaEntrega,
+            Ubicacion origen,
+            Ubicacion destino,
+            String estado,
+            String prioridad
+    ) {
+        this(id, clienteId, contenedoresIds, fechaCreacion,
+                origen, destino, estado, prioridad);
+        this.fechaSalida = fechaSalida;
+        this.fechaEntrega = fechaEntrega;
+    }
+
     public String getId() {
         return id;
     }
@@ -81,6 +101,22 @@ public class Envio {
 
     public void setFechaCreacion(String fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public String getFechaSalida() {
+        return fechaSalida;
+    }
+
+    public void setFechaSalida(String fechaSalida) {
+        this.fechaSalida = fechaSalida;
+    }
+
+    public String getFechaEntrega() {
+        return fechaEntrega;
+    }
+
+    public void setFechaEntrega(String fechaEntrega) {
+        this.fechaEntrega = fechaEntrega;
     }
 
     public Ubicacion getOrigen() {

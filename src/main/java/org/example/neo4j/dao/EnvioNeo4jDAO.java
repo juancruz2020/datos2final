@@ -25,6 +25,8 @@ public class EnvioNeo4jDAO {
         parametros.put("id", envio.getId());
         parametros.put("cliente", envio.getClienteId());
         parametros.put("fecha", envio.getFechaCreacion());
+        parametros.put("fechaSalida", envio.getFechaSalida());
+        parametros.put("fechaEntrega", envio.getFechaEntrega());
         parametros.put("estado", envio.getEstado());
         parametros.put("prioridad", envio.getPrioridad());
         parametros.put("contenedores", envio.getContenedoresIds());
@@ -40,11 +42,15 @@ public class EnvioNeo4jDAO {
             session.executeWrite(tx -> {
                 tx.run("""
                         MERGE (e:Envio {id: $id})
-                        SET e.fechaCreacion = $fecha, e.estado = $estado, e.prioridad = $prioridad
+                        SET e.fechaCreacion = $fecha,
+                            e.fechaSalida = $fechaSalida,
+                            e.fechaEntrega = $fechaEntrega,
+                            e.estado = $estado,
+                            e.prioridad = $prioridad
                         REMOVE e.clienteId, e.ciudadOrigen, e.paisOrigen,
                                e.ciudadDestino, e.paisDestino
                         WITH e
-                        OPTIONAL MATCH (e)-[r:TRANSPORTA|SALE_DE|LLEGA_A]-()
+                        OPTIONAL MATCH (e)-[r:TRANSPORTA|SALE_DE|LLEGA_A|UTILIZA]-()
                         DELETE r
                         """, parametros).consume();
                 tx.run("MATCH (:Cliente)-[r:REALIZA]->(:Envio {id: $id}) DELETE r", parametros).consume();
@@ -138,6 +144,8 @@ public class EnvioNeo4jDAO {
                     cliente.id AS clienteId,
                     cliente.razonSocial AS cliente,
                     e.fechaCreacion AS fechaCreacion,
+                    e.fechaSalida AS fechaSalida,
+                    e.fechaEntrega AS fechaEntrega,
                     origen.ciudad AS ciudadOrigen,
                     origen.pais AS paisOrigen,
                     destino.ciudad AS ciudadDestino,
@@ -183,6 +191,8 @@ public class EnvioNeo4jDAO {
                     cliente.id AS clienteId,
                     cliente.razonSocial AS cliente,
                     e.fechaCreacion AS fechaCreacion,
+                    e.fechaSalida AS fechaSalida,
+                    e.fechaEntrega AS fechaEntrega,
                     origen.ciudad AS ciudadOrigen,
                     origen.pais AS paisOrigen,
                     destino.ciudad AS ciudadDestino,
@@ -215,6 +225,8 @@ public class EnvioNeo4jDAO {
             String id,
             String clienteId,
             String fechaCreacion,
+            String fechaSalida,
+            String fechaEntrega,
             String ciudadOrigen,
             String paisOrigen,
             String ciudadDestino,
@@ -224,7 +236,7 @@ public class EnvioNeo4jDAO {
     ) {
 
         guardarCompleto(new org.example.neo4j.model.Envio(
-                id, clienteId, List.of(), fechaCreacion,
+                id, clienteId, List.of(), fechaCreacion, fechaSalida, fechaEntrega,
                 new org.example.neo4j.model.Ubicacion(null, ciudadOrigen, paisOrigen),
                 new org.example.neo4j.model.Ubicacion(null, ciudadDestino, paisDestino),
                 estado, prioridad));
@@ -378,6 +390,8 @@ public class EnvioNeo4jDAO {
         envio.put("clienteId", texto(record.get("clienteId")));
         envio.put("cliente", texto(record.get("cliente")));
         envio.put("fechaCreacion", texto(record.get("fechaCreacion")));
+        envio.put("fechaSalida", texto(record.get("fechaSalida")));
+        envio.put("fechaEntrega", texto(record.get("fechaEntrega")));
 
         envio.put("ciudadOrigen", texto(record.get("ciudadOrigen")));
         envio.put("paisOrigen", texto(record.get("paisOrigen")));

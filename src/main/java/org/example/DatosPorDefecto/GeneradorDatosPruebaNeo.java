@@ -154,14 +154,14 @@ public class GeneradorDatosPruebaNeo {
 
     private static void crearEnvios(Session session) {
 
-        crearEnvio(session, "ENV-001", "CLI-001", "CONT-001", "VEH-001", "2026-09-01T08:00:00Z", "Buenos Aires", "Argentina", "Montevideo", "Uruguay", "EN_TRANSITO", "ALTA");
-        crearEnvio(session, "ENV-002", "CLI-002", "CONT-002", "VEH-002", "2026-09-02T08:00:00Z", "Buenos Aires", "Argentina", "Santiago", "Chile", "DEMORADO", "ALTA");
-        crearEnvio(session, "ENV-003", "CLI-003", "CONT-003", "VEH-003", "2026-09-03T08:00:00Z", "Sao Paulo", "Brasil", "Buenos Aires", "Argentina", "ENTREGADO", "MEDIA");
-        crearEnvio(session, "ENV-004", "CLI-001", "CONT-004", "VEH-001", "2026-09-04T08:00:00Z", "Montevideo", "Uruguay", "Sao Paulo", "Brasil", "PENDIENTE", "BAJA");
-        crearEnvio(session, "ENV-005", "CLI-002", "CONT-005", "VEH-002", "2026-09-05T08:00:00Z", "Santiago", "Chile", "Buenos Aires", "Argentina", "EN_TRANSITO", "MEDIA");
-        crearEnvio(session, "ENV-006", "CLI-003", "CONT-006", "VEH-003", "2026-09-06T08:00:00Z", "Buenos Aires", "Argentina", "Sao Paulo", "Brasil", "PENDIENTE", "ALTA");
-        crearEnvio(session, "ENV-007", "CLI-001", "CONT-007", "VEH-001", "2026-09-07T08:00:00Z", "Sao Paulo", "Brasil", "Montevideo", "Uruguay", "CANCELADO", "BAJA");
-        crearEnvio(session, "ENV-008", "CLI-002", "CONT-008", "VEH-002", "2026-09-08T08:00:00Z", "Montevideo", "Uruguay", "Santiago", "Chile", "EN_TRANSITO", "ALTA");
+        crearEnvio(session, "ENV-001", "CLI-001", "CONT-001", "VEH-001", "2026-09-01T08:00:00Z", "2026-09-01", "2026-09-05", "Buenos Aires", "Argentina", "Montevideo", "Uruguay", "EN_TRANSITO", "ALTA");
+        crearEnvio(session, "ENV-002", "CLI-002", "CONT-002", "VEH-002", "2026-09-02T08:00:00Z", "2026-09-02", "2026-09-07", "Buenos Aires", "Argentina", "Santiago", "Chile", "DEMORADO", "ALTA");
+        crearEnvio(session, "ENV-003", "CLI-003", "CONT-003", "VEH-003", "2026-09-03T08:00:00Z", "2026-09-03", "2026-09-08", "Sao Paulo", "Brasil", "Buenos Aires", "Argentina", "ENTREGADO", "MEDIA");
+        crearEnvio(session, "ENV-004", "CLI-001", "CONT-004", "VEH-001", "2026-09-04T08:00:00Z", "2026-09-04", "2026-09-09", "Montevideo", "Uruguay", "Sao Paulo", "Brasil", "PENDIENTE", "BAJA");
+        crearEnvio(session, "ENV-005", "CLI-002", "CONT-005", "VEH-002", "2026-09-05T08:00:00Z", "2026-09-05", "2026-09-10", "Santiago", "Chile", "Buenos Aires", "Argentina", "EN_TRANSITO", "MEDIA");
+        crearEnvio(session, "ENV-006", "CLI-003", "CONT-006", "VEH-003", "2026-09-06T08:00:00Z", "2026-09-06", "2026-09-11", "Buenos Aires", "Argentina", "Sao Paulo", "Brasil", "PENDIENTE", "ALTA");
+        crearEnvio(session, "ENV-007", "CLI-001", "CONT-007", "VEH-001", "2026-09-07T08:00:00Z", "2026-09-07", "2026-09-12", "Sao Paulo", "Brasil", "Montevideo", "Uruguay", "CANCELADO", "BAJA");
+        crearEnvio(session, "ENV-008", "CLI-002", "CONT-008", "VEH-002", "2026-09-08T08:00:00Z", "2026-09-08", "2026-09-13", "Montevideo", "Uruguay", "Santiago", "Chile", "EN_TRANSITO", "ALTA");
     }
 
     private static void crearEnvio(
@@ -171,6 +171,8 @@ public class GeneradorDatosPruebaNeo {
             String contenedorId,
             String vehiculoId,
             String fechaCreacion,
+            String fechaSalida,
+            String fechaEntrega,
             String ciudadOrigen,
             String paisOrigen,
             String ciudadDestino,
@@ -181,6 +183,8 @@ public class GeneradorDatosPruebaNeo {
         session.run("""
                 MERGE (e:Envio {id: $envioId})
                 SET e.fechaCreacion = $fechaCreacion,
+                    e.fechaSalida = $fechaSalida,
+                    e.fechaEntrega = $fechaEntrega,
                     e.estado = $estado,
                     e.prioridad = $prioridad
                 REMOVE e.clienteId, e.ciudadOrigen, e.paisOrigen,
@@ -208,6 +212,8 @@ public class GeneradorDatosPruebaNeo {
                 Map.entry("contenedorId", contenedorId),
                 Map.entry("vehiculoId", vehiculoId),
                 Map.entry("fechaCreacion", fechaCreacion),
+                Map.entry("fechaSalida", fechaSalida),
+                Map.entry("fechaEntrega", fechaEntrega),
                 Map.entry("ciudadOrigen", ciudadOrigen),
                 Map.entry("paisOrigen", paisOrigen),
                 Map.entry("ciudadDestino", ciudadDestino),

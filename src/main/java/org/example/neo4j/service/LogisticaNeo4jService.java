@@ -16,6 +16,7 @@ import org.example.neo4j.model.Vehiculo;
 
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDate;
 
 public class LogisticaNeo4jService {
 
@@ -47,6 +48,7 @@ public class LogisticaNeo4jService {
                 return envioDAO.contenedorOcupadoPorOtro(id, envio);
             }
         });
+        envioDAO.normalizarEnviosExistentes();
     }
 
     // =====================================================
@@ -73,10 +75,32 @@ public class LogisticaNeo4jService {
                 || envio.getContenedoresIds() == null || envio.getContenedoresIds().isEmpty()) {
             throw new IllegalArgumentException("El cliente y al menos un contenedor son obligatorios.");
         }
+        validarFechasEnvio(envio);
         Map<String, Object> existente = envioDAO.buscarPorId(envio.getId());
         List<String> anteriores = existente == null ? List.of() : obtenerIdsContenedores(existente);
         disponibilidad.guardar(envio.getId(), anteriores, envio.getContenedoresIds(),
                 envio.getEstado(), () -> envioDAO.guardarCompleto(envio));
+    }
+
+    private void validarFechasEnvio(Envio envio) {
+        LocalDate salida = parsearFechaEnvio(envio.getFechaSalida(), "salida");
+        LocalDate entrega = parsearFechaEnvio(envio.getFechaEntrega(), "entrega");
+        if (salida != null && entrega != null && salida.isAfter(entrega)) {
+            throw new IllegalArgumentException(
+                    "La fecha de salida no puede ser posterior a la fecha de entrega."
+            );
+        }
+    }
+
+    private LocalDate parsearFechaEnvio(String fecha, String campo) {
+        if (fecha == null || fecha.isBlank()) return null;
+        try {
+            return LocalDate.parse(fecha);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    "La fecha de " + campo + " debe tener formato AAAA-MM-DD.", e
+            );
+        }
     }
 
     private List<String> obtenerIdsContenedores(Map<String, Object> envio) {

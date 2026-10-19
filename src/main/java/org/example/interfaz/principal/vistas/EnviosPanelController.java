@@ -315,11 +315,10 @@ public class EnviosPanelController {
                 String propietario =
                         texto(contenedor.get("envio_asignado"));
 
-                boolean propioEnUso =
-                        asignadosAlEnvio.contains(id)
-                                && "EN_USO".equals(estado)
-                                && (propietario == null
-                                || propietario.equals(envioIdEnEdicion));
+                boolean propioEnUso = "EN_USO".equals(estado)
+                        && envioIdEnEdicion != null
+                        && (envioIdEnEdicion.equals(propietario)
+                        || (propietario == null && asignadosAlEnvio.contains(id)));
 
                 if (!"DISPONIBLE".equals(estado)
                         && !propioEnUso) {
@@ -353,6 +352,10 @@ public class EnviosPanelController {
     // =====================================================
 
     private void cargarVehiculos() {
+        cargarVehiculos(null);
+    }
+
+    private void cargarVehiculos(String vehiculoAsignadoId) {
 
         if (!puedeModificarEnvios()) {
             return;
@@ -389,13 +392,16 @@ public class EnviosPanelController {
                     continue;
                 }
 
+                String id = objectId.toHexString();
+                boolean asignadoAEsteEnvio = vehiculoAsignadoId != null
+                        && vehiculoAsignadoId.equals(id);
+
                 if (estado != null
                         && !estado.isBlank()
-                        && !"ACTIVO".equalsIgnoreCase(estado)) {
+                        && !"ACTIVO".equalsIgnoreCase(estado)
+                        && !asignadoAEsteEnvio) {
                     continue;
                 }
-
-                String id = objectId.toHexString();
 
                 String etiqueta =
                         (tipo == null || tipo.isBlank()
@@ -492,6 +498,8 @@ public class EnviosPanelController {
                         contenedores,
                         vehiculo,
                         fecha,
+                        formatearFecha(texto(envio.get("fechaSalida"))),
+                        formatearFecha(texto(envio.get("fechaEntrega"))),
                         origen,
                         destino,
                         texto(envio.get("estado")),
@@ -574,14 +582,16 @@ public class EnviosPanelController {
             cargarContenedores(
                     listaTextos(envio.get("contenedoresIds"))
             );
-            cargarVehiculos();
+            cargarVehiculos(texto(envio.get("vehiculoId")));
 
             seleccionarCliente(
-                    texto(envio.get("clienteId"))
+                    texto(envio.get("clienteId")),
+                    texto(envio.get("cliente"))
             );
 
             seleccionarContenedores(
-                    listaTextos(envio.get("contenedoresIds"))
+                    listaTextos(envio.get("contenedoresIds")),
+                    listaTextos(envio.get("contenedores"))
             );
 
             view.getTxtCiudadOrigen().setText(
@@ -599,6 +609,12 @@ public class EnviosPanelController {
             view.getTxtPaisDestino().setText(
                     valorTexto(envio.get("paisDestino"))
             );
+            view.getTxtFechaSalida().setText(
+                    valorTexto(envio.get("fechaSalida"))
+            );
+            view.getTxtFechaEntrega().setText(
+                    valorTexto(envio.get("fechaEntrega"))
+            );
 
             seleccionarCombo(
                     view.getCmbEstado(),
@@ -611,7 +627,8 @@ public class EnviosPanelController {
             );
 
             seleccionarVehiculo(
-                    texto(envio.get("vehiculoId"))
+                    texto(envio.get("vehiculoId")),
+                    texto(envio.get("vehiculo"))
             );
 
             view.prepararEdicion();
@@ -626,25 +643,34 @@ public class EnviosPanelController {
         }
     }
 
-    private void seleccionarCliente(String clienteId) {
-
-        if (clienteId == null) {
-            return;
-        }
-
+    private void seleccionarCliente(String clienteId, String clienteNombre) {
         for (Map.Entry<String, String> entry
                 : clientesPorNombre.entrySet()) {
 
-            if (clienteId.equals(entry.getValue())) {
+            if (clienteId != null && clienteId.equals(entry.getValue())) {
                 view.getCmbCliente().setSelectedItem(
                         entry.getKey()
                 );
                 return;
             }
         }
+
+        // Compatibilidad con envíos de prueba que preceden a los IDs de MongoDB.
+        String nombreNormalizado = normalizar(clienteNombre);
+        if (!nombreNormalizado.isBlank()) {
+            for (String etiqueta : clientesPorNombre.keySet()) {
+                String opcionNormalizada = normalizar(etiqueta);
+                if (nombreNormalizado.equals(opcionNormalizada)
+                        || nombreNormalizado.startsWith(opcionNormalizada)
+                        || opcionNormalizada.startsWith(nombreNormalizado)) {
+                    view.getCmbCliente().setSelectedItem(etiqueta);
+                    return;
+                }
+            }
+        }
     }
 
-    private void seleccionarContenedores(List<String> ids) {
+    private void seleccionarContenedores(List<String> ids, List<String> codigos) {
 
         List<String> etiquetasSeleccionadas =
                 new ArrayList<>();
@@ -657,10 +683,20 @@ public class EnviosPanelController {
             }
         }
 
+        // Los fixtures anteriores guardaban el código CONT-### como ID.
+        for (String codigo : codigos) {
+            for (String etiqueta : contenedoresPorCodigo.keySet()) {
+                if (normalizar(codigo).equals(normalizar(etiqueta))
+                        && !etiquetasSeleccionadas.contains(etiqueta)) {
+                    etiquetasSeleccionadas.add(etiqueta);
+                }
+            }
+        }
+
         view.seleccionarContenedores(etiquetasSeleccionadas);
     }
 
-    private void seleccionarVehiculo(String vehiculoId) {
+    private void seleccionarVehiculo(String vehiculoId, String identificacion) {
 
         JComboBox<String> combo = view.getCmbVehiculo();
 
@@ -675,6 +711,16 @@ public class EnviosPanelController {
             if (vehiculoId.equals(entry.getValue())) {
                 combo.setSelectedItem(entry.getKey());
                 return;
+            }
+        }
+
+        String identificacionNormalizada = normalizar(identificacion);
+        if (!identificacionNormalizada.isBlank()) {
+            for (String etiqueta : vehiculosPorEtiqueta.keySet()) {
+                if (normalizar(etiqueta).endsWith(identificacionNormalizada)) {
+                    combo.setSelectedItem(etiqueta);
+                    return;
+                }
             }
         }
 
@@ -802,6 +848,8 @@ public class EnviosPanelController {
                 datos.clienteId,
                 datos.contenedoresIds,
                 fechaCreacion,
+                datos.fechaSalida,
+                datos.fechaEntrega,
                 new Ubicacion(
                         null,
                         datos.ciudadOrigen,
@@ -928,6 +976,22 @@ public class EnviosPanelController {
         String paisDestino =
                 view.getTxtPaisDestino().getText().trim();
 
+        String fechaSalida = view.getTxtFechaSalida().getText().trim();
+        String fechaEntrega = view.getTxtFechaEntrega().getText().trim();
+        if (!fechaValida(fechaSalida)) {
+            advertir("La fecha de salida debe tener formato AAAA-MM-DD.");
+            return null;
+        }
+        if (!fechaValida(fechaEntrega)) {
+            advertir("La fecha de entrega debe tener formato AAAA-MM-DD.");
+            return null;
+        }
+        if (!fechaSalida.isBlank() && !fechaEntrega.isBlank()
+                && LocalDate.parse(fechaSalida).isAfter(LocalDate.parse(fechaEntrega))) {
+            advertir("La fecha de salida no puede ser posterior a la fecha de entrega.");
+            return null;
+        }
+
         if (ciudadOrigen.isBlank()
                 || paisOrigen.isBlank()
                 || ciudadDestino.isBlank()
@@ -954,6 +1018,8 @@ public class EnviosPanelController {
                 paisOrigen,
                 ciudadDestino,
                 paisDestino,
+                fechaSalida,
+                fechaEntrega,
                 prioridadSeleccionada.toString()
         );
     }
@@ -1090,6 +1156,22 @@ public class EnviosPanelController {
         }
     }
 
+    private boolean fechaValida(String fecha) {
+        if (fecha == null || fecha.isBlank()) return true;
+        try {
+            LocalDate.parse(fecha);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private String normalizar(String valor) {
+        return valor == null ? "" : valor.trim().toLowerCase()
+                .replaceAll("\\s+", "").replaceAll("[^a-z0-9]", "")
+                .replaceAll("(srl|sas|sac|ltda|sa)$", "");
+    }
+
     private String combinarUbicacion(
             String ciudad,
             String pais
@@ -1182,6 +1264,8 @@ public class EnviosPanelController {
         private final String paisOrigen;
         private final String ciudadDestino;
         private final String paisDestino;
+        private final String fechaSalida;
+        private final String fechaEntrega;
         private final String prioridad;
 
         private DatosFormulario(
@@ -1191,6 +1275,8 @@ public class EnviosPanelController {
                 String paisOrigen,
                 String ciudadDestino,
                 String paisDestino,
+                String fechaSalida,
+                String fechaEntrega,
                 String prioridad
         ) {
 
@@ -1200,6 +1286,8 @@ public class EnviosPanelController {
             this.paisOrigen = paisOrigen;
             this.ciudadDestino = ciudadDestino;
             this.paisDestino = paisDestino;
+            this.fechaSalida = fechaSalida;
+            this.fechaEntrega = fechaEntrega;
             this.prioridad = prioridad;
         }
     }
