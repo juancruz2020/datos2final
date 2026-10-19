@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.example.interfaz.tema.Colores;
@@ -15,36 +16,25 @@ public class ContenedoresPanel extends JPanel {
     // =========================================================
 
     private final JTable tablaContenedores;
-
     private final JButton btnActualizar;
-
     private final JButton btnMostrarFormulario;
-
     private final JButton btnEditar;
-
     private final JButton btnEliminar;
-
 
     // =========================================================
     // FORMULARIO
     // =========================================================
 
     private final JTextField txtCodigoInternacional;
-
     private final JTextField txtTipo;
-
     private final JTextField txtCapacidad;
-
     private final JComboBox<String> comboEstado;
 
     private final JButton btnGuardar;
-
     private final JButton btnCancelar;
 
     private JPanel panelFormulario;
-
     private JLabel lblTituloFormulario;
-
 
     // =========================================================
     // ESTADO
@@ -52,83 +42,49 @@ public class ContenedoresPanel extends JPanel {
 
     private final JLabel lblEstado;
 
-
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
     public ContenedoresPanel() {
 
-        tablaContenedores =
-                new JTable();
+        tablaContenedores = new JTable();
 
+        btnActualizar = new JButton("Actualizar");
 
-        btnActualizar =
-                new JButton(
-                        "Actualizar"
-                );
+        btnMostrarFormulario = new JButton(
+                "+ Agregar contenedor"
+        );
 
+        btnEditar = new JButton("Editar");
+        btnEliminar = new JButton("Eliminar");
 
-        btnMostrarFormulario =
-                new JButton(
-                        "+ Agregar contenedor"
-                );
+        txtCodigoInternacional = new JTextField();
+        txtTipo = new JTextField();
+        txtCapacidad = new JTextField();
 
+        comboEstado = new JComboBox<>(
+                new String[]{
+                        "DISPONIBLE",
+                        "EN_USO"
+                }
+        );
 
-        btnEditar =
-                new JButton(
-                        "Editar"
-                );
+        btnGuardar = new JButton("Guardar contenedor");
+        btnCancelar = new JButton("Cancelar");
 
+        lblEstado = new JLabel(" ");
 
-        btnEliminar =
-                new JButton(
-                        "Eliminar"
-                );
+        txtCodigoInternacional.setEditable(false);
+        txtCodigoInternacional.setToolTipText(
+                "El código se genera automáticamente."
+        );
 
-
-        txtCodigoInternacional =
-                new JTextField();
-
-
-        txtTipo =
-                new JTextField();
-
-
-        txtCapacidad =
-                new JTextField();
-
-
-        comboEstado =
-                new JComboBox<>(
-                        new String[]{
-                                "DISPONIBLE",
-                                "EN_USO"
-                        }
-                );
-
-
-        btnGuardar =
-                new JButton(
-                        "Guardar contenedor"
-                );
-
-
-        btnCancelar =
-                new JButton(
-                        "Cancelar"
-                );
-
-
-        lblEstado =
-                new JLabel(
-                        " "
-                );
-
+        comboEstado.setSelectedItem("DISPONIBLE");
+        comboEstado.setEnabled(false);
 
         construir();
     }
-
 
     // =========================================================
     // CONSTRUIR
@@ -136,72 +92,34 @@ public class ContenedoresPanel extends JPanel {
 
     private void construir() {
 
-        setLayout(
-                new BorderLayout(
-                        20,
-                        20
-                )
-        );
+        setLayout(new BorderLayout(20, 20));
 
-
-        setBackground(
-                Colores.FONDO
-        );
-
+        setBackground(Colores.FONDO);
 
         setBorder(
-                new EmptyBorder(
-                        25,
-                        30,
-                        25,
-                        30
-                )
+                new EmptyBorder(25, 30, 25, 30)
         );
-
 
         // =====================================================
         // TÍTULO
         // =====================================================
 
-        JLabel titulo =
-                new JLabel(
-                        "Contenedores"
-                );
+        JLabel titulo = new JLabel("Contenedores");
 
+        titulo.setFont(Fuentes.TITULO);
+        titulo.setForeground(Colores.TEXTO);
 
-        titulo.setFont(
-                Fuentes.TITULO
-        );
-
-
-        titulo.setForeground(
-                Colores.TEXTO
-        );
-
-
-        add(
-                titulo,
-                BorderLayout.NORTH
-        );
-
+        add(titulo, BorderLayout.NORTH);
 
         // =====================================================
         // CONTENIDO
         // =====================================================
 
-        JPanel contenido =
-                new JPanel(
-                        new BorderLayout(
-                                20,
-                                20
-                        )
-                );
-
-
-        contenido.setOpaque(
-                false
+        JPanel contenido = new JPanel(
+                new BorderLayout(20, 20)
         );
 
+        contenido.setOpaque(false);
 
         // -----------------------------------------------------
         // LISTADO
@@ -212,14 +130,11 @@ public class ContenedoresPanel extends JPanel {
                 BorderLayout.CENTER
         );
 
-
         // -----------------------------------------------------
         // PARTE INFERIOR
         // -----------------------------------------------------
 
-        JPanel inferior =
-                new JPanel();
-
+        JPanel inferior = new JPanel();
 
         inferior.setLayout(
                 new BoxLayout(
@@ -228,122 +143,62 @@ public class ContenedoresPanel extends JPanel {
                 )
         );
 
-
-        inferior.setOpaque(
-                false
-        );
-
+        inferior.setOpaque(false);
 
         // -----------------------------------------------------
         // BOTONES PRINCIPALES
         // -----------------------------------------------------
 
-        JPanel panelBotonesPrincipales =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-
-        panelBotonesPrincipales.setOpaque(
-                false
+        JPanel panelBotonesPrincipales = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT)
         );
 
+        panelBotonesPrincipales.setOpaque(false);
 
-        btnEditar.setFont(
-                Fuentes.BOTON
-        );
+        btnEditar.setFont(Fuentes.BOTON);
+        btnEditar.setFocusPainted(false);
 
+        btnEliminar.setFont(Fuentes.BOTON);
+        btnEliminar.setFocusPainted(false);
 
-        btnEditar.setFocusPainted(
-                false
-        );
+        btnMostrarFormulario.setFont(Fuentes.BOTON);
+        btnMostrarFormulario.setFocusPainted(false);
 
+        panelBotonesPrincipales.add(btnEditar);
+        panelBotonesPrincipales.add(btnEliminar);
+        panelBotonesPrincipales.add(btnMostrarFormulario);
 
-        btnEliminar.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnEliminar.setFocusPainted(
-                false
-        );
-
-
-        btnMostrarFormulario.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnMostrarFormulario.setFocusPainted(
-                false
-        );
-
-
-        panelBotonesPrincipales.add(
-                btnEditar
-        );
-
-
-        panelBotonesPrincipales.add(
-                btnEliminar
-        );
-
-
-        panelBotonesPrincipales.add(
-                btnMostrarFormulario
-        );
-
-
-        inferior.add(
-                panelBotonesPrincipales
-        );
-
+        inferior.add(panelBotonesPrincipales);
 
         // -----------------------------------------------------
         // FORMULARIO OCULTO
         // -----------------------------------------------------
 
-        panelFormulario =
-                crearPanelFormulario();
+        panelFormulario = crearPanelFormulario();
 
+        panelFormulario.setVisible(false);
 
-        panelFormulario.setVisible(
-                false
-        );
-
-
-        inferior.add(
-                panelFormulario
-        );
-
+        inferior.add(panelFormulario);
 
         contenido.add(
                 inferior,
                 BorderLayout.SOUTH
         );
 
-
         add(
                 contenido,
                 BorderLayout.CENTER
         );
 
-
         // =====================================================
         // ESTADO GENERAL
         // =====================================================
 
-        lblEstado.setFont(
-                Fuentes.NORMAL
-        );
-
+        lblEstado.setFont(Fuentes.NORMAL);
 
         lblEstado.setForeground(
                 Colores.TEXTO_SECUNDARIO
         );
-
 
         add(
                 lblEstado,
@@ -351,152 +206,100 @@ public class ContenedoresPanel extends JPanel {
         );
     }
 
-
     // =========================================================
     // LISTADO
     // =========================================================
 
     private JPanel crearPanelListado() {
 
-        JPanel panel =
-                crearPanelBase();
-
+        JPanel panel = crearPanelBase();
 
         panel.setLayout(
-                new BorderLayout(
-                        10,
-                        10
-                )
+                new BorderLayout(10, 10)
         );
-
 
         // -----------------------------------------------------
         // CABECERA
         // -----------------------------------------------------
 
-        JPanel cabecera =
-                new JPanel(
-                        new BorderLayout()
-                );
-
-
-        cabecera.setOpaque(
-                false
+        JPanel cabecera = new JPanel(
+                new BorderLayout()
         );
 
+        cabecera.setOpaque(false);
 
-        JLabel titulo =
-                new JLabel(
-                        "Contenedores registrados"
-                );
-
-
-        titulo.setFont(
-                Fuentes.LABEL
+        JLabel titulo = new JLabel(
+                "Contenedores registrados"
         );
 
+        titulo.setFont(Fuentes.LABEL);
+        titulo.setForeground(Colores.TEXTO);
 
-        titulo.setForeground(
-                Colores.TEXTO
-        );
-
-
-        btnActualizar.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnActualizar.setFocusPainted(
-                false
-        );
-
+        btnActualizar.setFont(Fuentes.BOTON);
+        btnActualizar.setFocusPainted(false);
 
         cabecera.add(
                 titulo,
                 BorderLayout.WEST
         );
 
-
         cabecera.add(
                 btnActualizar,
                 BorderLayout.EAST
         );
-
 
         panel.add(
                 cabecera,
                 BorderLayout.NORTH
         );
 
-
         // -----------------------------------------------------
         // TABLA
         // -----------------------------------------------------
 
-        DefaultTableModel modelo =
-                new DefaultTableModel(
-                        new Object[][]{},
-                        new String[]{
-                                "Código internacional",
-                                "Tipo",
-                                "Capacidad",
-                                "Estado"
-                        }
-                ) {
+        DefaultTableModel modelo = new DefaultTableModel(
+                new Object[][]{},
+                new String[]{
+                        "Código internacional",
+                        "Tipo",
+                        "Capacidad",
+                        "Estado"
+                }
+        ) {
 
-                    @Override
-                    public boolean isCellEditable(
-                            int row,
-                            int column
-                    ) {
+            @Override
+            public boolean isCellEditable(
+                    int row,
+                    int column
+            ) {
+                return false;
+            }
+        };
 
-                        return false;
-                    }
-                };
+        tablaContenedores.setModel(modelo);
 
-
-        tablaContenedores.setModel(
-                modelo
-        );
-
-
-        tablaContenedores.setRowHeight(
-                30
-        );
-
-
-        tablaContenedores.setFont(
-                Fuentes.NORMAL
-        );
-
+        tablaContenedores.setRowHeight(30);
+        tablaContenedores.setFont(Fuentes.NORMAL);
 
         tablaContenedores.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
 
-
         tablaContenedores
                 .getTableHeader()
-                .setReorderingAllowed(
-                        false
-                );
+                .setReorderingAllowed(false);
 
-
-        JScrollPane scroll =
-                new JScrollPane(
-                        tablaContenedores
-                );
-
+        JScrollPane scroll = new JScrollPane(
+                tablaContenedores
+        );
 
         panel.add(
                 scroll,
                 BorderLayout.CENTER
         );
 
-
         return panel;
     }
-
 
     // =========================================================
     // FORMULARIO
@@ -504,71 +307,44 @@ public class ContenedoresPanel extends JPanel {
 
     private JPanel crearPanelFormulario() {
 
-        JPanel panel =
-                crearPanelBase();
-
+        JPanel panel = crearPanelBase();
 
         panel.setLayout(
-                new BorderLayout(
-                        10,
-                        10
-                )
+                new BorderLayout(10, 10)
         );
 
-
-        lblTituloFormulario =
-                new JLabel(
-                        "Nuevo contenedor"
-                );
-
-
-        lblTituloFormulario.setFont(
-                Fuentes.LABEL
+        lblTituloFormulario = new JLabel(
+                "Nuevo contenedor"
         );
 
+        lblTituloFormulario.setFont(Fuentes.LABEL);
 
         lblTituloFormulario.setForeground(
                 Colores.TEXTO
         );
-
 
         panel.add(
                 lblTituloFormulario,
                 BorderLayout.NORTH
         );
 
-
         // =====================================================
         // CAMPOS
         // =====================================================
 
-        JPanel formulario =
-                new JPanel(
-                        new GridBagLayout()
-                );
-
-
-        formulario.setOpaque(
-                false
+        JPanel formulario = new JPanel(
+                new GridBagLayout()
         );
 
+        formulario.setOpaque(false);
 
         GridBagConstraints gbc =
                 new GridBagConstraints();
 
-
-        gbc.insets =
-                new Insets(
-                        5,
-                        5,
-                        5,
-                        5
-                );
-
+        gbc.insets = new Insets(5, 5, 5, 5);
 
         gbc.fill =
                 GridBagConstraints.HORIZONTAL;
-
 
         agregarCampo(
                 formulario,
@@ -578,7 +354,6 @@ public class ContenedoresPanel extends JPanel {
                 txtCodigoInternacional
         );
 
-
         agregarCampo(
                 formulario,
                 gbc,
@@ -586,7 +361,6 @@ public class ContenedoresPanel extends JPanel {
                 "Tipo:",
                 txtTipo
         );
-
 
         agregarCampo(
                 formulario,
@@ -596,7 +370,6 @@ public class ContenedoresPanel extends JPanel {
                 txtCapacidad
         );
 
-
         agregarCampo(
                 formulario,
                 gbc,
@@ -605,69 +378,37 @@ public class ContenedoresPanel extends JPanel {
                 comboEstado
         );
 
-
         panel.add(
                 formulario,
                 BorderLayout.CENTER
         );
 
-
         // =====================================================
         // BOTONES
         // =====================================================
 
-        JPanel botones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-
-        botones.setOpaque(
-                false
+        JPanel botones = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT)
         );
 
+        botones.setOpaque(false);
 
-        btnCancelar.setFont(
-                Fuentes.BOTON
-        );
+        btnCancelar.setFont(Fuentes.BOTON);
+        btnCancelar.setFocusPainted(false);
 
+        btnGuardar.setFont(Fuentes.BOTON);
+        btnGuardar.setFocusPainted(false);
 
-        btnCancelar.setFocusPainted(
-                false
-        );
-
-
-        btnGuardar.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnGuardar.setFocusPainted(
-                false
-        );
-
-
-        botones.add(
-                btnCancelar
-        );
-
-
-        botones.add(
-                btnGuardar
-        );
-
+        botones.add(btnCancelar);
+        botones.add(btnGuardar);
 
         panel.add(
                 botones,
                 BorderLayout.SOUTH
         );
 
-
         return panel;
     }
-
 
     // =========================================================
     // AGREGAR CAMPO
@@ -681,62 +422,26 @@ public class ContenedoresPanel extends JPanel {
             JComponent campo
     ) {
 
-        gbc.gridx =
-                0;
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
 
+        JLabel label = new JLabel(texto);
 
-        gbc.gridy =
-                fila;
+        label.setFont(Fuentes.NORMAL);
+        label.setForeground(Colores.TEXTO);
 
+        panel.add(label, gbc);
 
-        gbc.weightx =
-                0;
-
-
-        JLabel label =
-                new JLabel(
-                        texto
-                );
-
-
-        label.setFont(
-                Fuentes.NORMAL
-        );
-
-
-        label.setForeground(
-                Colores.TEXTO
-        );
-
-
-        panel.add(
-                label,
-                gbc
-        );
-
-
-        gbc.gridx =
-                1;
-
-
-        gbc.weightx =
-                1;
-
+        gbc.gridx = 1;
+        gbc.weightx = 1;
 
         campo.setPreferredSize(
-                new Dimension(
-                        350,
-                        30
-                )
+                new Dimension(350, 30)
         );
 
-
-        panel.add(
-                campo,
-                gbc
-        );
+        panel.add(campo, gbc);
     }
-
 
     // =========================================================
     // PANEL BASE
@@ -744,14 +449,11 @@ public class ContenedoresPanel extends JPanel {
 
     private JPanel crearPanelBase() {
 
-        JPanel panel =
-                new JPanel();
-
+        JPanel panel = new JPanel();
 
         panel.setBackground(
                 Colores.SUPERFICIE
         );
-
 
         panel.setBorder(
                 BorderFactory.createCompoundBorder(
@@ -759,18 +461,13 @@ public class ContenedoresPanel extends JPanel {
                                 Colores.BORDE
                         ),
                         new EmptyBorder(
-                                15,
-                                15,
-                                15,
-                                15
+                                15, 15, 15, 15
                         )
                 )
         );
 
-
         return panel;
     }
-
 
     // =========================================================
     // MOSTRAR FORMULARIO
@@ -778,21 +475,13 @@ public class ContenedoresPanel extends JPanel {
 
     public void mostrarFormulario() {
 
-        panelFormulario.setVisible(
-                true
-        );
+        panelFormulario.setVisible(true);
 
-
-        btnMostrarFormulario.setVisible(
-                false
-        );
-
+        btnMostrarFormulario.setVisible(false);
 
         revalidate();
-
         repaint();
     }
-
 
     // =========================================================
     // OCULTAR FORMULARIO
@@ -800,21 +489,13 @@ public class ContenedoresPanel extends JPanel {
 
     public void ocultarFormulario() {
 
-        panelFormulario.setVisible(
-                false
-        );
+        panelFormulario.setVisible(false);
 
-
-        btnMostrarFormulario.setVisible(
-                true
-        );
-
+        btnMostrarFormulario.setVisible(true);
 
         revalidate();
-
         repaint();
     }
-
 
     // =========================================================
     // LIMPIAR FORMULARIO
@@ -822,26 +503,16 @@ public class ContenedoresPanel extends JPanel {
 
     public void limpiarFormulario() {
 
-        txtCodigoInternacional.setText(
-                ""
-        );
+        txtCodigoInternacional.setText("");
 
+        txtTipo.setText("");
 
-        txtTipo.setText(
-                ""
-        );
-
-
-        txtCapacidad.setText(
-                ""
-        );
-
+        txtCapacidad.setText("");
 
         comboEstado.setSelectedItem(
                 "DISPONIBLE"
         );
     }
-
 
     // =========================================================
     // MODO AGREGAR
@@ -849,26 +520,24 @@ public class ContenedoresPanel extends JPanel {
 
     public void modoAgregar() {
 
+        txtCodigoInternacional.setText("Automático");
+
+        txtCodigoInternacional.setEditable(false);
+
         lblTituloFormulario.setText(
                 "Nuevo contenedor"
         );
-
 
         btnGuardar.setText(
                 "Guardar contenedor"
         );
 
-
         comboEstado.setSelectedItem(
                 "DISPONIBLE"
         );
 
-
-        comboEstado.setEnabled(
-                false
-        );
+        comboEstado.setEnabled(false);
     }
-
 
     // =========================================================
     // MODO EDITAR
@@ -876,94 +545,69 @@ public class ContenedoresPanel extends JPanel {
 
     public void modoEditar() {
 
+        txtCodigoInternacional.setEditable(false);
+
         lblTituloFormulario.setText(
                 "Editar contenedor"
         );
-
 
         btnGuardar.setText(
                 "Guardar cambios"
         );
 
-
-        comboEstado.setEnabled(
-                true
-        );
+        // El estado se controla desde los envíos.
+        comboEstado.setEnabled(false);
     }
-
 
     // =========================================================
     // GETTERS
     // =========================================================
 
     public JTable getTablaContenedores() {
-
         return tablaContenedores;
     }
 
-
     public JButton getBtnActualizar() {
-
         return btnActualizar;
     }
 
-
     public JButton getBtnMostrarFormulario() {
-
         return btnMostrarFormulario;
     }
 
-
     public JButton getBtnEditar() {
-
         return btnEditar;
     }
 
-
     public JButton getBtnEliminar() {
-
         return btnEliminar;
     }
 
-
     public JTextField getTxtCodigoInternacional() {
-
         return txtCodigoInternacional;
     }
 
-
     public JTextField getTxtTipo() {
-
         return txtTipo;
     }
 
-
     public JTextField getTxtCapacidad() {
-
         return txtCapacidad;
     }
 
-
     public JComboBox<String> getComboEstado() {
-
         return comboEstado;
     }
 
-
     public JButton getBtnGuardar() {
-
         return btnGuardar;
     }
 
-
     public JButton getBtnCancelar() {
-
         return btnCancelar;
     }
 
-
     public JLabel getLblEstado() {
-
         return lblEstado;
     }
 }

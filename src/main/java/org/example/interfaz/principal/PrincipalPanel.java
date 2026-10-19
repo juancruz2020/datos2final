@@ -1,9 +1,11 @@
+
 package org.example.interfaz.principal;
 
 import org.example.interfaz.principal.header.HeaderPanel;
 import org.example.interfaz.principal.menu.MenuLateralPanel;
 import org.example.interfaz.principal.vistas.*;
 import org.example.interfaz.tema.Colores;
+import org.example.mongoDB.controller.PermisosController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,17 +13,15 @@ import java.awt.*;
 public class PrincipalPanel extends JPanel {
 
     private final String usuarioId;
-
     private final String nombreUsuario;
 
     private final CardLayout cardLayout;
-
     private final JPanel contenido;
 
     private final MenuLateralPanel menuLateral;
-
     private final HeaderPanel header;
 
+    private final PermisosController permisosController;
 
     // =========================================================
     // CONSTRUCTOR
@@ -32,36 +32,19 @@ public class PrincipalPanel extends JPanel {
             String nombreUsuario
     ) {
 
-        this.usuarioId =
-                usuarioId;
+        this.usuarioId = usuarioId;
+        this.nombreUsuario = nombreUsuario;
 
-        this.nombreUsuario =
-                nombreUsuario;
+        this.permisosController = new PermisosController();
 
+        cardLayout = new CardLayout();
+        contenido = new JPanel(cardLayout);
 
-        cardLayout =
-                new CardLayout();
-
-
-        contenido =
-                new JPanel(
-                        cardLayout
-                );
-
-
-        menuLateral =
-                new MenuLateralPanel();
-
-
-        header =
-                new HeaderPanel(
-                        nombreUsuario
-                );
-
+        menuLateral = new MenuLateralPanel();
+        header = new HeaderPanel(nombreUsuario);
 
         construir();
     }
-
 
     // =========================================================
     // CONSTRUIR
@@ -69,390 +52,448 @@ public class PrincipalPanel extends JPanel {
 
     private void construir() {
 
-        setLayout(
-                new BorderLayout()
-        );
+        setLayout(new BorderLayout());
+        setBackground(Colores.FONDO);
 
-
-        setBackground(
-                Colores.FONDO
-        );
-
-
-        // =====================================================
-        // HEADER
-        // =====================================================
-
-        add(
-                header,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================================
-        // MENÚ
-        // =====================================================
-
-        add(
-                menuLateral,
-                BorderLayout.WEST
-        );
-
-
-        // =====================================================
-        // CONTENIDO
-        // =====================================================
+        add(header, BorderLayout.NORTH);
+        add(menuLateral, BorderLayout.WEST);
 
         construirContenido();
 
+        add(contenido, BorderLayout.CENTER);
+    }
 
-        add(
-                contenido,
-                BorderLayout.CENTER
+    // =========================================================
+    // VERIFICAR PERMISOS
+    // =========================================================
+
+    private boolean tienePermiso(String vista) {
+
+        return permisosController.puedeAccederVista(
+                usuarioId,
+                vista
         );
     }
 
-
     // =========================================================
-    // VISTAS
+    // CONSTRUIR VISTAS
     // =========================================================
 
     private void construirContenido() {
-
 
         // =====================================================
         // DASHBOARD
         // =====================================================
 
-        DashboardPanel dashboardPanel =
-                new DashboardPanel();
+        if (tienePermiso("DASHBOARD")) {
 
+            DashboardPanel dashboardPanel =
+                    new DashboardPanel();
 
-        contenido.add(
-                dashboardPanel,
-                "DASHBOARD"
-        );
+            contenido.add(
+                    dashboardPanel,
+                    "DASHBOARD"
+            );
 
-
-        new DashboardController(
-                dashboardPanel
-        );
-
+            new DashboardController(
+                    dashboardPanel
+            );
+        }
 
         // =====================================================
         // CLIENTES
         // =====================================================
 
-        ClientesPanel clientesPanel =
-                new ClientesPanel();
+        if (tienePermiso("CLIENTES")) {
 
+            ClientesPanel clientesPanel =
+                    new ClientesPanel();
 
-        contenido.add(
-                clientesPanel,
-                "CLIENTES"
-        );
+            contenido.add(
+                    clientesPanel,
+                    "CLIENTES"
+            );
 
-
-        new ClientesPanelController(
-                clientesPanel
-        );
-
-
-        // =====================================================
-        // ENVÍOS
-        // =====================================================
-
-        EnviosPanel enviosPanel =
-                new EnviosPanel();
-
-
-        contenido.add(
-                enviosPanel,
-                "ENVIOS"
-        );
-
-
-        new EnviosPanelController(
-                enviosPanel
-        );
-
+            new ClientesPanelController(
+                    clientesPanel
+            );
+        }
 
         // =====================================================
-        // EVENTOS LOGÍSTICOS
+        // ENVIOS
         // =====================================================
 
-        EventosLogisticosPanel eventosLogisticosPanel =
-                new EventosLogisticosPanel();
+        if (tienePermiso("ENVIOS")) {
 
+            EnviosPanel enviosPanel =
+                    new EnviosPanel();
 
-        contenido.add(
-                eventosLogisticosPanel,
-                "EVENTOS_LOGISTICOS"
-        );
+            contenido.add(
+                    enviosPanel,
+                    "ENVIOS"
+            );
 
+            new EnviosPanelController(
+                    enviosPanel,
+                    usuarioId
+            );
+        }
 
-        new EventosLogisticosPanelController(
-                eventosLogisticosPanel
-        );
+        // =====================================================
+        // EVENTOS LOGISTICOS
+        // =====================================================
 
+        if (tienePermiso("EVENTOS_LOGISTICOS")) {
+
+            EventosLogisticosPanel eventosLogisticosPanel =
+                    new EventosLogisticosPanel();
+
+            contenido.add(
+                    eventosLogisticosPanel,
+                    "EVENTOS_LOGISTICOS"
+            );
+
+            new EventosLogisticosPanelController(
+                    eventosLogisticosPanel,
+                    usuarioId
+            );
+        }
 
         // =====================================================
         // CONTENEDORES
         // =====================================================
 
-        ContenedoresPanel contenedoresPanel =
-                new ContenedoresPanel();
+        if (tienePermiso("CONTENEDORES")) {
 
+            ContenedoresPanel contenedoresPanel =
+                    new ContenedoresPanel();
 
-        contenido.add(
-                contenedoresPanel,
-                "CONTENEDORES"
-        );
+            contenido.add(
+                    contenedoresPanel,
+                    "CONTENEDORES"
+            );
 
-
-        new ContenedoresPanelController(
-                contenedoresPanel
-        );
-
+            new ContenedoresPanelController(
+                    contenedoresPanel
+            );
+        }
 
         // =====================================================
-        // VEHÍCULOS
+        // VEHICULOS
         // =====================================================
 
-        VehiculosPanel vehiculosPanel =
-                new VehiculosPanel();
+        if (tienePermiso("VEHICULOS")) {
 
+            VehiculosPanel vehiculosPanel =
+                    new VehiculosPanel();
 
-        contenido.add(
-                vehiculosPanel,
-                "VEHICULOS"
-        );
+            contenido.add(
+                    vehiculosPanel,
+                    "VEHICULOS"
+            );
 
-
-        new VehiculosPanelController(
-                vehiculosPanel
-        );
-
+            new VehiculosPanelController(
+                    vehiculosPanel
+            );
+        }
 
         // =====================================================
         // SENSORES
         // =====================================================
 
-        SensoresPanel sensoresPanel =
-                new SensoresPanel();
+        if (tienePermiso("SENSORES")) {
 
+            SensoresPanel sensoresPanel =
+                    new SensoresPanel();
 
-        contenido.add(
-                sensoresPanel,
-                "SENSORES"
-        );
+            contenido.add(
+                    sensoresPanel,
+                    "SENSORES"
+            );
 
-
-        new SensoresPanelController(
-                sensoresPanel
-        );
-
+            new SensoresPanelController(
+                    sensoresPanel
+            );
+        }
 
         // =====================================================
         // MONITOREO
         // =====================================================
 
-        MonitoreoPanel monitoreoPanel =
-                new MonitoreoPanel();
+        if (tienePermiso("MONITOREO")) {
 
+            MonitoreoPanel monitoreoPanel =
+                    new MonitoreoPanel();
 
-        contenido.add(
-                monitoreoPanel,
-                "MONITOREO"
-        );
+            contenido.add(
+                    monitoreoPanel,
+                    "MONITOREO"
+            );
 
-
-        new MonitoreoPanelController(
-                monitoreoPanel
-        );
+            new MonitoreoPanelController(
+                    monitoreoPanel
+            );
+        }
 
         // =====================================================
-// SEGUIMIENTO GPS
-// =====================================================
+        // SEGUIMIENTO GPS
+        // =====================================================
 
-        SeguimientoGPSPanel seguimientoGPSPanel =
-                new SeguimientoGPSPanel();
+        if (tienePermiso("SEGUIMIENTO_GPS")) {
 
-        contenido.add(
-                seguimientoGPSPanel,
-                "SEGUIMIENTO_GPS"
-        );
+            SeguimientoGPSPanel seguimientoGPSPanel =
+                    new SeguimientoGPSPanel();
 
-        new SeguimientoGPSPanelController(
-                seguimientoGPSPanel
-        );
+            contenido.add(
+                    seguimientoGPSPanel,
+                    "SEGUIMIENTO_GPS"
+            );
 
+            new SeguimientoGPSPanelController(
+                    seguimientoGPSPanel
+            );
+        }
 
         // =====================================================
         // TRAZABILIDAD
         // =====================================================
 
-        TrazabilidadPanel trazabilidadPanel =
-                new TrazabilidadPanel();
+        if (tienePermiso("TRAZABILIDAD")) {
 
+            TrazabilidadPanel trazabilidadPanel =
+                    new TrazabilidadPanel();
 
-        contenido.add(
-                trazabilidadPanel,
-                "TRAZABILIDAD"
-        );
+            contenido.add(
+                    trazabilidadPanel,
+                    "TRAZABILIDAD"
+            );
 
-
-        new TrazabilidadPanelController(
-                trazabilidadPanel
-        );
-
+            new TrazabilidadPanelController(
+                    trazabilidadPanel
+            );
+        }
 
         // =====================================================
         // COMUNICACIONES
         // =====================================================
 
-        ComunicacionesPanel comunicacionesPanel =
-                new ComunicacionesPanel();
+        if (tienePermiso("COMUNICACIONES")) {
 
+            ComunicacionesPanel comunicacionesPanel =
+                    new ComunicacionesPanel();
 
-        contenido.add(
-                comunicacionesPanel,
-                "COMUNICACIONES"
-        );
+            contenido.add(
+                    comunicacionesPanel,
+                    "COMUNICACIONES"
+            );
 
-
-        new ComunicacionesPanelController(
-                comunicacionesPanel,
-                usuarioId
-        );
-
+            new ComunicacionesPanelController(
+                    comunicacionesPanel,
+                    usuarioId
+            );
+        }
 
         // =====================================================
-        // FACTURACIÓN
+        // FACTURACION
         // =====================================================
 
-        FacturacionPanel facturacionPanel =
-                new FacturacionPanel();
+        if (tienePermiso("FACTURACION")) {
 
+            FacturacionPanel facturacionPanel =
+                    new FacturacionPanel();
 
-        contenido.add(
-                facturacionPanel,
-                "FACTURACION"
-        );
+            contenido.add(
+                    facturacionPanel,
+                    "FACTURACION"
+            );
 
+            new FacturacionPanelController(
+                    facturacionPanel
+            );
+        }
 
-        new FacturacionPanelController(
-                facturacionPanel
-        );
+        // =====================================================
+        // CUENTAS CORRIENTES
+        // =====================================================
 
+        if (tienePermiso("CUENTAS_CORRIENTES")) {
+
+            CuentasCorrientesPanel cuentasCorrientesPanel =
+                    new CuentasCorrientesPanel();
+
+            contenido.add(
+                    cuentasCorrientesPanel,
+                    "CUENTAS_CORRIENTES"
+            );
+
+            new CuentasCorrientesPanelController(
+                    cuentasCorrientesPanel
+            );
+        }
 
         // =====================================================
         // REPORTES
         // =====================================================
 
-        ReportesPanel reportesPanel =
-                new ReportesPanel();
+        if (tienePermiso("REPORTES")) {
 
+            ReportesPanel reportesPanel =
+                    new ReportesPanel();
 
-        contenido.add(
-                reportesPanel,
-                "REPORTES"
-        );
+            contenido.add(
+                    reportesPanel,
+                    "REPORTES"
+            );
 
-
-        new ReportesPanelController(
-                reportesPanel
-        );
-
+            new ReportesPanelController(
+                    reportesPanel,
+                    usuarioId
+            );
+        }
 
         // =====================================================
         // RIESGOS - INCIDENTES
         // =====================================================
 
-        IncidentesPanel incidentesPanel =
-                new IncidentesPanel();
+        if (tienePermiso("RIESGOS")) {
 
+            IncidentesPanel incidentesPanel =
+                    new IncidentesPanel();
 
-        contenido.add(
-                incidentesPanel,
-                "RIESGOS"
-        );
+            contenido.add(
+                    incidentesPanel,
+                    "RIESGOS"
+            );
 
-
-        new IncidentesPanelController(
-                incidentesPanel
-        );
-
-
-        // =====================================================
-        // ADMINISTRACIÓN
-        // =====================================================
-
-        AdministracionPanel administracionPanel =
-                new AdministracionPanel();
-
-
-        contenido.add(
-                administracionPanel,
-                "ADMINISTRACION"
-        );
-
-
-        new AdministracionPanelController(
-                administracionPanel
-        );
-
+            new IncidentesPanelController(
+                    incidentesPanel
+            );
+        }
 
         // =====================================================
-        // VISTA INICIAL
+        // ADMINISTRACION
         // =====================================================
 
-        cardLayout.show(
-                contenido,
-                "DASHBOARD"
-        );
+        if (tienePermiso("ADMINISTRACION")) {
+
+            AdministracionPanel administracionPanel =
+                    new AdministracionPanel();
+
+            contenido.add(
+                    administracionPanel,
+                    "ADMINISTRACION"
+            );
+
+            new AdministracionPanelController(
+                    administracionPanel
+            );
+        }
+
+        // =====================================================
+        // VISTA INICIAL SEGUN PERMISOS
+        // =====================================================
+
+        if (tienePermiso("DASHBOARD")) {
+
+            mostrarVista("DASHBOARD");
+
+        } else if (tienePermiso("ENVIOS")) {
+
+            mostrarVista("ENVIOS");
+
+        } else {
+
+            throw new SecurityException(
+                    "El usuario no tiene una vista inicial permitida."
+            );
+        }
     }
 
-
     // =========================================================
-    // NAVEGACIÓN
+    // NAVEGACION
     // =========================================================
 
-    public void mostrarVista(
-            String nombre
-    ) {
+    public void mostrarVista(String nombre) {
+
+        if (!tienePermiso(nombre)) {
+
+            throw new SecurityException(
+                    "No tenés permisos para acceder a esta sección."
+            );
+        }
 
         cardLayout.show(
                 contenido,
                 nombre
         );
+
+        header.setTitulo(
+                obtenerTituloVista(nombre)
+        );
     }
 
+    // =========================================================
+    // TITULOS DE LAS VISTAS
+    // =========================================================
+
+    private String obtenerTituloVista(String vista) {
+
+        return switch (vista) {
+
+            case "DASHBOARD" -> "Dashboard";
+
+            case "CLIENTES" -> "Clientes";
+
+            case "ENVIOS" -> "Envíos";
+
+            case "EVENTOS_LOGISTICOS" -> "Eventos Logísticos";
+
+            case "CONTENEDORES" -> "Contenedores";
+
+            case "VEHICULOS" -> "Vehículos";
+
+            case "SENSORES" -> "Sensores";
+
+            case "MONITOREO" -> "Monitoreo";
+
+            case "SEGUIMIENTO",
+                 "SEGUIMIENTO_GPS" -> "Seguimiento GPS";
+
+            case "TRAZABILIDAD" -> "Trazabilidad";
+
+            case "COMUNICACIONES" -> "Comunicaciones";
+
+            case "FACTURACION" -> "Facturación";
+
+            case "CUENTAS_CORRIENTES" -> "Cuentas Corrientes";
+
+            case "REPORTES" -> "Reportes";
+
+            case "RIESGOS" -> "Riesgos";
+
+            case "ADMINISTRACION" -> "Administración";
+
+            default -> vista;
+        };
+    }
 
     // =========================================================
     // GETTERS
     // =========================================================
 
     public MenuLateralPanel getMenuLateral() {
-
         return menuLateral;
     }
 
-
     public HeaderPanel getHeader() {
-
         return header;
     }
 
-
     public String getUsuarioId() {
-
         return usuarioId;
     }
 
-
     public String getNombreUsuario() {
-
         return nombreUsuario;
     }
 }

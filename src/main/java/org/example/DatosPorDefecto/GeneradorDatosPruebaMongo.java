@@ -388,6 +388,32 @@ public class GeneradorDatosPruebaMongo {
 
         );
 
+        // USUARIO DE PRUEBA CLIENTE: usuario 2, contraseña 2
+        Usuario usuarioClientePrueba = new Usuario(
+                null,
+                cliente3.getId(),
+                clienteRol.getId(),
+                "2",
+                "2",
+                "2",
+                "2",
+                "ACTIVO",
+                new Date()
+        );
+
+        // USUARIO DE PRUEBA OPERADOR: usuario 3, contraseña 3
+        Usuario usuarioOperadorPrueba = new Usuario(
+                null,
+                null,
+                operador.getId(),
+                "3",
+                "3",
+                "3",
+                "3",
+                "ACTIVO",
+                new Date()
+        );
+
         // UNA CUENTA CLIENTE POR CADA EMPRESA
         // Juan y Maria conservan sus roles internos, sin cliente asociado.
         // Sofia utiliza el rol Cliente para Exportadora Pampeana.
@@ -429,6 +455,8 @@ public class GeneradorDatosPruebaMongo {
         usuarioDAO.agregar(usuarioAdministrador);
         usuarioDAO.agregar(usuario6);
         usuarioDAO.agregar(usuario7);
+        usuarioDAO.agregar(usuarioClientePrueba);
+        usuarioDAO.agregar(usuarioOperadorPrueba);
 
         // =====================================================
 

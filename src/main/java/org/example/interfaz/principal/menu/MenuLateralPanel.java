@@ -213,6 +213,17 @@ public class MenuLateralPanel extends JPanel {
                 "FACTURACION"
         );
 
+        // =========================================
+        // CUENTAS CORRIENTES
+        // =========================================
+
+        agregarItem(
+                opciones,
+                "▣",
+                "Cuentas Corrientes",
+                "CUENTAS_CORRIENTES"
+        );
+
         agregarItem(
                 opciones,
                 "▥",
@@ -234,8 +245,28 @@ public class MenuLateralPanel extends JPanel {
                 "ADMINISTRACION"
         );
 
+        // =========================================
+        // SCROLL DEL MENÚ
+        // =========================================
+
+        JScrollPane scroll = new JScrollPane(opciones);
+
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+
+        scroll.setHorizontalScrollBarPolicy(
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        scroll.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+        );
+
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+
         add(
-                opciones,
+                scroll,
                 BorderLayout.CENTER
         );
     }

@@ -1,4 +1,3 @@
-
 package org.example.interfaz.principal.vistas;
 
 import javax.swing.*;
@@ -92,7 +91,8 @@ public class ReportesPanel extends JPanel {
                         "Incidentes abiertos",
                         "Promedio de incidentes por país",
                         "Promedio de incidentes por estado",
-                        "Promedio de incidentes por cliente"
+                        "Promedio de incidentes por cliente",
+                        "Ranking de rutas con más incidentes"
                 }
         );
 
@@ -314,6 +314,7 @@ public class ReportesPanel extends JPanel {
         // - Promedio de incidentes por país
         // - Promedio de incidentes por estado
         // - Promedio de incidentes por cliente
+        // - Ranking de rutas con más incidentes
 
         revalidate();
         repaint();

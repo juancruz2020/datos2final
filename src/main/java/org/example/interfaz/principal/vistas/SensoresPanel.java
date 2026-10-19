@@ -21,29 +21,21 @@ public class SensoresPanel extends JPanel {
     private final JButton btnEliminar;
     private final JButton btnMostrarFormulario;
 
-
     // =========================================================
     // FORMULARIO
     // =========================================================
 
     private final JComboBox<String> cmbContenedor;
-
     private final JTextField txtTipo;
-
     private final JTextField txtFabricante;
-
     private final JTextField txtFechaInstalacion;
-
     private final JComboBox<String> cmbEstado;
 
     private final JButton btnGuardar;
-
     private final JButton btnCancelar;
 
     private JPanel panelFormulario;
-
     private JLabel lblTituloFormulario;
-
 
     // =========================================================
     // ESTADO
@@ -51,73 +43,38 @@ public class SensoresPanel extends JPanel {
 
     private final JLabel lblEstado;
 
-
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
     public SensoresPanel() {
 
-        tablaSensores =
-                new JTable();
+        tablaSensores = new JTable();
 
+        btnActualizar = new JButton("Actualizar");
+        btnEditar = new JButton("Editar");
+        btnEliminar = new JButton("Eliminar");
+        btnMostrarFormulario = new JButton("+ Agregar sensor");
 
-        btnActualizar =
-                new JButton("Actualizar");
+        cmbContenedor = new JComboBox<>();
+        txtTipo = new JTextField();
+        txtFabricante = new JTextField();
+        txtFechaInstalacion = new JTextField();
 
+        cmbEstado = new JComboBox<>(
+                new String[]{
+                        "ACTIVO",
+                        "INACTIVO"
+                }
+        );
 
-        btnEditar =
-                new JButton("Editar");
+        btnGuardar = new JButton("Guardar sensor");
+        btnCancelar = new JButton("Cancelar");
 
-
-        btnEliminar =
-                new JButton("Eliminar");
-
-
-        btnMostrarFormulario =
-                new JButton("+ Agregar sensor");
-
-
-        cmbContenedor =
-                new JComboBox<>();
-
-
-        txtTipo =
-                new JTextField();
-
-
-        txtFabricante =
-                new JTextField();
-
-
-        txtFechaInstalacion =
-                new JTextField();
-
-
-        cmbEstado =
-                new JComboBox<>(
-                        new String[]{
-                                "ACTIVO",
-                                "INACTIVO"
-                        }
-                );
-
-
-        btnGuardar =
-                new JButton("Guardar sensor");
-
-
-        btnCancelar =
-                new JButton("Cancelar");
-
-
-        lblEstado =
-                new JLabel(" ");
-
+        lblEstado = new JLabel(" ");
 
         construir();
     }
-
 
     // =========================================================
     // CONSTRUIR
@@ -125,217 +82,88 @@ public class SensoresPanel extends JPanel {
 
     private void construir() {
 
-        setLayout(
-                new BorderLayout(
-                        20,
-                        20
-                )
-        );
-
-
-        setBackground(
-                Colores.FONDO
-        );
-
+        setLayout(new BorderLayout(20, 20));
+        setBackground(Colores.FONDO);
 
         setBorder(
-                new EmptyBorder(
-                        25,
-                        30,
-                        25,
-                        30
-                )
+                new EmptyBorder(25, 30, 25, 30)
         );
 
-
-        // =====================================================
         // TÍTULO
-        // =====================================================
 
-        JLabel titulo =
-                new JLabel(
-                        "Sensores"
-                );
+        JLabel titulo = new JLabel("Sensores");
+        titulo.setFont(Fuentes.TITULO);
+        titulo.setForeground(Colores.TEXTO);
 
+        add(titulo, BorderLayout.NORTH);
 
-        titulo.setFont(
-                Fuentes.TITULO
-        );
-
-
-        titulo.setForeground(
-                Colores.TEXTO
-        );
-
-
-        add(
-                titulo,
-                BorderLayout.NORTH
-        );
-
-
-        // =====================================================
         // CONTENIDO
-        // =====================================================
 
-        JPanel contenido =
-                new JPanel(
-                        new BorderLayout(
-                                20,
-                                20
-                        )
-                );
-
-
-        contenido.setOpaque(
-                false
+        JPanel contenido = new JPanel(
+                new BorderLayout(20, 20)
         );
 
+        contenido.setOpaque(false);
 
         contenido.add(
                 crearPanelListado(),
                 BorderLayout.CENTER
         );
 
-
-        // =====================================================
         // PARTE INFERIOR
-        // =====================================================
 
-        JPanel inferior =
-                new JPanel();
-
+        JPanel inferior = new JPanel();
 
         inferior.setLayout(
-                new BoxLayout(
-                        inferior,
-                        BoxLayout.Y_AXIS
-                )
+                new BoxLayout(inferior, BoxLayout.Y_AXIS)
         );
 
+        inferior.setOpaque(false);
 
-        inferior.setOpaque(
-                false
-        );
-
-
-        // -----------------------------------------------------
         // BOTONES DE ACCIÓN
-        // -----------------------------------------------------
 
-        JPanel panelBotones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-
-        panelBotones.setOpaque(
-                false
+        JPanel panelBotones = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT)
         );
 
+        panelBotones.setOpaque(false);
 
-        btnEditar.setFont(
-                Fuentes.BOTON
-        );
+        btnEditar.setFont(Fuentes.BOTON);
+        btnEditar.setFocusPainted(false);
 
+        btnEliminar.setFont(Fuentes.BOTON);
+        btnEliminar.setFocusPainted(false);
 
-        btnEditar.setFocusPainted(
-                false
-        );
+        btnMostrarFormulario.setFont(Fuentes.BOTON);
+        btnMostrarFormulario.setFocusPainted(false);
 
+        panelBotones.add(btnEditar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnMostrarFormulario);
 
-        btnEliminar.setFont(
-                Fuentes.BOTON
-        );
+        inferior.add(panelBotones);
 
-
-        btnEliminar.setFocusPainted(
-                false
-        );
-
-
-        btnMostrarFormulario.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnMostrarFormulario.setFocusPainted(
-                false
-        );
-
-
-        panelBotones.add(
-                btnEditar
-        );
-
-
-        panelBotones.add(
-                btnEliminar
-        );
-
-
-        panelBotones.add(
-                btnMostrarFormulario
-        );
-
-
-        inferior.add(
-                panelBotones
-        );
-
-
-        // -----------------------------------------------------
         // FORMULARIO
-        // -----------------------------------------------------
 
-        panelFormulario =
-                crearPanelFormulario();
+        panelFormulario = crearPanelFormulario();
+        panelFormulario.setVisible(false);
 
-
-        panelFormulario.setVisible(
-                false
-        );
-
-
-        inferior.add(
-                panelFormulario
-        );
-
+        inferior.add(panelFormulario);
 
         contenido.add(
                 inferior,
                 BorderLayout.SOUTH
         );
 
+        add(contenido, BorderLayout.CENTER);
 
-        add(
-                contenido,
-                BorderLayout.CENTER
-        );
-
-
-        // =====================================================
         // ESTADO
-        // =====================================================
 
-        lblEstado.setFont(
-                Fuentes.NORMAL
-        );
+        lblEstado.setFont(Fuentes.NORMAL);
+        lblEstado.setForeground(Colores.TEXTO_SECUNDARIO);
 
-
-        lblEstado.setForeground(
-                Colores.TEXTO_SECUNDARIO
-        );
-
-
-        add(
-                lblEstado,
-                BorderLayout.SOUTH
-        );
+        add(lblEstado, BorderLayout.SOUTH);
     }
-
 
     // =========================================================
     // PANEL LISTADO
@@ -343,144 +171,93 @@ public class SensoresPanel extends JPanel {
 
     private JPanel crearPanelListado() {
 
-        JPanel panel =
-                crearPanelBase();
-
+        JPanel panel = crearPanelBase();
 
         panel.setLayout(
-                new BorderLayout(
-                        10,
-                        10
-                )
+                new BorderLayout(10, 10)
         );
 
-
-        // =====================================================
         // CABECERA
-        // =====================================================
 
-        JPanel cabecera =
-                new JPanel(
-                        new BorderLayout()
-                );
-
-
-        cabecera.setOpaque(
-                false
+        JPanel cabecera = new JPanel(
+                new BorderLayout()
         );
 
+        cabecera.setOpaque(false);
 
-        JLabel titulo =
-                new JLabel(
-                        "Sensores registrados"
-                );
-
-
-        titulo.setFont(
-                Fuentes.LABEL
+        JLabel titulo = new JLabel(
+                "Sensores registrados"
         );
 
+        titulo.setFont(Fuentes.LABEL);
+        titulo.setForeground(Colores.TEXTO);
 
-        titulo.setForeground(
-                Colores.TEXTO
-        );
-
-
-        btnActualizar.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnActualizar.setFocusPainted(
-                false
-        );
-
+        btnActualizar.setFont(Fuentes.BOTON);
+        btnActualizar.setFocusPainted(false);
 
         cabecera.add(
                 titulo,
                 BorderLayout.WEST
         );
 
-
         cabecera.add(
                 btnActualizar,
                 BorderLayout.EAST
         );
-
 
         panel.add(
                 cabecera,
                 BorderLayout.NORTH
         );
 
-
-        // =====================================================
         // TABLA
-        // =====================================================
+        // Se agrega la columna Código para mostrar SEN-001, etc.
 
-        DefaultTableModel modelo =
-                new DefaultTableModel(
-                        new Object[][]{},
-                        new String[]{
-                                "Contenedor",
-                                "Tipo",
-                                "Fabricante",
-                                "Fecha instalación",
-                                "Estado"
-                        }
-                ) {
+        DefaultTableModel modelo = new DefaultTableModel(
+                new Object[][]{},
+                new String[]{
+                        "Código",
+                        "Contenedor",
+                        "Tipo",
+                        "Fabricante",
+                        "Fecha instalación",
+                        "Estado"
+                }
+        ) {
 
-                    @Override
-                    public boolean isCellEditable(
-                            int row,
-                            int column
-                    ) {
+            @Override
+            public boolean isCellEditable(
+                    int row,
+                    int column
+            ) {
+                return false;
+            }
+        };
 
-                        return false;
-                    }
-                };
+        tablaSensores.setModel(modelo);
 
-
-        tablaSensores.setModel(
-                modelo
-        );
-
-
-        tablaSensores.setRowHeight(
-                30
-        );
-
-
-        tablaSensores.setFont(
-                Fuentes.NORMAL
-        );
-
+        tablaSensores.setRowHeight(30);
+        tablaSensores.setFont(Fuentes.NORMAL);
 
         tablaSensores.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
 
-
         tablaSensores
                 .getTableHeader()
                 .setReorderingAllowed(false);
 
-
-        JScrollPane scroll =
-                new JScrollPane(
-                        tablaSensores
-                );
-
+        JScrollPane scroll = new JScrollPane(
+                tablaSensores
+        );
 
         panel.add(
                 scroll,
                 BorderLayout.CENTER
         );
 
-
         return panel;
     }
-
 
     // =========================================================
     // PANEL FORMULARIO
@@ -488,71 +265,36 @@ public class SensoresPanel extends JPanel {
 
     private JPanel crearPanelFormulario() {
 
-        JPanel panel =
-                crearPanelBase();
-
+        JPanel panel = crearPanelBase();
 
         panel.setLayout(
-                new BorderLayout(
-                        10,
-                        10
-                )
+                new BorderLayout(10, 10)
         );
 
-
-        lblTituloFormulario =
-                new JLabel(
-                        "Nuevo sensor"
-                );
-
-
-        lblTituloFormulario.setFont(
-                Fuentes.LABEL
+        lblTituloFormulario = new JLabel(
+                "Nuevo sensor"
         );
 
-
-        lblTituloFormulario.setForeground(
-                Colores.TEXTO
-        );
-
+        lblTituloFormulario.setFont(Fuentes.LABEL);
+        lblTituloFormulario.setForeground(Colores.TEXTO);
 
         panel.add(
                 lblTituloFormulario,
                 BorderLayout.NORTH
         );
 
-
-        // =====================================================
         // CAMPOS
-        // =====================================================
 
-        JPanel formulario =
-                new JPanel(
-                        new GridBagLayout()
-                );
-
-
-        formulario.setOpaque(
-                false
+        JPanel formulario = new JPanel(
+                new GridBagLayout()
         );
 
+        formulario.setOpaque(false);
 
-        GridBagConstraints gbc =
-                new GridBagConstraints();
+        GridBagConstraints gbc = new GridBagConstraints();
 
-
-        gbc.insets =
-                new Insets(
-                        5,
-                        5,
-                        5,
-                        5
-                );
-
-
-        gbc.fill =
-                GridBagConstraints.HORIZONTAL;
-
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         agregarCampo(
                 formulario,
@@ -562,7 +304,6 @@ public class SensoresPanel extends JPanel {
                 cmbContenedor
         );
 
-
         agregarCampo(
                 formulario,
                 gbc,
@@ -570,7 +311,6 @@ public class SensoresPanel extends JPanel {
                 "Tipo:",
                 txtTipo
         );
-
 
         agregarCampo(
                 formulario,
@@ -580,7 +320,6 @@ public class SensoresPanel extends JPanel {
                 txtFabricante
         );
 
-
         agregarCampo(
                 formulario,
                 gbc,
@@ -588,7 +327,6 @@ public class SensoresPanel extends JPanel {
                 "Fecha instalación:",
                 txtFechaInstalacion
         );
-
 
         agregarCampo(
                 formulario,
@@ -598,103 +336,48 @@ public class SensoresPanel extends JPanel {
                 cmbEstado
         );
 
-
-        JLabel ayudaFecha =
-                new JLabel(
-                        "Formato: dd/MM/yyyy"
-                );
-
-
-        ayudaFecha.setFont(
-                Fuentes.NORMAL
+        JLabel ayudaFecha = new JLabel(
+                "Formato: dd/MM/yyyy"
         );
 
+        ayudaFecha.setFont(Fuentes.NORMAL);
+        ayudaFecha.setForeground(Colores.TEXTO_SECUNDARIO);
 
-        ayudaFecha.setForeground(
-                Colores.TEXTO_SECUNDARIO
-        );
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.weightx = 1;
 
-
-        gbc.gridx =
-                1;
-
-
-        gbc.gridy =
-                5;
-
-
-        gbc.weightx =
-                1;
-
-
-        formulario.add(
-                ayudaFecha,
-                gbc
-        );
-
+        formulario.add(ayudaFecha, gbc);
 
         panel.add(
                 formulario,
                 BorderLayout.CENTER
         );
 
-
-        // =====================================================
         // BOTONES
-        // =====================================================
 
-        JPanel botones =
-                new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
-                );
-
-
-        botones.setOpaque(
-                false
+        JPanel botones = new JPanel(
+                new FlowLayout(FlowLayout.RIGHT)
         );
 
+        botones.setOpaque(false);
 
-        btnCancelar.setFont(
-                Fuentes.BOTON
-        );
+        btnCancelar.setFont(Fuentes.BOTON);
+        btnCancelar.setFocusPainted(false);
 
+        btnGuardar.setFont(Fuentes.BOTON);
+        btnGuardar.setFocusPainted(false);
 
-        btnCancelar.setFocusPainted(
-                false
-        );
-
-
-        btnGuardar.setFont(
-                Fuentes.BOTON
-        );
-
-
-        btnGuardar.setFocusPainted(
-                false
-        );
-
-
-        botones.add(
-                btnCancelar
-        );
-
-
-        botones.add(
-                btnGuardar
-        );
-
+        botones.add(btnCancelar);
+        botones.add(btnGuardar);
 
         panel.add(
                 botones,
                 BorderLayout.SOUTH
         );
 
-
         return panel;
     }
-
 
     // =========================================================
     // AGREGAR CAMPO
@@ -708,62 +391,26 @@ public class SensoresPanel extends JPanel {
             JComponent campo
     ) {
 
-        gbc.gridx =
-                0;
+        gbc.gridx = 0;
+        gbc.gridy = fila;
+        gbc.weightx = 0;
 
+        JLabel label = new JLabel(texto);
 
-        gbc.gridy =
-                fila;
+        label.setFont(Fuentes.NORMAL);
+        label.setForeground(Colores.TEXTO);
 
+        panel.add(label, gbc);
 
-        gbc.weightx =
-                0;
-
-
-        JLabel label =
-                new JLabel(
-                        texto
-                );
-
-
-        label.setFont(
-                Fuentes.NORMAL
-        );
-
-
-        label.setForeground(
-                Colores.TEXTO
-        );
-
-
-        panel.add(
-                label,
-                gbc
-        );
-
-
-        gbc.gridx =
-                1;
-
-
-        gbc.weightx =
-                1;
-
+        gbc.gridx = 1;
+        gbc.weightx = 1;
 
         campo.setPreferredSize(
-                new Dimension(
-                        350,
-                        30
-                )
+                new Dimension(350, 30)
         );
 
-
-        panel.add(
-                campo,
-                gbc
-        );
+        panel.add(campo, gbc);
     }
-
 
     // =========================================================
     // PANEL BASE
@@ -771,33 +418,21 @@ public class SensoresPanel extends JPanel {
 
     private JPanel crearPanelBase() {
 
-        JPanel panel =
-                new JPanel();
+        JPanel panel = new JPanel();
 
-
-        panel.setBackground(
-                Colores.SUPERFICIE
-        );
-
+        panel.setBackground(Colores.SUPERFICIE);
 
         panel.setBorder(
                 BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(
                                 Colores.BORDE
                         ),
-                        new EmptyBorder(
-                                15,
-                                15,
-                                15,
-                                15
-                        )
+                        new EmptyBorder(15, 15, 15, 15)
                 )
         );
 
-
         return panel;
     }
-
 
     // =========================================================
     // MOSTRAR FORMULARIO
@@ -805,21 +440,12 @@ public class SensoresPanel extends JPanel {
 
     public void mostrarFormulario() {
 
-        panelFormulario.setVisible(
-                true
-        );
-
-
-        btnMostrarFormulario.setVisible(
-                false
-        );
-
+        panelFormulario.setVisible(true);
+        btnMostrarFormulario.setVisible(false);
 
         revalidate();
-
         repaint();
     }
-
 
     // =========================================================
     // MOSTRAR FORMULARIO NUEVO
@@ -829,30 +455,19 @@ public class SensoresPanel extends JPanel {
 
         limpiarFormulario();
 
-
         lblTituloFormulario.setText(
                 "Nuevo sensor"
         );
-
 
         btnGuardar.setText(
                 "Guardar sensor"
         );
 
-
-        cmbEstado.setSelectedItem(
-                "ACTIVO"
-        );
-
-
-        cmbEstado.setEnabled(
-                false
-        );
-
+        cmbEstado.setSelectedItem("ACTIVO");
+        cmbEstado.setEnabled(false);
 
         mostrarFormulario();
     }
-
 
     // =========================================================
     // MOSTRAR FORMULARIO EDICIÓN
@@ -864,20 +479,14 @@ public class SensoresPanel extends JPanel {
                 "Editar sensor"
         );
 
-
         btnGuardar.setText(
                 "Guardar cambios"
         );
 
-
-        cmbEstado.setEnabled(
-                true
-        );
-
+        cmbEstado.setEnabled(true);
 
         mostrarFormulario();
     }
-
 
     // =========================================================
     // OCULTAR FORMULARIO
@@ -885,21 +494,12 @@ public class SensoresPanel extends JPanel {
 
     public void ocultarFormulario() {
 
-        panelFormulario.setVisible(
-                false
-        );
-
-
-        btnMostrarFormulario.setVisible(
-                true
-        );
-
+        panelFormulario.setVisible(false);
+        btnMostrarFormulario.setVisible(true);
 
         revalidate();
-
         repaint();
     }
-
 
     // =========================================================
     // LIMPIAR FORMULARIO
@@ -907,115 +507,78 @@ public class SensoresPanel extends JPanel {
 
     public void limpiarFormulario() {
 
-        if (
-                cmbContenedor.getItemCount() > 0
-        ) {
-
-            cmbContenedor.setSelectedIndex(
-                    0
-            );
+        if (cmbContenedor.getItemCount() > 0) {
+            cmbContenedor.setSelectedIndex(0);
         }
 
-
         txtTipo.setText("");
-
         txtFabricante.setText("");
-
         txtFechaInstalacion.setText("");
 
-
-        cmbEstado.setSelectedItem(
-                "ACTIVO"
-        );
+        cmbEstado.setSelectedItem("ACTIVO");
     }
-
 
     // =========================================================
     // GETTERS TABLA
     // =========================================================
 
     public JTable getTablaSensores() {
-
         return tablaSensores;
     }
 
-
     public JButton getBtnActualizar() {
-
         return btnActualizar;
     }
 
-
     public JButton getBtnEditar() {
-
         return btnEditar;
     }
 
-
     public JButton getBtnEliminar() {
-
         return btnEliminar;
     }
 
-
     public JButton getBtnMostrarFormulario() {
-
         return btnMostrarFormulario;
     }
-
 
     // =========================================================
     // GETTERS FORMULARIO
     // =========================================================
 
     public JComboBox<String> getCmbContenedor() {
-
         return cmbContenedor;
     }
 
-
     public JTextField getTxtTipo() {
-
         return txtTipo;
     }
 
-
     public JTextField getTxtFabricante() {
-
         return txtFabricante;
     }
 
-
     public JTextField getTxtFechaInstalacion() {
-
         return txtFechaInstalacion;
     }
 
-
     public JComboBox<String> getCmbEstado() {
-
         return cmbEstado;
     }
 
-
     public JButton getBtnGuardar() {
-
         return btnGuardar;
     }
 
-
     public JButton getBtnCancelar() {
-
         return btnCancelar;
     }
-
 
     // =========================================================
     // ESTADO
     // =========================================================
 
     public JLabel getLblEstado() {
-
         return lblEstado;
     }
 }

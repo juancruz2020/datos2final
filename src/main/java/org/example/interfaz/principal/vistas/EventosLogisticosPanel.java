@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import javax.swing.*;
@@ -20,6 +21,8 @@ public class EventosLogisticosPanel extends JPanel {
     private final JTable tablaEventos;
     private final DefaultTableModel modeloTabla;
 
+    // Guardamos el formulario para poder ocultarlo.
+    private final JPanel formulario;
 
     // =========================================================
     // CONSTRUCTOR
@@ -27,31 +30,18 @@ public class EventosLogisticosPanel extends JPanel {
 
     public EventosLogisticosPanel() {
 
-        setLayout(
-                new BorderLayout(
-                        15,
-                        15
-                )
-        );
+        setLayout(new BorderLayout(15, 15));
 
         setBorder(
-                new EmptyBorder(
-                        20,
-                        20,
-                        20,
-                        20
-                )
+                new EmptyBorder(20, 20, 20, 20)
         );
-
 
         // =====================================================
         // TÍTULO
         // =====================================================
 
         JLabel titulo =
-                new JLabel(
-                        "Eventos Logísticos"
-                );
+                new JLabel("Eventos Logísticos");
 
         titulo.setFont(
                 new Font(
@@ -66,25 +56,20 @@ public class EventosLogisticosPanel extends JPanel {
                 BorderLayout.NORTH
         );
 
-
         // =====================================================
         // PANEL CENTRAL
         // =====================================================
 
         JPanel panelCentral =
                 new JPanel(
-                        new BorderLayout(
-                                15,
-                                15
-                        )
+                        new BorderLayout(15, 15)
                 );
-
 
         // =====================================================
         // FORMULARIO
         // =====================================================
 
-        JPanel formulario =
+        formulario =
                 new JPanel(
                         new GridBagLayout()
                 );
@@ -95,25 +80,18 @@ public class EventosLogisticosPanel extends JPanel {
                 )
         );
 
-
         GridBagConstraints gbc =
                 new GridBagConstraints();
 
         gbc.insets =
-                new Insets(
-                        5,
-                        5,
-                        5,
-                        5
-                );
+                new Insets(5, 5, 5, 5);
 
         gbc.fill =
                 GridBagConstraints.HORIZONTAL;
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // ENVÍO
-        // -----------------------------------------------------
+        // =====================================================
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -123,7 +101,6 @@ public class EventosLogisticosPanel extends JPanel {
                 new JLabel("Envío:"),
                 gbc
         );
-
 
         comboEnvio =
                 new JComboBox<>();
@@ -136,10 +113,9 @@ public class EventosLogisticosPanel extends JPanel {
                 gbc
         );
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // TIPO EVENTO
-        // -----------------------------------------------------
+        // =====================================================
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -149,7 +125,6 @@ public class EventosLogisticosPanel extends JPanel {
                 new JLabel("Tipo de evento:"),
                 gbc
         );
-
 
         txtTipoEvento =
                 new JTextField();
@@ -162,10 +137,9 @@ public class EventosLogisticosPanel extends JPanel {
                 gbc
         );
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // UBICACIÓN
-        // -----------------------------------------------------
+        // =====================================================
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -175,7 +149,6 @@ public class EventosLogisticosPanel extends JPanel {
                 new JLabel("Ubicación:"),
                 gbc
         );
-
 
         txtUbicacion =
                 new JTextField();
@@ -188,10 +161,9 @@ public class EventosLogisticosPanel extends JPanel {
                 gbc
         );
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // DESCRIPCIÓN
-        // -----------------------------------------------------
+        // =====================================================
 
         gbc.gridx = 0;
         gbc.gridy = 3;
@@ -205,27 +177,14 @@ public class EventosLogisticosPanel extends JPanel {
                 gbc
         );
 
-
         txtDescripcion =
-                new JTextArea(
-                        3,
-                        20
-                );
+                new JTextArea(3, 20);
 
-        txtDescripcion.setLineWrap(
-                true
-        );
-
-        txtDescripcion.setWrapStyleWord(
-                true
-        );
-
+        txtDescripcion.setLineWrap(true);
+        txtDescripcion.setWrapStyleWord(true);
 
         JScrollPane scrollDescripcion =
-                new JScrollPane(
-                        txtDescripcion
-                );
-
+                new JScrollPane(txtDescripcion);
 
         gbc.gridx = 1;
         gbc.weightx = 1;
@@ -235,16 +194,12 @@ public class EventosLogisticosPanel extends JPanel {
                 gbc
         );
 
-
-        // -----------------------------------------------------
+        // =====================================================
         // BOTÓN REGISTRAR / GUARDAR
-        // -----------------------------------------------------
+        // =====================================================
 
         btnRegistrar =
-                new JButton(
-                        "Registrar evento"
-                );
-
+                new JButton("Registrar evento");
 
         gbc.gridx = 1;
         gbc.gridy = 4;
@@ -255,12 +210,10 @@ public class EventosLogisticosPanel extends JPanel {
                 gbc
         );
 
-
         panelCentral.add(
                 formulario,
                 BorderLayout.NORTH
         );
-
 
         // =====================================================
         // TABLA
@@ -284,39 +237,28 @@ public class EventosLogisticosPanel extends JPanel {
                             int row,
                             int column
                     ) {
-
                         return false;
                     }
                 };
 
-
         tablaEventos =
-                new JTable(
-                        modeloTabla
-                );
-
+                new JTable(modeloTabla);
 
         tablaEventos.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
 
-
         tablaEventos.setAutoResizeMode(
                 JTable.AUTO_RESIZE_LAST_COLUMN
         );
 
-
         JScrollPane scrollTabla =
-                new JScrollPane(
-                        tablaEventos
-                );
-
+                new JScrollPane(tablaEventos);
 
         panelCentral.add(
                 scrollTabla,
                 BorderLayout.CENTER
         );
-
 
         // =====================================================
         // BOTONES DE ACCIONES
@@ -324,48 +266,26 @@ public class EventosLogisticosPanel extends JPanel {
 
         JPanel panelBotones =
                 new JPanel(
-                        new FlowLayout(
-                                FlowLayout.RIGHT
-                        )
+                        new FlowLayout(FlowLayout.RIGHT)
                 );
-
 
         btnEditar =
-                new JButton(
-                        "Editar"
-                );
-
+                new JButton("Editar");
 
         btnEliminar =
-                new JButton(
-                        "Eliminar"
-                );
-
+                new JButton("Eliminar");
 
         btnActualizar =
-                new JButton(
-                        "Actualizar"
-                );
+                new JButton("Actualizar");
 
-
-        panelBotones.add(
-                btnEditar
-        );
-
-        panelBotones.add(
-                btnEliminar
-        );
-
-        panelBotones.add(
-                btnActualizar
-        );
-
+        panelBotones.add(btnEditar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnActualizar);
 
         panelCentral.add(
                 panelBotones,
                 BorderLayout.SOUTH
         );
-
 
         add(
                 panelCentral,
@@ -373,70 +293,61 @@ public class EventosLogisticosPanel extends JPanel {
         );
     }
 
+    // =========================================================
+    // MOSTRAR / OCULTAR FORMULARIO
+    // =========================================================
+
+    public void mostrarFormulario(boolean mostrar) {
+
+        formulario.setVisible(mostrar);
+
+        revalidate();
+        repaint();
+    }
 
     // =========================================================
     // GETTERS
     // =========================================================
 
     public JComboBox<String> getComboEnvio() {
-
         return comboEnvio;
     }
 
-
     public JTextField getTxtTipoEvento() {
-
         return txtTipoEvento;
     }
 
-
     public JTextField getTxtUbicacion() {
-
         return txtUbicacion;
     }
 
-
     public JTextArea getTxtDescripcion() {
-
         return txtDescripcion;
     }
 
-
     public JButton getBtnRegistrar() {
-
         return btnRegistrar;
     }
 
-
     public JButton getBtnEditar() {
-
         return btnEditar;
     }
 
-
     public JButton getBtnEliminar() {
-
         return btnEliminar;
     }
 
-
     public JButton getBtnActualizar() {
-
         return btnActualizar;
     }
 
-
     public JTable getTablaEventos() {
-
         return tablaEventos;
     }
 
-
     public DefaultTableModel getModeloTabla() {
-
         return modeloTabla;
     }
-
 
     // =========================================================
     // LIMPIAR FORMULARIO
@@ -445,20 +356,13 @@ public class EventosLogisticosPanel extends JPanel {
     public void limpiarFormulario() {
 
         txtTipoEvento.setText("");
-
         txtUbicacion.setText("");
-
         txtDescripcion.setText("");
 
-
         if (comboEnvio.getItemCount() > 0) {
-
-            comboEnvio.setSelectedIndex(
-                    0
-            );
+            comboEnvio.setSelectedIndex(0);
         }
     }
-
 
     // =========================================================
     // MODO REGISTRAR
@@ -470,7 +374,6 @@ public class EventosLogisticosPanel extends JPanel {
                 "Registrar evento"
         );
     }
-
 
     // =========================================================
     // MODO EDITAR

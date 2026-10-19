@@ -1,4 +1,3 @@
-
 package org.example.pdf.reporte;
 
 import org.bson.Document;
@@ -24,7 +23,6 @@ public class ReportePDFService {
     private final ReportePDFGenerator pdfGenerator;
 
     public ReportePDFService() {
-
         this.clienteController = new ClienteController();
         this.envioController = new EnvioController();
         this.incidenteController = new IncidenteController();
@@ -518,6 +516,174 @@ public class ReportePDFService {
     }
 
     // =========================================================
+    // RANKING DE RUTAS CON MAYOR CANTIDAD DE INCIDENTES
+    // =========================================================
+
+    public List<Document> obtenerRankingRutasIncidentes() {
+        return obtenerRankingRutasIncidentes(null);
+    }
+
+    public List<Document> obtenerRankingRutasIncidentes(
+            String clienteId
+    ) {
+
+        List<Document> envios;
+
+        if (clienteId == null) {
+
+            envios = envioController.listarEnvios();
+
+        } else {
+
+            validarCliente(clienteId);
+
+            envios = envioController.buscarPorCliente(clienteId);
+        }
+
+        // Contar los incidentes de cada envio.
+
+        Map<String, Integer> incidentesPorEnvio =
+                new HashMap<>();
+
+        for (Document incidente :
+                incidenteController.listarIncidentes()) {
+
+            Object envioId = incidente.get("envio_id");
+
+            if (envioId != null) {
+
+                incidentesPorEnvio.merge(
+                        envioId.toString(),
+                        1,
+                        Integer::sum
+                );
+            }
+        }
+
+        // Agrupar los envios por pais de origen y destino.
+
+        Map<String, Document> rutas = new HashMap<>();
+
+        for (Document envio : envios) {
+
+            Object envioId = envio.get("_id");
+
+            if (envioId == null) {
+                continue;
+            }
+
+            Document origen = envio.get(
+                    "origen",
+                    Document.class
+            );
+
+            Document destino = envio.get(
+                    "destino",
+                    Document.class
+            );
+
+            if (origen == null || destino == null) {
+                continue;
+            }
+
+            String paisOrigen = origen.getString("pais");
+            String paisDestino = destino.getString("pais");
+
+            if (paisOrigen == null || paisOrigen.isBlank()
+                    || paisDestino == null || paisDestino.isBlank()) {
+
+                continue;
+            }
+
+            paisOrigen = paisOrigen.trim();
+            paisDestino = paisDestino.trim();
+
+            String clave =
+                    paisOrigen.toLowerCase(java.util.Locale.ROOT)
+                            + "\u0000"
+                            + paisDestino.toLowerCase(java.util.Locale.ROOT);
+
+            Document ruta = rutas.get(clave);
+
+            if (ruta == null) {
+
+                ruta = new Document("origen", paisOrigen)
+                        .append("destino", paisDestino)
+                        .append(
+                                "ruta",
+                                paisOrigen + " → " + paisDestino
+                        )
+                        .append("cantidad_envios", 0)
+                        .append("cantidad_incidentes", 0);
+
+                rutas.put(clave, ruta);
+            }
+
+            ruta.put(
+                    "cantidad_envios",
+                    ruta.getInteger("cantidad_envios") + 1
+            );
+
+            ruta.put(
+                    "cantidad_incidentes",
+                    ruta.getInteger("cantidad_incidentes")
+                            + incidentesPorEnvio.getOrDefault(
+                                    envioId.toString(),
+                                    0
+                            )
+            );
+        }
+
+        // Ordenar de mayor a menor cantidad de incidentes.
+
+        List<Document> ranking =
+                new ArrayList<>(rutas.values());
+
+        ranking.sort((a, b) -> {
+
+            int porIncidentes = Integer.compare(
+                    b.getInteger("cantidad_incidentes"),
+                    a.getInteger("cantidad_incidentes")
+            );
+
+            return porIncidentes != 0
+                    ? porIncidentes
+                    : a.getString("ruta").compareToIgnoreCase(
+                            b.getString("ruta")
+                    );
+        });
+
+        return ranking;
+    }
+
+        // =========================================================
+        // GENERAR PDF - RANKING DE RUTAS CON INCIDENTES
+        // =========================================================
+
+        public File generarRankingRutasIncidentes() throws IOException {
+
+        List<Document> ranking = obtenerRankingRutasIncidentes();
+
+        return pdfGenerator.generarRankingRutasIncidentes(
+                null,
+                ranking
+        );
+        }
+
+        public File generarRankingRutasIncidentes(
+                String clienteId,
+                String nombreCliente
+        ) throws IOException {
+
+        List<Document> ranking =
+                obtenerRankingRutasIncidentes(clienteId);
+
+        return pdfGenerator.generarRankingRutasIncidentes(
+                nombreCliente,
+                ranking
+        );
+        }
+    // =========================================================
     // CLASE AUXILIAR PARA CALCULOS
     // =========================================================
 
@@ -534,6 +700,7 @@ public class ReportePDFService {
     private void validarEstado(String estado) {
 
         if (estado == null || estado.isBlank()) {
+
             throw new IllegalArgumentException(
                     "Debe seleccionar un estado."
             );
@@ -543,6 +710,7 @@ public class ReportePDFService {
     private void validarPais(String pais) {
 
         if (pais == null || pais.isBlank()) {
+
             throw new IllegalArgumentException(
                     "Debe seleccionar un país."
             );
@@ -552,6 +720,7 @@ public class ReportePDFService {
     private void validarCliente(String clienteId) {
 
         if (clienteId == null || clienteId.isBlank()) {
+
             throw new IllegalArgumentException(
                     "El usuario no tiene un cliente asociado."
             );

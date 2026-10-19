@@ -1,4 +1,3 @@
-
 package org.example.pdf.reporte;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -468,6 +467,145 @@ public class ReportePDFGenerator {
                     );
 
                     y -= 35;
+                }
+
+            } finally {
+                contenido.close();
+            }
+
+            pdf.save(archivo);
+        }
+
+        return archivo;
+    }
+
+    // =========================================================
+    // RANKING DE RUTAS CON MAYOR CANTIDAD DE INCIDENTES
+    // =========================================================
+
+    public File generarRankingRutasIncidentes(
+            String nombreCliente,
+            List<Document> ranking
+    ) throws IOException {
+
+        if (ranking == null) {
+            throw new IllegalArgumentException(
+                    "El ranking no puede ser nulo."
+            );
+        }
+
+        File archivo = crearArchivo(
+                "Reporte_Ranking_Rutas_Incidentes_"
+        );
+
+        try (PDDocument pdf = new PDDocument()) {
+
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            pdf.addPage(pagina);
+
+            PDPageContentStream contenido =
+                    new PDPageContentStream(pdf, pagina);
+
+            float y = 770;
+
+            try {
+
+                escribir(
+                        contenido,
+                        "RANKING DE RUTAS CON MAS INCIDENTES",
+                        50, y, 16, true
+                );
+
+                y -= 32;
+
+                if (nombreCliente != null
+                        && !nombreCliente.isBlank()) {
+
+                    escribir(
+                            contenido,
+                            "Cliente: " + nombreCliente,
+                            50, y, 11, true
+                    );
+
+                    y -= 22;
+                }
+
+                escribir(
+                        contenido,
+                        "Fecha: " + fechaActual(),
+                        50, y, 10, false
+                );
+
+                y -= 22;
+
+                escribir(
+                        contenido,
+                        "Cantidad de rutas: " + ranking.size(),
+                        50, y, 10, false
+                );
+
+                y -= 32;
+
+                if (ranking.isEmpty()) {
+
+                    escribir(
+                            contenido,
+                            "No se encontraron rutas para este reporte.",
+                            50, y, 11, false
+                    );
+                }
+
+                int posicion = 1;
+
+                for (Document ruta : ranking) {
+
+                    if (y < 135) {
+
+                        contenido.close();
+
+                        pagina = new PDPage(PDRectangle.A4);
+                        pdf.addPage(pagina);
+
+                        contenido = new PDPageContentStream(
+                                pdf, pagina
+                        );
+
+                        y = 770;
+                    }
+
+                    escribir(
+                            contenido,
+                            posicion + ". Ruta: "
+                                    + valor(ruta.get("origen"))
+                                    + " -> "
+                                    + valor(ruta.get("destino")),
+                            50, y, 11, true
+                    );
+
+                    y -= 19;
+
+                    escribir(
+                            contenido,
+                            "Cantidad de envios: "
+                                    + ruta.getInteger(
+                                            "cantidad_envios", 0
+                                    ),
+                            60, y, 10, false
+                    );
+
+                    y -= 18;
+
+                    escribir(
+                            contenido,
+                            "Cantidad de incidentes: "
+                                    + ruta.getInteger(
+                                            "cantidad_incidentes", 0
+                                    ),
+                            60, y, 10, true
+                    );
+
+                    y -= 30;
+                    posicion++;
                 }
 
             } finally {

@@ -1,14 +1,18 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.EnvioController;
 import org.example.mongoDB.controller.EventoLogisticoController;
+import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class EventosLogisticosPanelController {
 
@@ -16,19 +20,27 @@ public class EventosLogisticosPanelController {
 
     private final EventoLogisticoController eventoController;
     private final EnvioController envioController;
+    private final PermisosService permisosService;
+
+    private final String usuarioId;
+    private final String rolActual;
+    private final String clienteIdActual;
+
+    private final Set<String> idsEnviosPermitidos;
 
     private String eventoIdEdicion;
-
 
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
     public EventosLogisticosPanelController(
-            EventosLogisticosPanel vista
+            EventosLogisticosPanel vista,
+            String usuarioId
     ) {
 
         this.vista = vista;
+        this.usuarioId = usuarioId;
 
         this.eventoController =
                 new EventoLogisticoController();
@@ -36,15 +48,111 @@ public class EventosLogisticosPanelController {
         this.envioController =
                 new EnvioController();
 
+        this.permisosService =
+                new PermisosService();
+
+        this.idsEnviosPermitidos =
+                new HashSet<>();
+
         this.eventoIdEdicion = null;
 
+        this.rolActual =
+                permisosService.obtenerRolUsuario(usuarioId);
+
+        if (!esAdministrador()
+                && !esOperador()
+                && !esCliente()) {
+
+            throw new SecurityException(
+                    "No tenés permisos para acceder a Eventos Logísticos."
+            );
+        }
+
+        if (esCliente()) {
+
+            this.clienteIdActual =
+                    permisosService.obtenerClienteId(usuarioId);
+
+            if (clienteIdActual == null
+                    || clienteIdActual.isBlank()) {
+
+                throw new SecurityException(
+                        "El usuario CLIENTE no tiene una empresa asociada."
+                );
+            }
+
+        } else {
+
+            this.clienteIdActual = null;
+        }
+
         configurarEventos();
+        configurarPermisos();
 
         cargarEnvios();
-
         cargarEventos();
     }
 
+    // =========================================================
+    // ROLES Y PERMISOS
+    // =========================================================
+
+    private boolean esAdministrador() {
+        return "ADMINISTRADOR".equalsIgnoreCase(rolActual);
+    }
+
+    private boolean esOperador() {
+        return "OPERADOR".equalsIgnoreCase(rolActual);
+    }
+
+    private boolean esCliente() {
+        return "CLIENTE".equalsIgnoreCase(rolActual);
+    }
+
+    private boolean puedeModificar() {
+        return esAdministrador() || esOperador();
+    }
+
+    private void exigirPermisoModificacion() {
+
+        if (!puedeModificar()) {
+
+            throw new SecurityException(
+                    "Tu usuario solamente puede consultar eventos logísticos."
+            );
+        }
+    }
+
+    // =========================================================
+    // CONFIGURAR PERMISOS
+    // =========================================================
+
+    private void configurarPermisos() {
+
+        boolean permitido = puedeModificar();
+
+        // Ocultar todo el formulario para CLIENTE.
+        vista.mostrarFormulario(permitido);
+
+        vista.getBtnRegistrar().setVisible(permitido);
+        vista.getBtnEditar().setVisible(permitido);
+        vista.getBtnEliminar().setVisible(permitido);
+
+        vista.getBtnRegistrar().setEnabled(permitido);
+        vista.getBtnEditar().setEnabled(permitido);
+        vista.getBtnEliminar().setEnabled(permitido);
+
+        if (!permitido) {
+
+            vista.getComboEnvio().setEnabled(false);
+            vista.getTxtTipoEvento().setEditable(false);
+            vista.getTxtUbicacion().setEditable(false);
+            vista.getTxtDescripcion().setEditable(false);
+        }
+
+        vista.revalidate();
+        vista.repaint();
+    }
 
     // =========================================================
     // CONFIGURAR EVENTOS
@@ -52,52 +160,26 @@ public class EventosLogisticosPanelController {
 
     private void configurarEventos() {
 
-        // -----------------------------------------------------
-        // REGISTRAR / GUARDAR CAMBIOS
-        // -----------------------------------------------------
-
         vista.getBtnRegistrar()
-                .addActionListener(
-                        e -> guardar()
-                );
-
-
-        // -----------------------------------------------------
-        // EDITAR
-        // -----------------------------------------------------
+                .addActionListener(e -> guardar());
 
         vista.getBtnEditar()
-                .addActionListener(
-                        e -> editarEventoSeleccionado()
-                );
-
-
-        // -----------------------------------------------------
-        // ELIMINAR
-        // -----------------------------------------------------
+                .addActionListener(e -> editarEventoSeleccionado());
 
         vista.getBtnEliminar()
-                .addActionListener(
-                        e -> eliminarEventoSeleccionado()
-                );
-
-
-        // -----------------------------------------------------
-        // ACTUALIZAR
-        // -----------------------------------------------------
+                .addActionListener(e -> eliminarEventoSeleccionado());
 
         vista.getBtnActualizar()
-                .addActionListener(
-                        e -> actualizar()
-                );
+                .addActionListener(e -> actualizar());
     }
-
 
     // =========================================================
     // GUARDAR
     // =========================================================
 
     private void guardar() {
+
+        exigirPermisoModificacion();
 
         if (eventoIdEdicion == null) {
 
@@ -109,35 +191,28 @@ public class EventosLogisticosPanelController {
         }
     }
 
-
     // =========================================================
     // REGISTRAR EVENTO
     // =========================================================
 
     private void registrarEvento() {
 
+        exigirPermisoModificacion();
+
         try {
 
             String envioId =
-                    (String) vista
-                            .getComboEnvio()
+                    (String) vista.getComboEnvio()
                             .getSelectedItem();
 
             String tipoEvento =
-                    vista
-                            .getTxtTipoEvento()
-                            .getText();
+                    vista.getTxtTipoEvento().getText();
 
             String ubicacion =
-                    vista
-                            .getTxtUbicacion()
-                            .getText();
+                    vista.getTxtUbicacion().getText();
 
             String descripcion =
-                    vista
-                            .getTxtDescripcion()
-                            .getText();
-
+                    vista.getTxtDescripcion().getText();
 
             eventoController.crearEvento(
                     envioId,
@@ -146,7 +221,6 @@ public class EventosLogisticosPanelController {
                     descripcion
             );
 
-
             JOptionPane.showMessageDialog(
                     vista,
                     "Evento logístico registrado correctamente.",
@@ -154,19 +228,14 @@ public class EventosLogisticosPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             cancelarEdicion();
-
             cargarEventos();
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // EDITAR EVENTO SELECCIONADO
@@ -174,10 +243,9 @@ public class EventosLogisticosPanelController {
 
     private void editarEventoSeleccionado() {
 
-        int fila =
-                vista.getTablaEventos()
-                        .getSelectedRow();
+        exigirPermisoModificacion();
 
+        int fila = vista.getTablaEventos().getSelectedRow();
 
         if (fila == -1) {
 
@@ -191,78 +259,58 @@ public class EventosLogisticosPanelController {
             return;
         }
 
+        fila = vista.getTablaEventos()
+                .convertRowIndexToModel(fila);
 
         try {
 
             String id =
                     vista.getModeloTabla()
-                            .getValueAt(
-                                    fila,
-                                    0
-                            )
+                            .getValueAt(fila, 0)
                             .toString();
 
-
             Document evento =
-                    eventoController.buscarPorId(
-                            id
-                    );
+                    eventoController.buscarPorId(id);
 
+            if (evento == null) {
+
+                mostrarError("El evento seleccionado no existe.");
+                return;
+            }
 
             Object envioIdValor = evento.get("envio_id");
+
             String envioId = envioIdValor == null
                     ? null
                     : envioIdValor.toString();
 
-
             if (envioId != null) {
 
                 vista.getComboEnvio()
-                        .setSelectedItem(
-                                envioId
-                        );
+                        .setSelectedItem(envioId);
             }
 
+            vista.getTxtTipoEvento().setText(
+                    evento.getString("tipo_evento")
+            );
 
-            vista.getTxtTipoEvento()
-                    .setText(
-                            evento.getString(
-                                    "tipo_evento"
-                            )
-                    );
+            vista.getTxtUbicacion().setText(
+                    evento.getString("ubicacion")
+            );
 
+            vista.getTxtDescripcion().setText(
+                    evento.getString("descripcion")
+            );
 
-            vista.getTxtUbicacion()
-                    .setText(
-                            evento.getString(
-                                    "ubicacion"
-                            )
-                    );
-
-
-            vista.getTxtDescripcion()
-                    .setText(
-                            evento.getString(
-                                    "descripcion"
-                            )
-                    );
-
-
-            eventoIdEdicion =
-                    id;
-
+            eventoIdEdicion = id;
 
             vista.modoEditar();
 
-
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // MODIFICAR EVENTO
@@ -270,28 +318,22 @@ public class EventosLogisticosPanelController {
 
     private void modificarEvento() {
 
+        exigirPermisoModificacion();
+
         try {
 
             String envioId =
-                    (String) vista
-                            .getComboEnvio()
+                    (String) vista.getComboEnvio()
                             .getSelectedItem();
 
             String tipoEvento =
-                    vista
-                            .getTxtTipoEvento()
-                            .getText();
+                    vista.getTxtTipoEvento().getText();
 
             String ubicacion =
-                    vista
-                            .getTxtUbicacion()
-                            .getText();
+                    vista.getTxtUbicacion().getText();
 
             String descripcion =
-                    vista
-                            .getTxtDescripcion()
-                            .getText();
-
+                    vista.getTxtDescripcion().getText();
 
             eventoController.modificarEvento(
                     eventoIdEdicion,
@@ -301,7 +343,6 @@ public class EventosLogisticosPanelController {
                     descripcion
             );
 
-
             JOptionPane.showMessageDialog(
                     vista,
                     "Evento logístico modificado correctamente.",
@@ -309,20 +350,14 @@ public class EventosLogisticosPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             cancelarEdicion();
-
             cargarEventos();
-
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // ELIMINAR EVENTO SELECCIONADO
@@ -330,10 +365,9 @@ public class EventosLogisticosPanelController {
 
     private void eliminarEventoSeleccionado() {
 
-        int fila =
-                vista.getTablaEventos()
-                        .getSelectedRow();
+        exigirPermisoModificacion();
 
+        int fila = vista.getTablaEventos().getSelectedRow();
 
         if (fila == -1) {
 
@@ -347,15 +381,13 @@ public class EventosLogisticosPanelController {
             return;
         }
 
+        fila = vista.getTablaEventos()
+                .convertRowIndexToModel(fila);
 
         String id =
                 vista.getModeloTabla()
-                        .getValueAt(
-                                fila,
-                                0
-                        )
+                        .getValueAt(fila, 0)
                         .toString();
-
 
         int respuesta =
                 JOptionPane.showConfirmDialog(
@@ -366,19 +398,13 @@ public class EventosLogisticosPanelController {
                         JOptionPane.WARNING_MESSAGE
                 );
 
-
         if (respuesta != JOptionPane.YES_OPTION) {
-
             return;
         }
 
-
         try {
 
-            eventoController.eliminarEvento(
-                    id
-            );
-
+            eventoController.eliminarEvento(id);
 
             JOptionPane.showMessageDialog(
                     vista,
@@ -387,24 +413,17 @@ public class EventosLogisticosPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             if (id.equals(eventoIdEdicion)) {
-
                 cancelarEdicion();
             }
 
-
             cargarEventos();
-
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // CANCELAR EDICIÓN
@@ -418,10 +437,8 @@ public class EventosLogisticosPanelController {
 
         vista.modoRegistrar();
 
-        vista.getTablaEventos()
-                .clearSelection();
+        vista.getTablaEventos().clearSelection();
     }
-
 
     // =========================================================
     // ACTUALIZAR
@@ -434,17 +451,13 @@ public class EventosLogisticosPanelController {
             cancelarEdicion();
 
             cargarEnvios();
-
             cargarEventos();
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // CARGAR ENVÍOS
@@ -452,24 +465,41 @@ public class EventosLogisticosPanelController {
 
     private void cargarEnvios() {
 
-        vista.getComboEnvio()
-                .removeAllItems();
+        vista.getComboEnvio().removeAllItems();
 
+        idsEnviosPermitidos.clear();
 
-        List<String> ids =
-                envioController
-                        .obtenerTodosLosIds();
+        if (esCliente()) {
 
+            List<Document> envios =
+                    envioController.buscarPorCliente(clienteIdActual);
 
-        for (String id : ids) {
+            for (Document envio : envios) {
 
-            vista.getComboEnvio()
-                    .addItem(
-                            id
-                    );
+                Object valorId = envio.get("_id");
+
+                if (valorId == null) {
+                    continue;
+                }
+
+                String id = valorId.toString();
+
+                idsEnviosPermitidos.add(id);
+                vista.getComboEnvio().addItem(id);
+            }
+
+        } else {
+
+            List<String> ids =
+                    envioController.obtenerTodosLosIds();
+
+            for (String id : ids) {
+
+                idsEnviosPermitidos.add(id);
+                vista.getComboEnvio().addItem(id);
+            }
         }
     }
-
 
     // =========================================================
     // CARGAR EVENTOS
@@ -477,88 +507,69 @@ public class EventosLogisticosPanelController {
 
     private void cargarEventos() {
 
-        vista.getModeloTabla()
-                .setRowCount(
-                        0
-                );
-
+        vista.getModeloTabla().setRowCount(0);
 
         List<Document> eventos =
-                eventoController
-                        .listarEventos();
-
+                eventoController.listarEventos();
 
         SimpleDateFormat formatoFecha =
-                new SimpleDateFormat(
-                        "dd/MM/yyyy HH:mm"
-                );
-
+                new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
         for (Document evento : eventos) {
 
             ObjectId id =
-                    evento.getObjectId(
-                            "_id"
-                    );
+                    evento.getObjectId("_id");
 
-            Object envioIdValor = evento.get("envio_id");
-            String envioId = envioIdValor == null ? null : envioIdValor.toString();
+            Object envioIdValor =
+                    evento.get("envio_id");
+
+            String envioId = envioIdValor == null
+                    ? null
+                    : envioIdValor.toString();
+
+            // CLIENTE: solamente eventos de sus envíos.
+            if (esCliente()) {
+
+                if (envioId == null
+                        || !idsEnviosPermitidos.contains(envioId)) {
+
+                    continue;
+                }
+            }
 
             Date fechaHora =
-                    evento.getDate(
-                            "fecha_hora"
-                    );
+                    evento.getDate("fecha_hora");
 
-
-            String fechaFormateada =
-                    "";
+            String fechaFormateada = "";
 
             if (fechaHora != null) {
 
                 fechaFormateada =
-                        formatoFecha.format(
-                                fechaHora
-                        );
+                        formatoFecha.format(fechaHora);
             }
 
-
-            vista.getModeloTabla()
-                    .addRow(
-                            new Object[]{
-                                    id != null
-                                            ? id.toHexString()
-                                            : "",
-
-                                    envioId != null
-                                            ? envioId
-                                            : "",
-
-                                    fechaFormateada,
-
-                                    evento.getString(
-                                            "tipo_evento"
-                                    ),
-
-                                    evento.getString(
-                                            "ubicacion"
-                                    ),
-
-                                    evento.getString(
-                                            "descripcion"
-                                    )
-                            }
-                    );
+            vista.getModeloTabla().addRow(
+                    new Object[]{
+                            id != null
+                                    ? id.toHexString()
+                                    : "",
+                            envioId != null
+                                    ? envioId
+                                    : "",
+                            fechaFormateada,
+                            evento.getString("tipo_evento"),
+                            evento.getString("ubicacion"),
+                            evento.getString("descripcion")
+                    }
+            );
         }
     }
-
 
     // =========================================================
     // MOSTRAR ERROR
     // =========================================================
 
-    private void mostrarError(
-            String mensaje
-    ) {
+    private void mostrarError(String mensaje) {
 
         JOptionPane.showMessageDialog(
                 vista,

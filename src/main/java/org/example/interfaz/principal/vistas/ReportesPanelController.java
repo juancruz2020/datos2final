@@ -1,4 +1,3 @@
-
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
@@ -561,6 +560,32 @@ public class ReportesPanelController {
                 }
 
                 tipo = "PROMEDIO_INCIDENTES_POR_" + agrupacion;
+
+            // =================================================
+            // RANKING DE RUTAS CON MAS INCIDENTES
+            // =================================================
+
+            } else if (
+                    "Ranking de rutas con más incidentes".equals(tipoSeleccionado)
+            ) {
+
+                if (rolActual.equals("ADMINISTRADOR")) {
+
+                    archivo = pdfService.generarRankingRutasIncidentes();
+
+                } else {
+
+                    String nombreCliente =
+                            (String) vista.getComboCliente()
+                                    .getSelectedItem();
+
+                    archivo = pdfService.generarRankingRutasIncidentes(
+                            clienteIdActual,
+                            nombreCliente
+                    );
+                }
+
+                tipo = "RANKING_RUTAS_INCIDENTES";
 
             } else {
 

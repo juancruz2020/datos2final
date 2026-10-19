@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
@@ -18,51 +19,33 @@ import java.util.Map;
 public class SensoresPanelController {
 
     private final SensoresPanel view;
-
     private final SensorController sensorController;
-
     private final ContenedorController contenedorController;
 
     private final Map<String, String> contenedoresPorCodigo;
-
     private final List<Document> sensoresCargados;
 
     private String sensorIdEditando;
-
 
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
-    public SensoresPanelController(
-            SensoresPanel view
-    ) {
+    public SensoresPanelController(SensoresPanel view) {
 
         this.view = view;
+        this.sensorController = new SensorController();
+        this.contenedorController = new ContenedorController();
 
-        this.sensorController =
-                new SensorController();
+        this.contenedoresPorCodigo = new HashMap<>();
+        this.sensoresCargados = new ArrayList<>();
 
-        this.contenedorController =
-                new ContenedorController();
-
-        this.contenedoresPorCodigo =
-                new HashMap<>();
-
-        this.sensoresCargados =
-                new ArrayList<>();
-
-        this.sensorIdEditando =
-                null;
-
+        this.sensorIdEditando = null;
 
         configurarEventos();
-
         cargarContenedores();
-
         cargarSensores();
     }
-
 
     // =========================================================
     // EVENTOS
@@ -70,66 +53,30 @@ public class SensoresPanelController {
 
     private void configurarEventos() {
 
-        // -----------------------------------------------------
-        // ACTUALIZAR
-        // -----------------------------------------------------
+        view.getBtnActualizar().addActionListener(
+                e -> actualizarTodo()
+        );
 
-        view.getBtnActualizar()
-                .addActionListener(
-                        e -> actualizarTodo()
-                );
+        view.getBtnMostrarFormulario().addActionListener(
+                e -> prepararNuevoSensor()
+        );
 
+        view.getBtnEditar().addActionListener(
+                e -> editarSensorSeleccionado()
+        );
 
-        // -----------------------------------------------------
-        // NUEVO SENSOR
-        // -----------------------------------------------------
+        view.getBtnEliminar().addActionListener(
+                e -> eliminarSensorSeleccionado()
+        );
 
-        view.getBtnMostrarFormulario()
-                .addActionListener(
-                        e -> prepararNuevoSensor()
-                );
+        view.getBtnCancelar().addActionListener(
+                e -> cancelar()
+        );
 
-
-        // -----------------------------------------------------
-        // EDITAR SENSOR
-        // -----------------------------------------------------
-
-        view.getBtnEditar()
-                .addActionListener(
-                        e -> editarSensorSeleccionado()
-                );
-
-
-        // -----------------------------------------------------
-        // ELIMINAR SENSOR
-        // -----------------------------------------------------
-
-        view.getBtnEliminar()
-                .addActionListener(
-                        e -> eliminarSensorSeleccionado()
-                );
-
-
-        // -----------------------------------------------------
-        // CANCELAR
-        // -----------------------------------------------------
-
-        view.getBtnCancelar()
-                .addActionListener(
-                        e -> cancelar()
-                );
-
-
-        // -----------------------------------------------------
-        // GUARDAR
-        // -----------------------------------------------------
-
-        view.getBtnGuardar()
-                .addActionListener(
-                        e -> guardarSensor()
-                );
+        view.getBtnGuardar().addActionListener(
+                e -> guardarSensor()
+        );
     }
-
 
     // =========================================================
     // ACTUALIZAR TODO
@@ -138,10 +85,8 @@ public class SensoresPanelController {
     private void actualizarTodo() {
 
         cargarContenedores();
-
         cargarSensores();
     }
-
 
     // =========================================================
     // PREPARAR NUEVO SENSOR
@@ -152,10 +97,8 @@ public class SensoresPanelController {
         sensorIdEditando = null;
 
         cargarContenedores();
-
         view.mostrarFormularioNuevo();
     }
-
 
     // =========================================================
     // CARGAR CONTENEDORES
@@ -166,41 +109,22 @@ public class SensoresPanelController {
         try {
 
             List<Document> contenedores =
-                    contenedorController
-                            .listarContenedores();
+                    contenedorController.listarContenedores();
 
-
-            view.getCmbContenedor()
-                    .removeAllItems();
-
-
+            view.getCmbContenedor().removeAllItems();
             contenedoresPorCodigo.clear();
-
 
             for (Document contenedor : contenedores) {
 
-                ObjectId id =
-                        contenedor.getObjectId(
-                                "_id"
-                        );
+                ObjectId id = contenedor.getObjectId("_id");
 
+                String codigo = contenedor.getString(
+                        "codigo_internacional"
+                );
 
-                String codigo =
-                        contenedor.getString(
-                                "codigo_internacional"
-                        );
+                if (id != null && codigo != null) {
 
-
-                if (
-                        id != null
-                                && codigo != null
-                ) {
-
-                    view.getCmbContenedor()
-                            .addItem(
-                                    codigo
-                            );
-
+                    view.getCmbContenedor().addItem(codigo);
 
                     contenedoresPorCodigo.put(
                             codigo,
@@ -218,7 +142,6 @@ public class SensoresPanelController {
         }
     }
 
-
     // =========================================================
     // CARGAR SENSORES
     // =========================================================
@@ -228,87 +151,58 @@ public class SensoresPanelController {
         try {
 
             List<Document> sensores =
-                    sensorController
-                            .listarSensores();
-
+                    sensorController.listarSensores();
 
             sensoresCargados.clear();
-
-            sensoresCargados.addAll(
-                    sensores
-            );
-
+            sensoresCargados.addAll(sensores);
 
             DefaultTableModel modelo =
-                    (DefaultTableModel)
-                            view.getTablaSensores()
-                                    .getModel();
+                    (DefaultTableModel) view
+                            .getTablaSensores()
+                            .getModel();
 
-
-            modelo.setRowCount(
-                    0
-            );
-
+            modelo.setRowCount(0);
 
             SimpleDateFormat formatoFecha =
-                    new SimpleDateFormat(
-                            "dd/MM/yyyy"
-                    );
-
+                    new SimpleDateFormat("dd/MM/yyyy");
 
             for (Document sensor : sensores) {
 
-                ObjectId contenedorId =
-                        sensor.getObjectId(
-                                "contenedor_id"
-                        );
+                // Código automático del sensor.
+                String codigoSensor = sensor.getString("codigo");
 
+                if (codigoSensor == null) {
+                    codigoSensor = "";
+                }
+
+                ObjectId contenedorId =
+                        sensor.getObjectId("contenedor_id");
 
                 String codigoContenedor =
-                        obtenerCodigoContenedor(
-                                contenedorId
-                        );
+                        obtenerCodigoContenedor(contenedorId);
 
-
-                Date fecha =
-                        sensor.getDate(
-                                "fecha_instalacion"
-                        );
-
-
-                String fechaTexto =
-                        fecha != null
-                                ? formatoFecha.format(fecha)
-                                : "";
-
-
-                modelo.addRow(
-                        new Object[]{
-                                codigoContenedor,
-
-                                sensor.getString(
-                                        "tipo"
-                                ),
-
-                                sensor.getString(
-                                        "fabricante"
-                                ),
-
-                                fechaTexto,
-
-                                sensor.getString(
-                                        "estado"
-                                )
-                        }
+                Date fecha = sensor.getDate(
+                        "fecha_instalacion"
                 );
+
+                String fechaTexto = fecha != null
+                        ? formatoFecha.format(fecha)
+                        : "";
+
+                // La tabla ahora tiene seis columnas.
+                modelo.addRow(new Object[]{
+                        codigoSensor,
+                        codigoContenedor,
+                        sensor.getString("tipo"),
+                        sensor.getString("fabricante"),
+                        fechaTexto,
+                        sensor.getString("estado")
+                });
             }
 
-
-            view.getLblEstado()
-                    .setText(
-                            "Sensores registrados: "
-                                    + sensores.size()
-                    );
+            view.getLblEstado().setText(
+                    "Sensores registrados: " + sensores.size()
+            );
 
         } catch (Exception e) {
 
@@ -319,7 +213,6 @@ public class SensoresPanelController {
         }
     }
 
-
     // =========================================================
     // OBTENER CÓDIGO DEL CONTENEDOR
     // =========================================================
@@ -329,33 +222,23 @@ public class SensoresPanelController {
     ) {
 
         if (contenedorId == null) {
-
             return "";
         }
-
 
         try {
 
             Document contenedor =
-                    contenedorController
-                            .buscarPorId(
-                                    contenedorId
-                                            .toHexString()
-                            );
-
-
-            if (contenedor == null) {
-
-                return contenedorId
-                        .toHexString();
-            }
-
-
-            String codigo =
-                    contenedor.getString(
-                            "codigo_internacional"
+                    contenedorController.buscarPorId(
+                            contenedorId.toHexString()
                     );
 
+            if (contenedor == null) {
+                return contenedorId.toHexString();
+            }
+
+            String codigo = contenedor.getString(
+                    "codigo_internacional"
+            );
 
             return codigo != null
                     ? codigo
@@ -363,11 +246,35 @@ public class SensoresPanelController {
 
         } catch (Exception e) {
 
-            return contenedorId
-                    .toHexString();
+            return contenedorId.toHexString();
         }
     }
 
+    // =========================================================
+    // OBTENER SENSOR SELECCIONADO
+    // =========================================================
+
+    private Document obtenerSensorSeleccionado() {
+
+        JTable tabla = view.getTablaSensores();
+
+        int filaSeleccionada = tabla.getSelectedRow();
+
+        if (filaSeleccionada == -1) {
+            return null;
+        }
+
+        int filaModelo = tabla.convertRowIndexToModel(
+                filaSeleccionada
+        );
+
+        if (filaModelo < 0
+                || filaModelo >= sensoresCargados.size()) {
+            return null;
+        }
+
+        return sensoresCargados.get(filaModelo);
+    }
 
     // =========================================================
     // EDITAR SENSOR SELECCIONADO
@@ -375,12 +282,9 @@ public class SensoresPanelController {
 
     private void editarSensorSeleccionado() {
 
-        int fila =
-                view.getTablaSensores()
-                        .getSelectedRow();
+        Document sensor = obtenerSensorSeleccionado();
 
-
-        if (fila == -1) {
+        if (sensor == null) {
 
             JOptionPane.showMessageDialog(
                     view,
@@ -392,27 +296,7 @@ public class SensoresPanelController {
             return;
         }
 
-
-        if (
-                fila < 0
-                        || fila >= sensoresCargados.size()
-        ) {
-
-            return;
-        }
-
-
-        Document sensor =
-                sensoresCargados.get(
-                        fila
-                );
-
-
-        ObjectId sensorId =
-                sensor.getObjectId(
-                        "_id"
-                );
-
+        ObjectId sensorId = sensor.getObjectId("_id");
 
         if (sensorId == null) {
 
@@ -426,126 +310,56 @@ public class SensoresPanelController {
             return;
         }
 
-
-        sensorIdEditando =
-                sensorId.toHexString();
-
-
-        // -----------------------------------------------------
-        // CONTENEDOR
-        // -----------------------------------------------------
+        sensorIdEditando = sensorId.toHexString();
 
         cargarContenedores();
 
-
         ObjectId contenedorId =
-                sensor.getObjectId(
-                        "contenedor_id"
-                );
-
+                sensor.getObjectId("contenedor_id");
 
         String codigoContenedor =
-                obtenerCodigoContenedor(
-                        contenedorId
-                );
+                obtenerCodigoContenedor(contenedorId);
 
+        view.getCmbContenedor().setSelectedItem(
+                codigoContenedor
+        );
 
-        view.getCmbContenedor()
-                .setSelectedItem(
-                        codigoContenedor
-                );
+        String tipo = sensor.getString("tipo");
 
+        view.getTxtTipo().setText(
+                tipo != null ? tipo : ""
+        );
 
-        // -----------------------------------------------------
-        // TIPO
-        // -----------------------------------------------------
+        String fabricante = sensor.getString("fabricante");
 
-        String tipo =
-                sensor.getString(
-                        "tipo"
-                );
+        view.getTxtFabricante().setText(
+                fabricante != null ? fabricante : ""
+        );
 
-
-        view.getTxtTipo()
-                .setText(
-                        tipo != null
-                                ? tipo
-                                : ""
-                );
-
-
-        // -----------------------------------------------------
-        // FABRICANTE
-        // -----------------------------------------------------
-
-        String fabricante =
-                sensor.getString(
-                        "fabricante"
-                );
-
-
-        view.getTxtFabricante()
-                .setText(
-                        fabricante != null
-                                ? fabricante
-                                : ""
-                );
-
-
-        // -----------------------------------------------------
-        // FECHA
-        // -----------------------------------------------------
-
-        Date fecha =
-                sensor.getDate(
-                        "fecha_instalacion"
-                );
-
+        Date fecha = sensor.getDate("fecha_instalacion");
 
         if (fecha != null) {
 
             SimpleDateFormat formatoFecha =
-                    new SimpleDateFormat(
-                            "dd/MM/yyyy"
-                    );
+                    new SimpleDateFormat("dd/MM/yyyy");
 
-
-            view.getTxtFechaInstalacion()
-                    .setText(
-                            formatoFecha.format(
-                                    fecha
-                            )
-                    );
+            view.getTxtFechaInstalacion().setText(
+                    formatoFecha.format(fecha)
+            );
 
         } else {
 
-            view.getTxtFechaInstalacion()
-                    .setText("");
+            view.getTxtFechaInstalacion().setText("");
         }
 
-
-        // -----------------------------------------------------
-        // ESTADO
-        // -----------------------------------------------------
-
-        String estado =
-                sensor.getString(
-                        "estado"
-                );
-
+        String estado = sensor.getString("estado");
 
         if (estado != null) {
-
-            view.getCmbEstado()
-                    .setSelectedItem(
-                            estado
-                    );
+            view.getCmbEstado().setSelectedItem(estado);
         }
-
 
         view.mostrarFormularioEdicion();
     }
-
 
     // =========================================================
     // ELIMINAR SENSOR SELECCIONADO
@@ -553,16 +367,9 @@ public class SensoresPanelController {
 
     private void eliminarSensorSeleccionado() {
 
-        int fila =
-                view.getTablaSensores()
-                        .getSelectedRow();
+        Document sensor = obtenerSensorSeleccionado();
 
-
-        // -----------------------------------------------------
-        // VALIDAR SELECCIÓN
-        // -----------------------------------------------------
-
-        if (fila == -1) {
+        if (sensor == null) {
 
             JOptionPane.showMessageDialog(
                     view,
@@ -574,31 +381,7 @@ public class SensoresPanelController {
             return;
         }
 
-
-        if (
-                fila < 0
-                        || fila >= sensoresCargados.size()
-        ) {
-
-            return;
-        }
-
-
-        // -----------------------------------------------------
-        // OBTENER SENSOR
-        // -----------------------------------------------------
-
-        Document sensor =
-                sensoresCargados.get(
-                        fila
-                );
-
-
-        ObjectId sensorId =
-                sensor.getObjectId(
-                        "_id"
-                );
-
+        ObjectId sensorId = sensor.getObjectId("_id");
 
         if (sensorId == null) {
 
@@ -612,37 +395,30 @@ public class SensoresPanelController {
             return;
         }
 
+        String codigo = sensor.getString("codigo");
 
-        // -----------------------------------------------------
-        // CONFIRMAR ELIMINACIÓN
-        // -----------------------------------------------------
+        String descripcion = codigo != null
+                ? codigo
+                : sensorId.toHexString();
 
-        int respuesta =
-                JOptionPane.showConfirmDialog(
-                        view,
-                        "¿Está seguro de eliminar este sensor?",
-                        "Eliminar sensor",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
-
+        int respuesta = JOptionPane.showConfirmDialog(
+                view,
+                "¿Seguro que querés eliminar el sensor "
+                        + descripcion + "?",
+                "Eliminar sensor",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
 
         if (respuesta != JOptionPane.YES_OPTION) {
-
             return;
         }
-
-
-        // -----------------------------------------------------
-        // ELIMINAR
-        // -----------------------------------------------------
 
         try {
 
             sensorController.eliminarSensor(
                     sensorId.toHexString()
             );
-
 
             JOptionPane.showMessageDialog(
                     view,
@@ -651,15 +427,11 @@ public class SensoresPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             sensorIdEditando = null;
-
             view.limpiarFormulario();
-
             view.ocultarFormulario();
 
             cargarSensores();
-
 
         } catch (Exception e) {
 
@@ -670,7 +442,6 @@ public class SensoresPanelController {
         }
     }
 
-
     // =========================================================
     // GUARDAR SENSOR
     // =========================================================
@@ -678,28 +449,22 @@ public class SensoresPanelController {
     private void guardarSensor() {
 
         if (sensorIdEditando == null) {
-
             agregarSensor();
-
         } else {
-
             modificarSensor();
         }
     }
 
-
     // =========================================================
-    // AGREGAR SENSOR
+    // OBTENER ID DEL CONTENEDOR SELECCIONADO
     // =========================================================
 
-    private void agregarSensor() {
+    private String obtenerContenedorIdSeleccionado() {
 
-        Object contenedorSeleccionado =
-                view.getCmbContenedor()
-                        .getSelectedItem();
+        Object seleccionado =
+                view.getCmbContenedor().getSelectedItem();
 
-
-        if (contenedorSeleccionado == null) {
+        if (seleccionado == null) {
 
             JOptionPane.showMessageDialog(
                     view,
@@ -708,21 +473,13 @@ public class SensoresPanelController {
                     JOptionPane.WARNING_MESSAGE
             );
 
-            return;
+            return null;
         }
 
-
-        String codigoContenedor =
-                contenedorSeleccionado
-                        .toString()
-                        .trim();
-
+        String codigo = seleccionado.toString().trim();
 
         String contenedorId =
-                contenedoresPorCodigo.get(
-                        codigoContenedor
-                );
-
+                contenedoresPorCodigo.get(codigo);
 
         if (contenedorId == null) {
 
@@ -733,31 +490,35 @@ public class SensoresPanelController {
                     JOptionPane.WARNING_MESSAGE
             );
 
+            return null;
+        }
+
+        return contenedorId;
+    }
+
+    // =========================================================
+    // AGREGAR SENSOR
+    // =========================================================
+
+    private void agregarSensor() {
+
+        String contenedorId =
+                obtenerContenedorIdSeleccionado();
+
+        if (contenedorId == null) {
             return;
         }
 
-
-        String tipo =
-                view.getTxtTipo()
-                        .getText()
-                        .trim();
-
+        String tipo = view.getTxtTipo().getText().trim();
 
         String fabricante =
-                view.getTxtFabricante()
-                        .getText()
-                        .trim();
+                view.getTxtFabricante().getText().trim();
 
-
-        Date fechaInstalacion =
-                obtenerFechaFormulario();
-
+        Date fechaInstalacion = obtenerFechaFormulario();
 
         if (fechaInstalacion == null) {
-
             return;
         }
-
 
         try {
 
@@ -768,7 +529,6 @@ public class SensoresPanelController {
                     fechaInstalacion
             );
 
-
             JOptionPane.showMessageDialog(
                     view,
                     "Sensor agregado correctamente.",
@@ -776,15 +536,11 @@ public class SensoresPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             sensorIdEditando = null;
-
             view.limpiarFormulario();
-
             view.ocultarFormulario();
 
             cargarSensores();
-
 
         } catch (Exception e) {
 
@@ -795,88 +551,36 @@ public class SensoresPanelController {
         }
     }
 
-
     // =========================================================
     // MODIFICAR SENSOR
     // =========================================================
 
     private void modificarSensor() {
 
-        Object contenedorSeleccionado =
-                view.getCmbContenedor()
-                        .getSelectedItem();
-
-
-        if (contenedorSeleccionado == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Seleccioná un contenedor.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-
-        String codigoContenedor =
-                contenedorSeleccionado
-                        .toString()
-                        .trim();
-
-
         String contenedorId =
-                contenedoresPorCodigo.get(
-                        codigoContenedor
-                );
-
+                obtenerContenedorIdSeleccionado();
 
         if (contenedorId == null) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el ID del contenedor seleccionado.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
             return;
         }
 
-
-        String tipo =
-                view.getTxtTipo()
-                        .getText()
-                        .trim();
-
+        String tipo = view.getTxtTipo().getText().trim();
 
         String fabricante =
-                view.getTxtFabricante()
-                        .getText()
-                        .trim();
+                view.getTxtFabricante().getText().trim();
 
-
-        Date fechaInstalacion =
-                obtenerFechaFormulario();
-
+        Date fechaInstalacion = obtenerFechaFormulario();
 
         if (fechaInstalacion == null) {
-
             return;
         }
 
-
         Object estadoSeleccionado =
-                view.getCmbEstado()
-                        .getSelectedItem();
+                view.getCmbEstado().getSelectedItem();
 
-
-        String estado =
-                estadoSeleccionado != null
-                        ? estadoSeleccionado.toString()
-                        : "ACTIVO";
-
+        String estado = estadoSeleccionado != null
+                ? estadoSeleccionado.toString()
+                : "ACTIVO";
 
         try {
 
@@ -889,7 +593,6 @@ public class SensoresPanelController {
                     estado
             );
 
-
             JOptionPane.showMessageDialog(
                     view,
                     "Sensor modificado correctamente.",
@@ -897,15 +600,11 @@ public class SensoresPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             sensorIdEditando = null;
-
             view.limpiarFormulario();
-
             view.ocultarFormulario();
 
             cargarSensores();
-
 
         } catch (Exception e) {
 
@@ -916,35 +615,25 @@ public class SensoresPanelController {
         }
     }
 
-
     // =========================================================
     // OBTENER FECHA DEL FORMULARIO
     // =========================================================
 
     private Date obtenerFechaFormulario() {
 
-        String fechaTexto =
-                view.getTxtFechaInstalacion()
-                        .getText()
-                        .trim();
-
+        String fechaTexto = view
+                .getTxtFechaInstalacion()
+                .getText()
+                .trim();
 
         SimpleDateFormat formatoFecha =
-                new SimpleDateFormat(
-                        "dd/MM/yyyy"
-                );
+                new SimpleDateFormat("dd/MM/yyyy");
 
-
-        formatoFecha.setLenient(
-                false
-        );
-
+        formatoFecha.setLenient(false);
 
         try {
 
-            return formatoFecha.parse(
-                    fechaTexto
-            );
+            return formatoFecha.parse(fechaTexto);
 
         } catch (ParseException e) {
 
@@ -955,11 +644,9 @@ public class SensoresPanelController {
                     JOptionPane.WARNING_MESSAGE
             );
 
-
             return null;
         }
     }
-
 
     // =========================================================
     // CANCELAR
@@ -970,13 +657,11 @@ public class SensoresPanelController {
         sensorIdEditando = null;
 
         view.limpiarFormulario();
-
         view.ocultarFormulario();
     }
 
-
     // =========================================================
-    // ERROR
+    // MOSTRAR ERROR
     // =========================================================
 
     private void mostrarError(
@@ -986,9 +671,10 @@ public class SensoresPanelController {
 
         JOptionPane.showMessageDialog(
                 view,
-                mensaje
-                        + "\n\n"
-                        + e.getMessage(),
+                mensaje + "\n\n"
+                        + (e.getMessage() != null
+                        ? e.getMessage()
+                        : "Ocurrió un error."),
                 "Error",
                 JOptionPane.ERROR_MESSAGE
         );
