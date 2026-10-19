@@ -254,6 +254,12 @@ public class PrincipalPanel extends JPanel {
             );
         }
 
+        if (tienePermiso("SEGUIMIENTO_ENVIO")) {
+            SeguimientoEnvioPanel panel = new SeguimientoEnvioPanel();
+            contenido.add(panel, "SEGUIMIENTO_ENVIO");
+            new SeguimientoEnvioPanelController(panel);
+        }
+
         // =====================================================
         // TRAZABILIDAD
         // =====================================================
@@ -458,6 +464,8 @@ public class PrincipalPanel extends JPanel {
 
             case "SEGUIMIENTO",
                  "SEGUIMIENTO_GPS" -> "Seguimiento GPS";
+
+            case "SEGUIMIENTO_ENVIO" -> "Seguimiento por envío";
 
             case "TRAZABILIDAD" -> "Trazabilidad";
 

@@ -187,6 +187,13 @@ public class MenuLateralPanel extends JPanel {
 
         agregarItem(
                 opciones,
+                "◉",
+                "Seguimiento por envío",
+                "SEGUIMIENTO_ENVIO"
+        );
+
+        agregarItem(
+                opciones,
                 "↔",
                 "Trazabilidad",
                 "TRAZABILIDAD"

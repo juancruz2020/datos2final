@@ -285,6 +285,7 @@ public class PermisosService {
                      "TRAZABILIDAD",
                      "SEGUIMIENTO",
                      "SEGUIMIENTO_GPS",
+                     "SEGUIMIENTO_ENVIO",
                      "COMUNICACIONES",
                      "RIESGOS",
                      "FACTURACION",
@@ -310,6 +311,7 @@ public class PermisosService {
                      "FACTURACION",
                      "SEGUIMIENTO",
                      "SEGUIMIENTO_GPS",
+                     "SEGUIMIENTO_ENVIO",
                      "RIESGOS",
                      "EVENTOS_LOGISTICOS" -> true;
 
