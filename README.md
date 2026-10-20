@@ -38,6 +38,10 @@ configuración de `ModelosBD/docker-compose.yml`.
 
 Consola Cypher (solicita la contraseña de `neo4j`):
 
+MATCH (n)
+OPTIONAL MATCH (n)-[r]-(m)
+RETURN n, r, m;
+
 ```powershell
 docker exec -it datos2-neo4j cypher-shell -u neo4j -p tu_password
 ```

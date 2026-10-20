@@ -29,6 +29,7 @@ public class EnvioNeo4jDAO {
         parametros.put("fechaEntrega", envio.getFechaEntrega());
         parametros.put("estado", envio.getEstado());
         parametros.put("prioridad", envio.getPrioridad());
+        parametros.put("costoEnvio", envio.getCostoEnvio());
         parametros.put("contenedores", envio.getContenedoresIds());
         parametros.put("ciudadOrigen", envio.getOrigen().getCiudad());
         parametros.put("paisOrigen", envio.getOrigen().getPais());
@@ -46,7 +47,8 @@ public class EnvioNeo4jDAO {
                             e.fechaSalida = $fechaSalida,
                             e.fechaEntrega = $fechaEntrega,
                             e.estado = $estado,
-                            e.prioridad = $prioridad
+                            e.prioridad = $prioridad,
+                            e.costoEnvio = $costoEnvio
                         REMOVE e.clienteId, e.ciudadOrigen, e.paisOrigen,
                                e.ciudadDestino, e.paisDestino
                         WITH e
@@ -152,6 +154,7 @@ public class EnvioNeo4jDAO {
                     destino.pais AS paisDestino,
                     e.estado AS estado,
                     e.prioridad AS prioridad,
+                    e.costoEnvio AS costoEnvio,
                     v.id AS vehiculoId,
                     coalesce(v.identificacion, v.patente) AS vehiculo,
                     v.tipo AS vehiculoTipo,
@@ -199,6 +202,7 @@ public class EnvioNeo4jDAO {
                     destino.pais AS paisDestino,
                     e.estado AS estado,
                     e.prioridad AS prioridad,
+                    e.costoEnvio AS costoEnvio,
                     v.id AS vehiculoId,
                     coalesce(v.identificacion, v.patente) AS vehiculo,
                     v.tipo AS vehiculoTipo,
@@ -400,6 +404,8 @@ public class EnvioNeo4jDAO {
 
         envio.put("estado", texto(record.get("estado")));
         envio.put("prioridad", texto(record.get("prioridad")));
+        envio.put("costoEnvio", record.get("costoEnvio").isNull()
+                ? null : record.get("costoEnvio").asDouble());
 
         // Vehículo asignado al envío.
         envio.put("vehiculoId", texto(record.get("vehiculoId")));

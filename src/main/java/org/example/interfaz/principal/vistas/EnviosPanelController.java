@@ -503,7 +503,8 @@ public class EnviosPanelController {
                         origen,
                         destino,
                         texto(envio.get("estado")),
-                        texto(envio.get("prioridad"))
+                        texto(envio.get("prioridad")),
+                        envio.get("costoEnvio") == null ? "" : envio.get("costoEnvio")
                 });
 
                 idsEnvios.add(id);
@@ -615,6 +616,7 @@ public class EnviosPanelController {
             view.getTxtFechaEntrega().setText(
                     valorTexto(envio.get("fechaEntrega"))
             );
+            view.getTxtCostoEnvio().setText(valorTexto(envio.get("costoEnvio")));
 
             seleccionarCombo(
                     view.getCmbEstado(),
@@ -863,6 +865,7 @@ public class EnviosPanelController {
                 estadoSeleccionado.toString(),
                 datos.prioridad
         );
+        envio.setCostoEnvio(datos.costoEnvio);
 
         try {
 
@@ -1011,6 +1014,15 @@ public class EnviosPanelController {
             return null;
         }
 
+        String costoTexto = view.getTxtCostoEnvio().getText().trim();
+        double costoEnvio;
+        try {
+            costoEnvio = Double.parseDouble(costoTexto.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            advertir("Ingresá un costo de envío válido.");
+            return null;
+        }
+
         return new DatosFormulario(
                 clienteId,
                 contenedoresIds,
@@ -1020,7 +1032,8 @@ public class EnviosPanelController {
                 paisDestino,
                 fechaSalida,
                 fechaEntrega,
-                prioridadSeleccionada.toString()
+                prioridadSeleccionada.toString(),
+                costoEnvio
         );
     }
 
@@ -1267,6 +1280,7 @@ public class EnviosPanelController {
         private final String fechaSalida;
         private final String fechaEntrega;
         private final String prioridad;
+        private final double costoEnvio;
 
         private DatosFormulario(
                 String clienteId,
@@ -1277,7 +1291,8 @@ public class EnviosPanelController {
                 String paisDestino,
                 String fechaSalida,
                 String fechaEntrega,
-                String prioridad
+                String prioridad,
+                double costoEnvio
         ) {
 
             this.clienteId = clienteId;
@@ -1289,6 +1304,7 @@ public class EnviosPanelController {
             this.fechaSalida = fechaSalida;
             this.fechaEntrega = fechaEntrega;
             this.prioridad = prioridad;
+            this.costoEnvio = costoEnvio;
         }
     }
 }

@@ -15,6 +15,7 @@ public class Envio {
     private Ubicacion destino;
     private String estado;
     private String prioridad;
+    private Double costoEnvio;
 
     // Constructor original: se conserva por compatibilidad.
     public Envio(
@@ -146,6 +147,10 @@ public class Envio {
     public String getPrioridad() {
         return prioridad;
     }
+
+    public Double getCostoEnvio() { return costoEnvio; }
+
+    public void setCostoEnvio(Double costoEnvio) { this.costoEnvio = costoEnvio; }
 
     public void setPrioridad(String prioridad) {
         this.prioridad = prioridad;

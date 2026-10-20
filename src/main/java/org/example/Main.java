@@ -9,6 +9,8 @@ public class Main {
     public static void main(String[] args) {
 
 
+
+        //hay que descomentar esto para que funcione
         EliminarDatos.eliminarDatosDePrueba();
 
         DatosPruebaTotal datos =

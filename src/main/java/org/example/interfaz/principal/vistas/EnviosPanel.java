@@ -25,6 +25,7 @@ public class EnviosPanel extends JPanel {
     private final List<String> opcionesContenedores = new ArrayList<>();
     private JTextField txtCiudadOrigen, txtPaisOrigen, txtCiudadDestino, txtPaisDestino;
     private JTextField txtFechaSalida, txtFechaEntrega;
+    private JTextField txtCostoEnvio;
     private JComboBox<String> cmbEstado, cmbPrioridad;
     private JButton btnGuardar, btnCancelar;
     private JPanel centro;
@@ -124,7 +125,8 @@ public class EnviosPanel extends JPanel {
                         "Origen",
                         "Destino",
                         "Estado",
-                        "Prioridad"
+                        "Prioridad",
+                        "Costo de envío"
                 },
                 0
         ) {
@@ -157,6 +159,7 @@ public class EnviosPanel extends JPanel {
         tablaEnvios.getColumnModel().getColumn(8).setPreferredWidth(180); // Destino
         tablaEnvios.getColumnModel().getColumn(9).setPreferredWidth(120); // Estado
         tablaEnvios.getColumnModel().getColumn(10).setPreferredWidth(100); // Prioridad
+        tablaEnvios.getColumnModel().getColumn(11).setPreferredWidth(130); // Costo de envío
 
         JScrollPane scroll = new JScrollPane(tablaEnvios);
         scroll.setPreferredSize(new Dimension(900, 250));
@@ -239,6 +242,8 @@ public class EnviosPanel extends JPanel {
         agregarCampo(panel, gbc, 10, "Estado", cmbEstado);
         cmbPrioridad = new JComboBox<>(new String[]{"BAJA", "MEDIA", "ALTA"});
         agregarCampo(panel, gbc, 11, "Prioridad", cmbPrioridad);
+        txtCostoEnvio = new JTextField(20);
+        agregarCampo(panel, gbc, 12, "Costo de envío", txtCostoEnvio);
 
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
@@ -246,7 +251,7 @@ public class EnviosPanel extends JPanel {
         btnGuardar = new JButton("Guardar envío");
         botones.add(btnCancelar);
         botones.add(btnGuardar);
-        gbc.gridx = 0; gbc.gridy = 12; gbc.gridwidth = 2; gbc.weightx = 1;
+        gbc.gridx = 0; gbc.gridy = 13; gbc.gridwidth = 2; gbc.weightx = 1;
         panel.add(botones, gbc);
         return panel;
     }
@@ -362,6 +367,7 @@ public class EnviosPanel extends JPanel {
         txtPaisDestino.setText("");
         txtFechaSalida.setText("");
         txtFechaEntrega.setText("");
+        txtCostoEnvio.setText("");
         if (cmbEstado.getItemCount() > 0) cmbEstado.setSelectedItem("PENDIENTE");
         if (cmbPrioridad.getItemCount() > 0) cmbPrioridad.setSelectedIndex(0);
     }
@@ -381,6 +387,7 @@ public class EnviosPanel extends JPanel {
     public JTextField getTxtPaisDestino() { return txtPaisDestino; }
     public JTextField getTxtFechaSalida() { return txtFechaSalida; }
     public JTextField getTxtFechaEntrega() { return txtFechaEntrega; }
+    public JTextField getTxtCostoEnvio() { return txtCostoEnvio; }
     public JComboBox<String> getCmbEstado() { return cmbEstado; }
     public JComboBox<String> getCmbPrioridad() { return cmbPrioridad; }
     public JLabel getLblEstado() { return lblEstado; }
