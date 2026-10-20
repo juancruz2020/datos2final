@@ -1,171 +1,74 @@
-MODELO FISICO DE MONGODB
-Base: datos2. Fecha de revisión: 13/10/2026.
-Fuente de campos y tipos: src/main/java/org/example/mongoDB/dao/*MongoDAO.java y sus modelos.
-Envíos y ubicaciones se guardan en Neo4j. EnvioController es un adaptador de consulta; no inserta documentos de envío. No hay colección envios ni tramos en el modelo actual.
+# MODELO FÍSICO DE MONGODB
 
-CLIENTES
-  _id ObjectId
-  razon_social String
-  cuit String
-  email String
-  telefono String
-  direccion Document {calle, numero, ciudad, codigo_postal: String}
-  pais String
-  estado String
-  Fuente: mongoDB/dao/ClienteMongoDAO.java
+**Base de datos:** `datos2`  
+**Motor:** MongoDB (NoSQL documental)  
+**Fecha:** 20/10/2026
 
-USUARIOS
-  _id ObjectId
-  cliente_id ObjectId o null
-  rol_id ObjectId
-  nombre String
-  apellido String
-  email String
-  contraseña_encriptada String
-  estado String
-  fecha_registro Date
-  Fuente: mongoDB/dao/UsuarioMongoDAO.java
+### 1. Colecciones y campos
 
-ROLES
-  _id ObjectId
-  descripcion String
-  nivel_permisos Int32
-  Fuente: mongoDB/dao/RolMongoDAO.java
+| Colección | Campos principales |
+|---|---|
+| `clientes` | `_id` ObjectId, `codigo` String, `razon_social` String, `cuit` String, `email` String, `telefono` String, `direccion` Document, `pais` String, `estado` String |
+| `usuarios` | `_id` ObjectId, `cliente_id` ObjectId/null, `rol_id` ObjectId, `nombre` String, `apellido` String, `email` String, `contraseña_encriptada` String, `estado` String, `fecha_registro` Date |
+| `roles` | `_id` ObjectId, `descripcion` String, `nivel_permisos` Int32 |
+| `contenedores` | `_id` ObjectId, `codigo_internacional` String, `tipo` String, `capacidad` Numérico, `estado` String, `envio_asignado` String opcional |
+| `vehiculos` | `_id` ObjectId, `tipo` String, `identificacion` String, `empresa_operadora` String, `estado` String |
+| `sensores` | `_id` ObjectId, `codigo` String, `contenedor_id` ObjectId, `tipo` String, `fabricante` String, `fecha_instalacion` Date, `estado` String |
+| `eventos_logisticos` | `_id` ObjectId, `envio_id` String, `fecha_hora` Date, `tipo_evento` String, `ubicacion` String, `descripcion` String |
+| `incidentes` | `_id` ObjectId, `envio_id` String, `tipo` String, `fecha` Date, `severidad` String, `estado` String, `descripcion` String |
+| `alertas` | `_id` ObjectId, `sensor_id` ObjectId, `evento_id` ObjectId, `tipo` String, `fecha` Date, `estado` String |
+| `reportes` | `_id` ObjectId, `usuario_id` ObjectId, `tipo` String, `fecha_generacion` Date, `formato` String, `estado` String |
+| `facturas` | `_id` ObjectId, `cliente_id` ObjectId, `fecha_emision` Date, `importe_total` Decimal128, `estado` String |
+| `pagos` | `_id` ObjectId, `factura_id` ObjectId, `fecha` Date, `monto` Decimal128, `medio_pago` String |
+| `cuentas_corrientes` | `_id` ObjectId, `cliente_id` ObjectId, `saldo` Decimal128, `fecha_actualizacion` Date |
+| `movimientos_cuenta_corriente` | `_id` ObjectId, `cuenta_corriente_id` ObjectId, `tipo` String, `referencia_id` String, `descripcion` String, `importe` Decimal128, `fecha` Date |
+| `aperturas_cuenta_corriente` | `_id` ObjectId, `cuenta_corriente_id` ObjectId, `anio` Int32, `mes` Int32, `saldo_inicial` Decimal128 |
+| `cierres_mensuales_cuenta_corriente` | `_id` ObjectId, `cuenta_corriente_id` ObjectId, `anio` Int32, `mes` Int32, `saldo_inicial` Decimal128, `total_debitos` Decimal128, `total_creditos` Decimal128, `saldo_final` Decimal128, `fecha_cierre` Date |
+| `contadores` | `_id` String, `secuencia` Int32 |
+| `conversaciones` | `_id` ObjectId, `nombre` String, `tipo` String, `participantes_ids` Array de String, `fecha_creacion` Date |
+| `mensajes` | `_id` ObjectId, `conversacion_id` String, `remitente_id` String, `contenido` String, `fecha_envio` Date |
 
-CONTENEDORES
-  _id ObjectId
-  codigo_internacional String
-  tipo String
-  capacidad Double
-  estado String
-  envio_asignado String opcional
-  Fuente: mongoDB/dao/ContenedorMongoDAO.java
+El modelo contempla 19 colecciones: 17 verificadas en MongoDB y 2 correspondientes a Comunicaciones, identificadas en sus DAO.
 
-VEHICULOS
-  _id ObjectId
-  tipo String
-  identificacion String
-  empresa_operadora String
-  estado String
-  Fuente: mongoDB/dao/VehiculoMongoDAO.java
+### 2. Relaciones
 
-SENSORES
-  _id ObjectId
-  contenedor_id ObjectId
-  tipo String
-  fabricante String
-  fecha_instalacion Date
-  estado String
-  Fuente: mongoDB/dao/SensorMongoDAO.java
+Las colecciones se vinculan mediante referencias a identificadores:
 
-EVENTOS_LOGISTICOS
-  _id ObjectId
-  envio_id String
-  fecha_hora Date
-  tipo_evento String
-  ubicacion String
-  descripcion String
-  Fuente: mongoDB/dao/EventoLogisticoMongoDAO.java
+- **Clientes:** usuarios, facturas y cuentas corrientes.
+- **Roles:** usuarios.
+- **Contenedores:** sensores.
+- **Sensores y eventos:** alertas.
+- **Facturas:** pagos.
+- **Cuentas corrientes:** movimientos, aperturas y cierres mensuales.
+- **Usuarios:** reportes, conversaciones y mensajes.
+- **Conversaciones:** mensajes.
 
-INCIDENTES
-  _id ObjectId
-  envio_id String
-  tipo String
-  fecha Date
-  severidad String
-  estado String
-  descripcion String
-  Fuente: mongoDB/dao/IncidenteMongoDAO.java
+Los eventos logísticos, incidentes y contenedores pueden relacionarse con envíos almacenados en Neo4j mediante identificadores String.
 
-ALERTAS
-  _id ObjectId
-  sensor_id ObjectId
-  evento_id ObjectId
-  tipo String
-  fecha Date
-  estado String
-  Fuente: mongoDB/dao/AlertaMongoDAO.java
+MongoDB no utiliza claves foráneas automáticas; las relaciones son lógicas y se gestionan desde Java.
 
-REPORTES
-  _id ObjectId
-  usuario_id ObjectId
-  tipo String
-  fecha_generacion Date
-  formato String
-  estado String
-  Fuente: mongoDB/dao/ReporteMongoDAO.java
+### 3. Índices y restricciones
 
-FACTURAS
-  _id ObjectId
-  cliente_id ObjectId
-  fecha_emision Date
-  importe_total Decimal128
-  estado String
-  Fuente: mongoDB/dao/FacturaMongoDAO.java
+Todas las colecciones tienen un índice único automático sobre `_id`.
 
-PAGOS
-  _id ObjectId
-  factura_id ObjectId
-  fecha Date
-  monto Decimal128
-  medio_pago String
-  Fuente: mongoDB/dao/PagoMongoDAO.java
+Además, se verificaron tres índices compuestos únicos:
 
-CUENTAS_CORRIENTES
-  _id ObjectId
-  cliente_id ObjectId
-  saldo Decimal128
-  fecha_actualizacion Date
-  Fuente: mongoDB/dao/CuentaCorrienteMongoDAO.java
+| Colección | Campos |
+|---|---|
+| `aperturas_cuenta_corriente` | `cuenta_corriente_id`, `anio`, `mes` |
+| `cierres_mensuales_cuenta_corriente` | `cuenta_corriente_id`, `anio`, `mes` |
+| `movimientos_cuenta_corriente` | `cuenta_corriente_id`, `tipo`, `referencia_id` |
 
-CONVERSACIONES
-  _id ObjectId
-  nombre String
-  tipo String
-  participantes_ids Array<String>
-  fecha_creacion Date
-  Fuente: mongoDB/dao/ConversacionMongoDAO.java
+El último es un índice único parcial, aplicado cuando `referencia_id` es de tipo String.
 
-MENSAJES
-  _id ObjectId
-  conversacion_id String
-  remitente_id String
-  contenido String
-  fecha_envio Date
-  Fuente: mongoDB/dao/MensajeMongoDAO.java
+No se encontraron validadores `$jsonSchema` en las 17 colecciones existentes. Las demás validaciones se realizan principalmente desde Java.
 
-REFERENCIAS ENTRE DOCUMENTOS Y MOTORES
-usuarios.cliente_id -> clientes._id (ObjectId; puede ser null)
-usuarios.rol_id -> roles._id (ObjectId)
-sensores.contenedor_id -> contenedores._id (ObjectId)
-eventos_logisticos.envio_id -> Envio.id de Neo4j (String)
-incidentes.envio_id -> Envio.id de Neo4j (String)
-alertas.sensor_id -> sensores._id (ObjectId)
-alertas.evento_id -> eventos_logisticos._id (ObjectId)
-reportes.usuario_id -> usuarios._id (ObjectId)
-facturas.cliente_id -> clientes._id (ObjectId)
-pagos.factura_id -> facturas._id (ObjectId)
-cuentas_corrientes.cliente_id -> clientes._id (ObjectId)
-conversaciones.participantes_ids -> usuarios._id convertido a String
-mensajes.conversacion_id -> conversaciones._id convertido a String
-mensajes.remitente_id -> usuarios._id convertido a String
-contenedores.envio_asignado -> Envio.id de Neo4j (String opcional)
+### 4. Particionamiento
 
-INDICES Y RESTRICCIONES FISICAS
-El código Java no ejecuta createIndex ni configura validadores JSON Schema. El script de esta carpeta reproduce ese alcance: no añade índices únicos o secundarios que el arranque no crea.
-Las colecciones conservan el índice estándar de _id de MongoDB. Las referencias anteriores no son claves foráneas declaradas.
-No hay sharding, clave de partición ni replica set declarados en Docker Compose o en los DAO. Docker Compose levanta un servicio MongoDB con un volumen de datos.
+No se implementó sharding ni particionamiento de colecciones, debido al volumen reducido de datos utilizado en el proyecto.
 
-VALIDACIONES DE APLICACION
-ClienteService: campos obligatorios y comprobación de CUIT existente antes de insertar o modificar.
-UsuarioService: existencia del rol, formato ObjectId del cliente cuando corresponde y comprobación de email existente. No consulta la existencia del cliente en la creación. AutenticacionService compara el texto de contraseña; el nombre contraseña_encriptada no implica que exista cifrado o hash.
-RolService valida el formato de ID y la descripción para consultas; no expone alta de roles. ContenedorService comprueba código existente. ContenedorService exige capacidad positiva y crea el estado DISPONIBLE.
-DisponibilidadContenedores y ContenedorMongoDAO: reserva atómica con estado EN_USO y envio_asignado; restauración de reservas ante fallo del guardado en Neo4j; liberación al eliminar, quitar del envío o pasar a un estado que no ocupa.
-FacturaService exige un importe mayor a cero y un cliente existente. Los DAO de pagos y cuentas corrientes no implementan una liquidación contable automática.
-MensajeService exige pertenencia a la conversación al enviar y autoría al modificar o eliminar. ConversacionService usa PRIVADA y GRUPAL.
-Estas comprobaciones Java no sustituyen una restricción única de base de datos frente a escrituras concurrentes o externas.
+La instancia consultada utiliza un replica set denominado `rs0`, compatible con las transacciones implementadas en cuentas corrientes.
 
-REGLA DE DISPONIBILIDAD
-EN_USO solo para EN_TRANSITO o DEMORADO. PENDIENTE, ENTREGADO y CANCELADO dejan DISPONIBLE después de guardar. El selector de nuevos envíos muestra DISPONIBLE; en edición puede mostrar el propio EN_USO.
-La aplicación permite varios contenedores por envío. Los datos de prueba tienen exactamente un contenedor distinto para cada uno de los ocho envíos.
-ContenedorMongoDAO también admite ACTIVO en la reserva como compatibilidad; el selector no ofrece ese estado.
+### 5. Script de creación
+
+El archivo `ModelosBD/scriptMongoDB.txt` contiene la creación de las 19 colecciones y los tres índices personalizados. No incluye datos de prueba ni instrucciones de eliminación.

@@ -17,6 +17,7 @@ import org.example.mongoDB.model.CierreMensualCuentaCorriente;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,6 +30,10 @@ public class CierreMensualCuentaCorrienteService {
 
     private final MongoCollection<Document> movimientos;
     private final MongoCollection<Document> aperturas;
+
+    // =========================================
+    // CONSTRUCTOR
+    // =========================================
 
     public CierreMensualCuentaCorrienteService() {
 
@@ -60,6 +65,12 @@ public class CierreMensualCuentaCorrienteService {
             int mes
     ) {
 
+        if (cuentaId == null || !ObjectId.isValid(cuentaId)) {
+            throw new IllegalArgumentException(
+                    "El ID de la cuenta corriente no es válido."
+            );
+        }
+
         if (mes < 1 || mes > 12) {
             throw new IllegalArgumentException(
                     "El mes debe estar entre 1 y 12."
@@ -69,16 +80,11 @@ public class CierreMensualCuentaCorrienteService {
         LocalDate inicio = LocalDate.of(anio, mes, 1);
         LocalDate fin = inicio.plusMonths(1);
 
-        if (!fin.isBefore(LocalDate.now()) &&
-                !fin.isEqual(LocalDate.now())) {
+        LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
+
+        if (fin.isAfter(hoy)) {
             throw new IllegalArgumentException(
                     "No se puede cerrar un mes que todavía no terminó."
-            );
-        }
-
-        if (inicio.isBefore(LocalDate.of(2026, 10, 1))) {
-            throw new IllegalArgumentException(
-                    "El primer período contable es octubre de 2026."
             );
         }
 
@@ -99,16 +105,13 @@ public class CierreMensualCuentaCorrienteService {
 
             try {
 
-                if (cierreDAO.buscarPorPeriodo(
-                        session, cuentaId, anio, mes
-                ) != null) {
-                    throw new IllegalArgumentException(
-                            "Este período ya fue cerrado."
-                    );
-                }
+                // =========================================
+                // VERIFICAR CUENTA
+                // =========================================
 
                 Document cuenta = cuentaDAO.buscarPorId(
-                        session, cuentaId
+                        session,
+                        cuentaId
                 );
 
                 if (cuenta == null) {
@@ -117,13 +120,65 @@ public class CierreMensualCuentaCorrienteService {
                     );
                 }
 
+                // =========================================
+                // OBTENER PRIMER PERIODO DE LA CUENTA
+                // =========================================
+
+                Document apertura = buscarPrimeraApertura(
+                        session,
+                        cuentaId
+                );
+
+                if (apertura == null) {
+                    throw new IllegalArgumentException(
+                            "La cuenta no tiene saldo de apertura."
+                    );
+                }
+
+                LocalDate primerPeriodo = LocalDate.of(
+                        apertura.getInteger("anio"),
+                        apertura.getInteger("mes"),
+                        1
+                );
+
+                if (inicio.isBefore(primerPeriodo)) {
+                    throw new IllegalArgumentException(
+                            "No se puede cerrar un período anterior a la apertura de la cuenta."
+                    );
+                }
+
+                // =========================================
+                // EVITAR CIERRES DUPLICADOS
+                // =========================================
+
+                if (cierreDAO.buscarPorPeriodo(
+                        session,
+                        cuentaId,
+                        anio,
+                        mes
+                ) != null) {
+
+                    throw new IllegalArgumentException(
+                            "Este período ya fue cerrado."
+                    );
+                }
+
+                // =========================================
+                // CALCULAR SALDO INICIAL
+                // =========================================
+
                 BigDecimal saldoInicial =
                         obtenerSaldoInicial(
-                                session, cuentaId, inicio
+                                session,
+                                cuentaId,
+                                inicio,
+                                primerPeriodo,
+                                apertura
                         );
 
-                BigDecimal totalDebitos = BigDecimal.ZERO;
-                BigDecimal totalCreditos = BigDecimal.ZERO;
+                // =========================================
+                // OBTENER MOVIMIENTOS DEL MES
+                // =========================================
 
                 List<Document> lista = movimientos.find(
                         session,
@@ -135,26 +190,54 @@ public class CierreMensualCuentaCorrienteService {
                                 gte("fecha", fechaInicio),
                                 lt("fecha", fechaFin)
                         )
-                ).into(new java.util.ArrayList<>());
+                ).into(new ArrayList<>());
+
+                BigDecimal totalDebitos = BigDecimal.ZERO;
+                BigDecimal totalCreditos = BigDecimal.ZERO;
 
                 for (Document movimiento : lista) {
 
-                    BigDecimal importe = movimiento
-                            .get("importe", Decimal128.class)
-                            .bigDecimalValue();
+                    Decimal128 importeDecimal =
+                            movimiento.get("importe", Decimal128.class);
+
+                    if (importeDecimal == null) {
+                        throw new IllegalStateException(
+                                "Se encontró un movimiento sin importe válido."
+                        );
+                    }
+
+                    BigDecimal importe =
+                            importeDecimal.bigDecimalValue();
 
                     String tipo = movimiento.getString("tipo");
 
                     if ("DEBITO".equals(tipo)) {
+
                         totalDebitos = totalDebitos.add(importe);
+
                     } else if ("CREDITO".equals(tipo)) {
+
                         totalCreditos = totalCreditos.add(importe);
+
+                    } else {
+
+                        throw new IllegalStateException(
+                                "Tipo de movimiento no reconocido: " + tipo
+                        );
                     }
                 }
 
+                // =========================================
+                // CALCULAR SALDO FINAL
+                // =========================================
+
                 BigDecimal saldoFinal = saldoInicial
-                        .add(totalDebitos)
-                        .subtract(totalCreditos);
+                        .add(totalCreditos)
+                        .subtract(totalDebitos);
+
+                // =========================================
+                // GUARDAR CIERRE MENSUAL
+                // =========================================
 
                 CierreMensualCuentaCorriente cierre =
                         new CierreMensualCuentaCorriente(
@@ -187,42 +270,57 @@ public class CierreMensualCuentaCorrienteService {
     }
 
     // =========================================
+    // BUSCAR PRIMERA APERTURA DE UNA CUENTA
+    // =========================================
+
+    private Document buscarPrimeraApertura(
+            ClientSession session,
+            String cuentaId
+    ) {
+
+        return aperturas.find(
+                session,
+                eq(
+                        "cuenta_corriente_id",
+                        new ObjectId(cuentaId)
+                )
+        )
+        .sort(
+                new Document("anio", 1)
+                        .append("mes", 1)
+        )
+        .first();
+    }
+
+    // =========================================
     // OBTENER SALDO INICIAL
     // =========================================
 
     private BigDecimal obtenerSaldoInicial(
             ClientSession session,
             String cuentaId,
-            LocalDate periodo
+            LocalDate periodo,
+            LocalDate primerPeriodo,
+            Document apertura
     ) {
 
-        LocalDate primerPeriodo = LocalDate.of(2026, 10, 1);
-
+        // Para el primer mes utilizamos el saldo de apertura.
         if (periodo.equals(primerPeriodo)) {
 
-            Document apertura = aperturas.find(
-                    session,
-                    and(
-                            eq(
-                                    "cuenta_corriente_id",
-                                    new ObjectId(cuentaId)
-                            ),
-                            eq("anio", 2026),
-                            eq("mes", 10)
-                    )
-            ).first();
+            Decimal128 saldoApertura =
+                    apertura.get("saldo_inicial", Decimal128.class);
 
-            if (apertura == null) {
-                throw new IllegalArgumentException(
-                        "La cuenta no tiene saldo de apertura."
+            if (saldoApertura == null) {
+                throw new IllegalStateException(
+                        "La apertura no tiene un saldo inicial válido."
                 );
             }
 
-            return apertura
-                    .get("saldo_inicial", Decimal128.class)
-                    .bigDecimalValue();
+            return saldoApertura.bigDecimalValue();
         }
 
+        // Para los siguientes meses utilizamos el
+        // saldo final del cierre anterior.
         LocalDate anterior = periodo.minusMonths(1);
 
         Document cierreAnterior = cierreDAO.buscarPorPeriodo(
@@ -234,13 +332,23 @@ public class CierreMensualCuentaCorrienteService {
 
         if (cierreAnterior == null) {
             throw new IllegalArgumentException(
-                    "Primero debe cerrarse el mes anterior."
+                    "Primero debe cerrarse el período anterior: "
+                            + anterior.getMonthValue()
+                            + "/"
+                            + anterior.getYear()
             );
         }
 
-        return cierreAnterior
-                .get("saldo_final", Decimal128.class)
-                .bigDecimalValue();
+        Decimal128 saldoAnterior =
+                cierreAnterior.get("saldo_final", Decimal128.class);
+
+        if (saldoAnterior == null) {
+            throw new IllegalStateException(
+                    "El cierre anterior no tiene saldo final válido."
+            );
+        }
+
+        return saldoAnterior.bigDecimalValue();
     }
 
     // =========================================

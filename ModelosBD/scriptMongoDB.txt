@@ -1,32 +1,116 @@
-// Creación de las colecciones que escriben los DAO actuales.
-// Base documental: datos2. Ejecutar con mongosh --file ModelosBD/scriptMongoDB.txt.
-// No contiene datos de ejemplo: la carga coherente entre motores está en
-// DatosPorDefecto/GeneradorDatosPruebaMongo.java y DatosPruebaTotal.java.
-// No ejecutar junto con Main esperando conservarlos: Main borra las bases al iniciar.
-// Los DAO no crean índices secundarios ni validadores; este script tampoco.
-// El índice estándar de _id queda a cargo de MongoDB.
+
+/*
+ * Ingeniería de Datos II - Persistencia Políglota
+ * Script de creación de MongoDB
+ *
+ * Base: datos2
+ *
+ * Ejecutar:
+ * mongosh --file ModelosBD/scriptMongoDB.txt
+ *
+ * No elimina ni modifica documentos existentes.
+ * No incluye datos de prueba.
+ * Los envíos se almacenan en Neo4j.
+ */
+
 const base = db.getSiblingDB("datos2");
+
+// ========================================
+// COLECCIONES
+// ========================================
+
 const colecciones = [
-  "clientes",
-  "usuarios",
-  "roles",
-  "contenedores",
-  "vehiculos",
-  "sensores",
-  "eventos_logisticos",
-  "incidentes",
-  "alertas",
-  "reportes",
-  "facturas",
-  "pagos",
-  "cuentas_corrientes",
-  "conversaciones",
-  "mensajes"
+    "clientes",
+    "usuarios",
+    "roles",
+    "contenedores",
+    "vehiculos",
+    "sensores",
+    "eventos_logisticos",
+    "incidentes",
+    "alertas",
+    "reportes",
+    "facturas",
+    "pagos",
+    "cuentas_corrientes",
+    "movimientos_cuenta_corriente",
+    "aperturas_cuenta_corriente",
+    "cierres_mensuales_cuenta_corriente",
+    "contadores",
+    "conversaciones",
+    "mensajes"
 ];
+
 const existentes = new Set(base.getCollectionNames());
+
 for (const nombre of colecciones) {
-    if (!existentes.has(nombre)) base.createCollection(nombre);
+    if (!existentes.has(nombre)) {
+        base.createCollection(nombre);
+        print("Creada: " + nombre);
+    } else {
+        print("Ya existe: " + nombre);
+    }
 }
-// No crear envios: se persisten como nodos y relaciones en Neo4j.
-// Consultas de inspección, sin agregar restricciones:
-for (const nombre of colecciones) print(nombre + ": " + JSON.stringify(base.getCollection(nombre).getIndexes()));
+
+// ========================================
+// ÍNDICE ÚNICO - APERTURAS
+// ========================================
+
+base.aperturas_cuenta_corriente.createIndex(
+    {
+        cuenta_corriente_id: 1,
+        anio: 1,
+        mes: 1
+    },
+    {
+        unique: true
+    }
+);
+
+// ========================================
+// ÍNDICE ÚNICO - CIERRES
+// ========================================
+
+base.cierres_mensuales_cuenta_corriente.createIndex(
+    {
+        cuenta_corriente_id: 1,
+        anio: 1,
+        mes: 1
+    },
+    {
+        unique: true
+    }
+);
+
+// ========================================
+// ÍNDICE ÚNICO PARCIAL - MOVIMIENTOS
+// ========================================
+
+base.movimientos_cuenta_corriente.createIndex(
+    {
+        cuenta_corriente_id: 1,
+        tipo: 1,
+        referencia_id: 1
+    },
+    {
+        unique: true,
+        partialFilterExpression: {
+            referencia_id: {
+                $type: "string"
+            }
+        }
+    }
+);
+
+// ========================================
+// VERIFICACIÓN
+// ========================================
+
+print("\nCOLECCIONES E ÍNDICES:");
+
+for (const nombre of colecciones) {
+    print("\n" + nombre);
+    printjson(base.getCollection(nombre).getIndexes());
+}
+
+print("\nScript de MongoDB finalizado.");

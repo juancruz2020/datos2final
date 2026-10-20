@@ -297,6 +297,7 @@ public class PermisosService {
             };
         }
 
+
         // =========================
         // CLIENTE
         // =========================
@@ -306,18 +307,17 @@ public class PermisosService {
             return switch (vistaNormalizada) {
 
                 case "ENVIOS",
-                     "REPORTES",
-                     "COMUNICACIONES",
-                     "FACTURACION",
-                     "SEGUIMIENTO",
-                     "SEGUIMIENTO_GPS",
-                     "SEGUIMIENTO_ENVIO",
-                     "RIESGOS",
-                     "EVENTOS_LOGISTICOS" -> true;
+                    "REPORTES",
+                    "COMUNICACIONES",
+                    "FACTURACION",
+                    "SEGUIMIENTO_ENVIO",
+                    "RIESGOS",
+                    "EVENTOS_LOGISTICOS" -> true;
 
                 default -> false;
             };
         }
+
 
         // =========================
         // ROL DESCONOCIDO

@@ -2,9 +2,15 @@
 package org.example.mongoDB.service;
 
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.UpdateOptions;
 
 import org.bson.Document;
 import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
@@ -19,19 +25,46 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 
+import static com.mongodb.client.model.Filters.*;
+
 public class CuentaCorrienteService {
 
     private final CuentaCorrienteMongoDAO cuentaDAO;
     private final MovimientoCuentaCorrienteMongoDAO movimientoDAO;
     private final CierreMensualCuentaCorrienteMongoDAO cierreDAO;
 
+    private final MongoCollection<Document> aperturas;
+
+    // =========================================
+    // CONSTRUCTOR
+    // =========================================
+
     public CuentaCorrienteService() {
 
         this.cuentaDAO = new CuentaCorrienteMongoDAO();
-        this.movimientoDAO = new MovimientoCuentaCorrienteMongoDAO();
-        this.cierreDAO = new CierreMensualCuentaCorrienteMongoDAO();
+        this.movimientoDAO =
+                new MovimientoCuentaCorrienteMongoDAO();
+        this.cierreDAO =
+                new CierreMensualCuentaCorrienteMongoDAO();
+
+        MongoDatabase database = MongoSingleton
+                .getInstance()
+                .getDatabase("datos2");
+
+        this.aperturas = database.getCollection(
+                "aperturas_cuenta_corriente"
+        );
 
         movimientoDAO.crearIndiceUnico();
+
+        aperturas.createIndex(
+                Indexes.compoundIndex(
+                        Indexes.ascending("cuenta_corriente_id"),
+                        Indexes.ascending("anio"),
+                        Indexes.ascending("mes")
+                ),
+                new IndexOptions().unique(true)
+        );
     }
 
     // =========================================
@@ -61,7 +94,59 @@ public class CuentaCorrienteService {
 
         cuentaDAO.agregar(cuenta);
 
+        registrarApertura(
+                cuenta.getId(),
+                BigDecimal.ZERO
+        );
+
         return cuenta;
+    }
+
+    // =========================================
+    // REGISTRAR APERTURA
+    // =========================================
+
+    private void registrarApertura(
+            String cuentaId,
+            BigDecimal saldoInicial
+    ) {
+
+        if (cuentaId == null || !ObjectId.isValid(cuentaId)) {
+            throw new IllegalArgumentException(
+                    "El ID de la cuenta corriente no es válido."
+            );
+        }
+
+        if (saldoInicial == null
+                || saldoInicial.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "El saldo inicial no puede ser negativo."
+            );
+        }
+
+        LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
+
+        ObjectId idCuenta = new ObjectId(cuentaId);
+
+        Document apertura = new Document(
+                "cuenta_corriente_id", idCuenta
+        )
+                .append("anio", hoy.getYear())
+                .append("mes", hoy.getMonthValue())
+                .append(
+                        "saldo_inicial",
+                        new Decimal128(saldoInicial)
+                );
+
+        aperturas.updateOne(
+                and(
+                        eq("cuenta_corriente_id", idCuenta),
+                        eq("anio", hoy.getYear()),
+                        eq("mes", hoy.getMonthValue())
+                ),
+                new Document("$setOnInsert", apertura),
+                new UpdateOptions().upsert(true)
+        );
     }
 
     // =========================================
@@ -80,7 +165,7 @@ public class CuentaCorrienteService {
     }
 
     // =========================================
-    // LISTAR CUENTAS CORRIENTES
+    // LISTAR CUENTAS
     // =========================================
 
     public List<Document> listarCuentas() {
@@ -101,12 +186,13 @@ public class CuentaCorrienteService {
             );
         }
 
-        return cuenta.get("saldo", Decimal128.class)
+        return cuenta
+                .get("saldo", Decimal128.class)
                 .bigDecimalValue();
     }
 
     // =========================================
-    // REGISTRAR DÉBITO
+    // REGISTRAR DEBITO
     // =========================================
 
     public void registrarDebito(
@@ -126,7 +212,7 @@ public class CuentaCorrienteService {
     }
 
     // =========================================
-    // REGISTRAR CRÉDITO
+    // REGISTRAR CREDITO
     // =========================================
 
     public void registrarCredito(
@@ -146,7 +232,7 @@ public class CuentaCorrienteService {
     }
 
     // =========================================
-    // REGISTRAR MOVIMIENTO CON TRANSACCIÓN
+    // REGISTRAR MOVIMIENTO CON TRANSACCION
     // =========================================
 
     private void registrarMovimiento(
@@ -157,9 +243,8 @@ public class CuentaCorrienteService {
             BigDecimal importe
     ) {
 
-        if (importe == null ||
-                importe.compareTo(BigDecimal.ZERO) <= 0) {
-
+        if (importe == null
+                || importe.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException(
                     "El importe debe ser mayor a cero."
             );
@@ -179,7 +264,8 @@ public class CuentaCorrienteService {
             );
         }
 
-        String cuentaId = cuenta.getObjectId("_id").toHexString();
+        String cuentaId =
+                cuenta.getObjectId("_id").toHexString();
 
         try (ClientSession session =
                      MongoSingleton.getInstance().startSession()) {
@@ -189,69 +275,77 @@ public class CuentaCorrienteService {
             try {
 
                 // =========================================
-                // VALIDAR CIERRE DEL MES ANTERIOR
+                // OBTENER PRIMER PERIODO DE LA CUENTA
                 // =========================================
 
-                LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
+                Document primeraApertura = aperturas.find(
+                        session,
+                        eq(
+                                "cuenta_corriente_id",
+                                new ObjectId(cuentaId)
+                        )
+                )
+                .sort(
+                        new Document("anio", 1)
+                                .append("mes", 1)
+                )
+                .first();
 
-                LocalDate primerPeriodo = LocalDate.of(2026, 10, 1);
+                if (primeraApertura == null) {
+                    throw new IllegalStateException(
+                            "La cuenta corriente no tiene una apertura registrada."
+                    );
+                }
 
-                LocalDate mesAnterior = hoy
-                        .withDayOfMonth(1)
-                        .minusMonths(1);
+                LocalDate primerPeriodo = LocalDate.of(
+                        primeraApertura.getInteger("anio"),
+                        primeraApertura.getInteger("mes"),
+                        1
+                );
 
-                if (!hoy.isBefore(LocalDate.of(2026, 11, 1))) {
+                LocalDate hoy =
+                        LocalDate.now(ZoneOffset.UTC);
 
-                    Document cierreAnterior =
+                LocalDate inicioMesActual =
+                        hoy.withDayOfMonth(1);
+
+                // =========================================
+                // VALIDAR CIERRES ANTERIORES
+                // =========================================
+
+                LocalDate periodo = primerPeriodo;
+
+                while (periodo.isBefore(inicioMesActual)) {
+
+                    Document cierre =
                             cierreDAO.buscarPorPeriodo(
                                     session,
                                     cuentaId,
-                                    mesAnterior.getYear(),
-                                    mesAnterior.getMonthValue()
+                                    periodo.getYear(),
+                                    periodo.getMonthValue()
                             );
 
-                    if (cierreAnterior == null) {
-
+                    if (cierre == null) {
                         throw new IllegalStateException(
-                                "Primero debe cerrarse el mes anterior."
+                                "Hay períodos anteriores sin cerrar: "
+                                        + periodo.getMonthValue()
+                                        + "/"
+                                        + periodo.getYear()
                         );
                     }
 
-                    // Verificar todos los meses pendientes
-                    LocalDate periodo = primerPeriodo;
-
-                    while (periodo.isBefore(
-                            hoy.withDayOfMonth(1))) {
-
-                        Document cierre =
-                                cierreDAO.buscarPorPeriodo(
-                                        session,
-                                        cuentaId,
-                                        periodo.getYear(),
-                                        periodo.getMonthValue()
-                                );
-
-                        if (cierre == null) {
-                            throw new IllegalStateException(
-                                    "Hay períodos anteriores sin cerrar: "
-                                            + periodo.getMonthValue()
-                                            + "/"
-                                            + periodo.getYear()
-                            );
-                        }
-
-                        periodo = periodo.plusMonths(1);
-                    }
+                    periodo = periodo.plusMonths(1);
                 }
 
                 // =========================================
-                // BUSCAR SALDO ACTUAL
+                // CONSULTAR SALDO ACTUAL
                 // =========================================
 
-                Document cuentaActual = cuentaDAO.buscarPorId(
-                        session,
-                        cuentaId
-                );
+                Document cuentaActual =
+                        cuentaDAO.buscarPorId(
+                                session,
+                                cuentaId
+                        );
 
                 if (cuentaActual == null) {
                     throw new IllegalArgumentException(
@@ -265,10 +359,28 @@ public class CuentaCorrienteService {
 
                 BigDecimal nuevoSaldo;
 
-                if (tipo.equals("DEBITO")) {
-                    nuevoSaldo = saldoActual.add(importe);
+                // El saldo representa dinero disponible.
+                if ("DEBITO".equals(tipo)) {
+
+                    if (saldoActual.compareTo(importe) < 0) {
+                        throw new IllegalArgumentException(
+                                "Saldo insuficiente para realizar la compra."
+                        );
+                    }
+
+                    nuevoSaldo =
+                            saldoActual.subtract(importe);
+
+                } else if ("CREDITO".equals(tipo)) {
+
+                    nuevoSaldo =
+                            saldoActual.add(importe);
+
                 } else {
-                    nuevoSaldo = saldoActual.subtract(importe);
+
+                    throw new IllegalArgumentException(
+                            "Tipo de movimiento no válido."
+                    );
                 }
 
                 // =========================================
@@ -290,7 +402,10 @@ public class CuentaCorrienteService {
                 // GUARDAR MOVIMIENTO Y ACTUALIZAR SALDO
                 // =========================================
 
-                movimientoDAO.agregar(session, movimiento);
+                movimientoDAO.agregar(
+                        session,
+                        movimiento
+                );
 
                 cuentaDAO.actualizarSaldo(
                         session,
@@ -312,7 +427,7 @@ public class CuentaCorrienteService {
     }
 
     // =========================================
-    // CONSULTAR HISTORIAL POR CLIENTE
+    // CONSULTAR HISTORIAL
     // =========================================
 
     public List<Document> consultarHistorial(
@@ -327,7 +442,8 @@ public class CuentaCorrienteService {
             );
         }
 
-        String cuentaId = cuenta.getObjectId("_id").toHexString();
+        String cuentaId =
+                cuenta.getObjectId("_id").toHexString();
 
         return movimientoDAO.buscarPorCuenta(cuentaId);
     }
