@@ -1,84 +1,85 @@
+
 package org.example.interfaz.principal.vistas;
 
 import com.datastax.oss.driver.api.core.cql.Row;
+import org.bson.Document;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
-
-import org.jxmapviewer.input.PanMouseInputListener;
-import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
+import org.example.mongoDB.controller.EnvioController;
+import org.example.mongoDB.controller.SensorController;
+import org.example.mongoDB.service.PermisosService;
 
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
-
 import org.jxmapviewer.cache.FileBasedLocalCache;
-
+import org.jxmapviewer.input.PanMouseInputListener;
+import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
 import org.jxmapviewer.painter.CompoundPainter;
 import org.jxmapviewer.painter.Painter;
-
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
 import javax.swing.*;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.geom.Point2D;
-
 import java.io.File;
-
 import java.time.Instant;
 import java.time.LocalDate;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 
 public class SeguimientoEnvioPanelController {
 
     private final SeguimientoEnvioPanel view;
+    private final String usuarioId;
 
     private final ControllerMonitoreo monitoreoController;
-    private final org.example.mongoDB.controller.SensorController sensorController =
-            new org.example.mongoDB.controller.SensorController();
-    private final org.example.mongoDB.controller.EnvioController envioController =
-            new org.example.mongoDB.controller.EnvioController();
-    private final Map<String, org.bson.Document> sensoresPorId = new HashMap<>();
-    private final List<GPSWaypoint> puntosVisibles = new ArrayList<>();
+    private final SensorController sensorController =
+            new SensorController();
+    private final EnvioController envioController =
+            new EnvioController();
+    private final PermisosService permisosService =
+            new PermisosService();
+
+    private final Map<String, Document> sensoresPorId =
+            new HashMap<>();
+
+    private final List<GPSWaypoint> puntosVisibles =
+            new ArrayList<>();
+
     private boolean actualizandoCombo;
     private JPopupMenu detallePunto;
-
 
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
     public SeguimientoEnvioPanelController(
-            SeguimientoEnvioPanel view
+            SeguimientoEnvioPanel view,
+            String usuarioId
     ) {
 
         this.view = view;
+        this.usuarioId = usuarioId;
+
+        if (!permisosService.puedeAccederVista(
+                usuarioId,
+                "SEGUIMIENTO_ENVIO"
+        )) {
+            throw new SecurityException(
+                    "No tiene permiso para acceder al seguimiento."
+            );
+        }
 
         this.monitoreoController =
                 new ControllerMonitoreo();
 
         configurarMapa();
-
         configurarEventos();
-
         cargarPosiciones();
     }
-
 
     // =========================================================
     // CONFIGURAR MAPA
@@ -86,13 +87,7 @@ public class SeguimientoEnvioPanelController {
 
     private void configurarMapa() {
 
-        JXMapViewer mapa =
-                view.getMapa();
-
-
-        // =====================================================
-        // OPENSTREETMAP
-        // =====================================================
+        JXMapViewer mapa = view.getMapa();
 
         OSMTileFactoryInfo info =
                 new OSMTileFactoryInfo(
@@ -100,22 +95,14 @@ public class SeguimientoEnvioPanelController {
                         "https://tile.openstreetmap.org"
                 );
 
-
         DefaultTileFactory tileFactory =
                 new DefaultTileFactory(info);
 
-
-        // =====================================================
-        // CACHE LOCAL
-        // =====================================================
-
-        File cacheDir =
-                new File(
-                        System.getProperty("user.home")
-                                + File.separator
-                                + ".jxmapviewer2"
-                );
-
+        File cacheDir = new File(
+                System.getProperty("user.home")
+                        + File.separator
+                        + ".jxmapviewer2"
+        );
 
         tileFactory.setLocalCache(
                 new FileBasedLocalCache(
@@ -124,53 +111,23 @@ public class SeguimientoEnvioPanelController {
                 )
         );
 
-
-        mapa.setTileFactory(
-                tileFactory
-        );
-
-
-        // =====================================================
-        // AMÉRICA DEL SUR
-        // =====================================================
-
+        mapa.setTileFactory(tileFactory);
         mapa.setZoom(10);
 
         mapa.setAddressLocation(
-                new GeoPosition(
-                        -15.0,
-                        -60.0
-                )
+                new GeoPosition(-15.0, -60.0)
         );
-
-
-        // =====================================================
-        // MOVER MAPA CON EL MOUSE
-        // =====================================================
 
         PanMouseInputListener pan =
                 new PanMouseInputListener(mapa);
 
-
-        mapa.addMouseListener(
-                pan
-        );
-
-
-        mapa.addMouseMotionListener(
-                pan
-        );
-
-
-        // =====================================================
-        // ZOOM CON RUEDA
-        // =====================================================
+        mapa.addMouseListener(pan);
+        mapa.addMouseMotionListener(pan);
 
         mapa.addMouseWheelListener(
                 new ZoomMouseWheelListenerCursor(mapa)
         );
     }
-
 
     // =========================================================
     // CONFIGURAR EVENTOS
@@ -178,32 +135,32 @@ public class SeguimientoEnvioPanelController {
 
     private void configurarEventos() {
 
-        /*
-         * Botón actualizar.
-         */
-        view.getBtnActualizar()
-                .addActionListener(
-                        e -> cargarPosiciones()
-                );
+        view.getBtnActualizar().addActionListener(
+                e -> cargarPosiciones()
+        );
 
+        view.getComboEnvios().addActionListener(
+                e -> {
+                    if (!actualizandoCombo) {
+                        cargarPosiciones();
+                    }
+                }
+        );
 
-        /*
-         * Cambio de sensor en el ComboBox.
-         */
-        view.getComboEnvios()
-                .addActionListener(
-                        e -> {
-                            if (!actualizandoCombo) cargarPosiciones();
+        view.getMapa().addMouseListener(
+                new java.awt.event.MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(
+                            java.awt.event.MouseEvent e
+                    ) {
+                        if (SwingUtilities.isLeftMouseButton(e)) {
+                            mostrarDetallePunto(e);
                         }
-                );
-        view.getMapa().addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (SwingUtilities.isLeftMouseButton(e)) mostrarDetallePunto(e);
-            }
-        });
+                    }
+                }
+        );
     }
-
 
     // =========================================================
     // CARGAR POSICIONES
@@ -213,80 +170,98 @@ public class SeguimientoEnvioPanelController {
 
         try {
 
-            view.getLblEstado()
-                    .setText(
-                            "Cargando posiciones..."
-                    );
-
-
-            // =================================================
-            // ENVÍO SELECCIONADO
-            // =================================================
-
-            String envioSeleccionado =
-                    (String)
-                            view.getComboEnvios()
-                                    .getSelectedItem();
-
-
-            if (detallePunto != null) detallePunto.setVisible(false);
-            List<Row> todasLasPosiciones = monitoreoController.obtenerTodasLasPosicionesGPS();
-            cargarInformacionSensores();
-            actualizarComboEnvios();
-            envioSeleccionado = (String) view.getComboEnvios().getSelectedItem();
-            Set<String> sensoresDelEnvio = obtenerSensoresDelEnvio(envioSeleccionado);
-            List<Row> posiciones = todasLasPosiciones.stream()
-                    .filter(row -> sensoresDelEnvio.contains(row.getString("sensor_id")))
-                    .toList();
-
-            // =================================================
-            // MOSTRAR EN MAPA
-            // =================================================
-
-            mostrarPosiciones(
-                    posiciones
+            view.getLblEstado().setText(
+                    "Cargando posiciones..."
             );
 
+            if (detallePunto != null) {
+                detallePunto.setVisible(false);
+            }
 
-            // =================================================
-            // INFORMACIÓN
-            // =================================================
+            // Actualizar la lista respetando el usuario.
+            actualizarComboEnvios();
 
-            view.getLblCantidad()
-                    .setText(
-                            "Posiciones: "
-                                    + posiciones.size()
-                    );
+            String envioSeleccionado =
+                    (String) view.getComboEnvios()
+                            .getSelectedItem();
 
+            List<Row> posiciones = new ArrayList<>();
 
-            if (envioSeleccionado == null || "Seleccioná un envío".equals(envioSeleccionado)) {
+            if (envioSeleccionado != null
+                    && !"Seleccioná un envío".equals(
+                            envioSeleccionado
+                    )) {
 
-                view.getLblEstado()
-                        .setText(
-                            "Seleccioná un envío para ver las rutas de sus sensores."
+                // Validar acceso antes de obtener GPS.
+                verificarAccesoEnvio(envioSeleccionado);
+
+                cargarInformacionSensores();
+
+                Set<String> sensoresDelEnvio =
+                        obtenerSensoresDelEnvio(
+                                envioSeleccionado
                         );
+
+                if (!sensoresDelEnvio.isEmpty()) {
+
+                    List<Row> todasLasPosiciones =
+                            monitoreoController
+                                    .obtenerTodasLasPosicionesGPS();
+
+                    for (Row row : todasLasPosiciones) {
+
+                        String sensorId =
+                                row.getString("sensor_id");
+
+                        if (sensorId != null
+                                && sensoresDelEnvio.contains(
+                                        sensorId
+                                )) {
+                            posiciones.add(row);
+                        }
+                    }
+                }
+            }
+
+            mostrarPosiciones(posiciones);
+
+            view.getLblCantidad().setText(
+                    "Posiciones: " + posiciones.size()
+            );
+
+            if (envioSeleccionado == null
+                    || "Seleccioná un envío".equals(
+                            envioSeleccionado
+                    )) {
+
+                view.getLblEstado().setText(
+                        "Seleccioná un envío para ver las rutas de sus sensores."
+                );
 
             } else {
 
-                view.getLblEstado()
-                        .setText(
-                                "Mostrando envío: "
-                                        + envioSeleccionado
-                                        + " · Hacé clic en un punto para ver su información."
-                        );
+                view.getLblEstado().setText(
+                        "Mostrando envío: "
+                                + envioSeleccionado
+                                + " · Hacé clic en un punto para ver su información."
+                );
             }
-
 
         } catch (Exception e) {
 
             e.printStackTrace();
 
+            mostrarPosiciones(
+                    new ArrayList<>()
+            );
 
-            view.getLblEstado()
-                    .setText(
-                            "Error al cargar las posiciones."
-                    );
+            view.getLblCantidad().setText(
+                    "Posiciones: 0"
+            );
 
+            view.getLblEstado().setText(
+                    "Error al cargar las posiciones."
+            );
 
             JOptionPane.showMessageDialog(
                     view,
@@ -298,147 +273,535 @@ public class SeguimientoEnvioPanelController {
         }
     }
 
-
     // =========================================================
-    // CARGAR ENVÍOS Y RESOLVER SENSORES POR CONTENEDOR
+    // CARGAR INFORMACIÓN DE SENSORES
     // =========================================================
 
     private void cargarInformacionSensores() {
+
         try {
-            Map<String, org.bson.Document> sensores = new HashMap<>();
-            for (org.bson.Document sensor : sensorController.listarSensores()) {
+
+            Map<String, Document> sensores =
+                    new HashMap<>();
+
+            for (Document sensor :
+                    sensorController.listarSensores()) {
+
                 Object id = sensor.get("_id");
-                if (id != null) sensores.put(id.toString(), sensor);
+
+                if (id != null) {
+                    sensores.put(
+                            id.toString(),
+                            sensor
+                    );
+                }
             }
+
             sensoresPorId.clear();
             sensoresPorId.putAll(sensores);
+
         } catch (Exception e) {
-            System.err.println("No se pudo cargar la información de los sensores: " + e.getMessage());
+
+            sensoresPorId.clear();
+
+            System.err.println(
+                    "No se pudo cargar la información de los sensores: "
+                            + e.getMessage()
+            );
         }
     }
 
+    // =========================================================
+    // ACTUALIZAR COMBO DE ENVÍOS
+    // =========================================================
+
     private void actualizarComboEnvios() {
-        String seleccionado = (String) view.getComboEnvios().getSelectedItem();
-        Set<String> envios = new java.util.TreeSet<>();
-        for (org.bson.Document envio : envioController.listarEnvios()) {
-            Object id = envio.get("_id");
-            if (id != null) envios.add(id.toString());
+
+        String seleccionado =
+                (String) view.getComboEnvios()
+                        .getSelectedItem();
+
+        Set<String> envios =
+                new TreeSet<>();
+
+        List<Document> listaEnvios;
+
+        // CLIENTE: solamente los envíos de su empresa.
+        if (permisosService.esCliente(usuarioId)) {
+
+            String clienteId =
+                    permisosService.obtenerClienteId(
+                            usuarioId
+                    );
+
+            if (clienteId == null) {
+                throw new SecurityException(
+                        "El usuario no tiene un cliente asociado."
+                );
+            }
+
+            listaEnvios =
+                    envioController.buscarPorCliente(
+                            clienteId
+                    );
+
+        } else {
+
+            // ADMINISTRADOR Y OPERADOR: todos.
+            permisosService.exigirAdminUOperador(
+                    usuarioId
+            );
+
+            listaEnvios =
+                    envioController.listarEnvios();
         }
+
+        for (Document envio : listaEnvios) {
+
+            Object id = envio.get("_id");
+
+            if (id != null) {
+                envios.add(id.toString());
+            }
+        }
+
         actualizandoCombo = true;
+
         try {
-            JComboBox<String> combo = view.getComboEnvios();
+
+            JComboBox<String> combo =
+                    view.getComboEnvios();
+
             combo.removeAllItems();
-            combo.addItem("Seleccioná un envío");
+
+            combo.addItem(
+                    "Seleccioná un envío"
+            );
+
             envios.forEach(combo::addItem);
-            combo.setSelectedItem(seleccionado != null && envios.contains(seleccionado)
-                    ? seleccionado : "Seleccioná un envío");
+
+            if (seleccionado != null
+                    && envios.contains(seleccionado)) {
+
+                combo.setSelectedItem(
+                        seleccionado
+                );
+
+            } else {
+
+                combo.setSelectedIndex(0);
+            }
+
         } finally {
+
             actualizandoCombo = false;
         }
     }
 
-    private Set<String> obtenerSensoresDelEnvio(String envioId) {
-        Set<String> sensores = new HashSet<>();
-        if (envioId == null || "Seleccioná un envío".equals(envioId)) return sensores;
-        org.bson.Document envio = envioController.buscarPorId(envioId);
-        if (envio == null) return sensores;
-        Object contenedoresValor = envio.get("contenedores_ids");
-        if (!(contenedoresValor instanceof Iterable<?> contenedores)) return sensores;
-        Set<String> contenedoresIds = new HashSet<>();
-        for (Object id : contenedores) if (id != null) contenedoresIds.add(id.toString());
-        for (org.bson.Document sensor : sensoresPorId.values()) {
-            Object contenedorId = sensor.get("contenedor_id");
-            Object id = sensor.get("_id");
-            if (contenedorId != null && id != null && contenedoresIds.contains(contenedorId.toString())) {
-                sensores.add(id.toString());
+    // =========================================================
+    // VERIFICAR ACCESO A UN ENVÍO
+    // =========================================================
+
+    private Document verificarAccesoEnvio(
+            String envioId
+    ) {
+
+        if (envioId == null || envioId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Debe seleccionar un envío."
+            );
+        }
+
+        if (!permisosService.puedeAccederVista(
+                usuarioId,
+                "SEGUIMIENTO_ENVIO"
+        )) {
+            throw new SecurityException(
+                    "No tiene permiso para acceder al seguimiento."
+            );
+        }
+
+        Document envio =
+                envioController.buscarPorId(envioId);
+
+        if (envio == null) {
+            throw new IllegalArgumentException(
+                    "El envío no existe."
+            );
+        }
+
+        if (permisosService.esCliente(usuarioId)) {
+
+            String clienteId =
+                    permisosService.obtenerClienteId(
+                            usuarioId
+                    );
+
+            Object clienteEnvio =
+                    envio.get("cliente_id");
+
+            if (clienteId == null
+                    || clienteEnvio == null
+                    || !clienteId.equals(
+                            clienteEnvio.toString()
+                    )) {
+
+                throw new SecurityException(
+                        "No tiene permiso para consultar este envío."
+                );
+            }
+
+        } else {
+
+            permisosService.exigirAdminUOperador(
+                    usuarioId
+            );
+        }
+
+        return envio;
+    }
+
+    // =========================================================
+    // OBTENER SENSORES DEL ENVÍO
+    // =========================================================
+
+    private Set<String> obtenerSensoresDelEnvio(
+            String envioId
+    ) {
+
+        Set<String> sensores =
+                new HashSet<>();
+
+        if (envioId == null
+                || "Seleccioná un envío".equals(envioId)) {
+
+            return sensores;
+        }
+
+        Document envio =
+                verificarAccesoEnvio(envioId);
+
+        Object contenedoresValor =
+                envio.get("contenedores_ids");
+
+        if (!(contenedoresValor
+                instanceof Iterable<?> contenedores)) {
+
+            return sensores;
+        }
+
+        Set<String> contenedoresIds =
+                new HashSet<>();
+
+        for (Object id : contenedores) {
+
+            if (id != null) {
+                contenedoresIds.add(
+                        id.toString()
+                );
             }
         }
+
+        for (Document sensor :
+                sensoresPorId.values()) {
+
+            Object contenedorId =
+                    sensor.get("contenedor_id");
+
+            Object id =
+                    sensor.get("_id");
+
+            if (contenedorId != null
+                    && id != null
+                    && contenedoresIds.contains(
+                            contenedorId.toString()
+                    )) {
+
+                sensores.add(
+                        id.toString()
+                );
+            }
+        }
+
         return sensores;
     }
 
-    private void mostrarDetallePunto(java.awt.event.MouseEvent evento) {
-        String seleccionado = (String) view.getComboEnvios().getSelectedItem();
-        if (seleccionado == null || "Seleccioná un envío".equals(seleccionado)) return;
-        JXMapViewer mapa = view.getMapa();
-        Rectangle viewport = mapa.getViewportBounds();
-        List<GPSWaypoint> cercanos = new ArrayList<>();
+    // =========================================================
+    // MOSTRAR DETALLE DE UN PUNTO GPS
+    // =========================================================
+
+    private void mostrarDetallePunto(
+            java.awt.event.MouseEvent evento
+    ) {
+
+        String seleccionado =
+                (String) view.getComboEnvios()
+                        .getSelectedItem();
+
+        if (seleccionado == null
+                || "Seleccioná un envío".equals(
+                        seleccionado
+                )) {
+
+            return;
+        }
+
+        // Comprobar nuevamente los permisos.
+        try {
+
+            verificarAccesoEnvio(seleccionado);
+
+        } catch (SecurityException |
+                 IllegalArgumentException e) {
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    e.getMessage(),
+                    "Acceso denegado",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+        JXMapViewer mapa =
+                view.getMapa();
+
+        Rectangle viewport =
+                mapa.getViewportBounds();
+
+        List<GPSWaypoint> cercanos =
+                new ArrayList<>();
+
         for (GPSWaypoint punto : puntosVisibles) {
-            Point2D pixel = mapa.getTileFactory().geoToPixel(punto.getPosition(), mapa.getZoom());
-            // El marcador tiene su punta en la coordenada y se dibuja hacia arriba.
-            double x = pixel.getX() - viewport.x;
-            double y = pixel.getY() - viewport.y;
-            if (Math.abs(evento.getX() - x) <= 14
-                    && evento.getY() >= y - 28 && evento.getY() <= y + 8) {
+
+            Point2D pixel =
+                    mapa.getTileFactory()
+                            .geoToPixel(
+                                    punto.getPosition(),
+                                    mapa.getZoom()
+                            );
+
+            double x =
+                    pixel.getX() - viewport.x;
+
+            double y =
+                    pixel.getY() - viewport.y;
+
+            if (Math.abs(
+                    evento.getX() - x
+            ) <= 14
+                    && evento.getY() >= y - 28
+                    && evento.getY() <= y + 8) {
+
                 cercanos.add(punto);
             }
         }
-        if (cercanos.isEmpty()) return;
-        if (detallePunto != null) detallePunto.setVisible(false);
-        cercanos.sort(Comparator.comparing(p -> p.datos.getInstant("fecha_hora"),
-                Comparator.nullsLast(Comparator.naturalOrder())));
-        JTabbedPane lecturas = new JTabbedPane();
-        for (int i = 0; i < cercanos.size(); i++) {
-            GPSWaypoint punto = cercanos.get(i);
-            javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(
-                    new String[]{"Dato", "Valor"}, 0) {
-                @Override
-                public boolean isCellEditable(int row, int column) { return false; }
-            };
-            org.bson.Document sensor = sensoresPorId.get(punto.datos.getString("sensor_id"));
-            if (sensor != null) {
-                sensor.forEach((campo, valor) -> modelo.addRow(
-                        new Object[]{"Sensor · " + nombreCampo(campo), textoDetalle(valor)}));
-            } else {
-                modelo.addRow(new Object[]{"Sensor", seleccionado});
-                modelo.addRow(new Object[]{"Información del sensor", "No disponible en MongoDB"});
-            }
-            for (var columna : punto.datos.getColumnDefinitions()) {
-                String campo = columna.getName().asInternal();
-                modelo.addRow(new Object[]{"Lectura · " + nombreCampo(campo),
-                        textoDetalle(punto.datos.getObject(campo))});
-            }
-            JTable tabla = new JTable(modelo);
-            tabla.setRowHeight(24);
-            tabla.getColumnModel().getColumn(0).setPreferredWidth(190);
-            tabla.getColumnModel().getColumn(1).setPreferredWidth(290);
-            lecturas.addTab(cercanos.size() == 1 ? "Información del punto" : "Lectura " + (i + 1),
-                    new JScrollPane(tabla));
+
+        if (cercanos.isEmpty()) {
+            return;
         }
-        lecturas.setPreferredSize(new java.awt.Dimension(500, 360));
-        detallePunto = new JPopupMenu();
+
+        if (detallePunto != null) {
+            detallePunto.setVisible(false);
+        }
+
+        cercanos.sort(
+                Comparator.comparing(
+                        p -> p.datos.getInstant("fecha_hora"),
+                        Comparator.nullsLast(
+                                Comparator.naturalOrder()
+                        )
+                )
+        );
+
+        JTabbedPane lecturas =
+                new JTabbedPane();
+
+        for (int i = 0; i < cercanos.size(); i++) {
+
+            GPSWaypoint punto =
+                    cercanos.get(i);
+
+            DefaultTableModel modelo =
+                    new DefaultTableModel(
+                            new String[]{
+                                    "Dato",
+                                    "Valor"
+                            },
+                            0
+                    ) {
+
+                        @Override
+                        public boolean isCellEditable(
+                                int row,
+                                int column
+                        ) {
+                            return false;
+                        }
+                    };
+
+            Document sensor =
+                    sensoresPorId.get(
+                            punto.datos.getString("sensor_id")
+                    );
+
+            if (sensor != null) {
+
+                sensor.forEach(
+                        (campo, valor) ->
+                                modelo.addRow(
+                                        new Object[]{
+                                                "Sensor · "
+                                                        + nombreCampo(campo),
+                                                textoDetalle(valor)
+                                        }
+                                )
+                );
+
+            } else {
+
+                modelo.addRow(
+                        new Object[]{
+                                "Sensor",
+                                seleccionado
+                        }
+                );
+
+                modelo.addRow(
+                        new Object[]{
+                                "Información del sensor",
+                                "No disponible en MongoDB"
+                        }
+                );
+            }
+
+            for (var columna :
+                    punto.datos.getColumnDefinitions()) {
+
+                String campo =
+                        columna.getName().asInternal();
+
+                modelo.addRow(
+                        new Object[]{
+                                "Lectura · "
+                                        + nombreCampo(campo),
+                                textoDetalle(
+                                        punto.datos.getObject(campo)
+                                )
+                        }
+                );
+            }
+
+            JTable tabla =
+                    new JTable(modelo);
+
+            tabla.setRowHeight(24);
+
+            tabla.getColumnModel()
+                    .getColumn(0)
+                    .setPreferredWidth(190);
+
+            tabla.getColumnModel()
+                    .getColumn(1)
+                    .setPreferredWidth(290);
+
+            lecturas.addTab(
+                    cercanos.size() == 1
+                            ? "Información del punto"
+                            : "Lectura " + (i + 1),
+                    new JScrollPane(tabla)
+            );
+        }
+
+        lecturas.setPreferredSize(
+                new Dimension(500, 360)
+        );
+
+        detallePunto =
+                new JPopupMenu();
+
         detallePunto.add(lecturas);
-        detallePunto.show(mapa, evento.getX(), evento.getY());
+
+        detallePunto.show(
+                mapa,
+                evento.getX(),
+                evento.getY()
+        );
     }
 
-    private static String nombreCampo(String campo) {
+    // =========================================================
+    // NOMBRES DE CAMPOS
+    // =========================================================
+
+    private static String nombreCampo(
+            String campo
+    ) {
+
+        if (campo == null || campo.isEmpty()) {
+            return "Campo";
+        }
+
         return switch (campo) {
+
             case "_id" -> "ID";
             case "sensor_id" -> "Sensor";
             case "contenedor_id" -> "Contenedor";
             case "fecha_dia" -> "Fecha";
             case "fecha_hora" -> "Fecha y hora";
-            case "fecha_instalacion" -> "Fecha de instalación";
+            case "fecha_instalacion" ->
+                    "Fecha de instalación";
             case "temperatura" -> "Temperatura";
             case "humedad" -> "Humedad";
             case "vibracion" -> "Vibración";
             case "bateria" -> "Batería";
             case "pais" -> "País";
-            default -> Character.toUpperCase(campo.charAt(0)) + campo.substring(1).replace('_', ' ');
+
+            default ->
+                    Character.toUpperCase(
+                            campo.charAt(0)
+                    )
+                            + campo.substring(1)
+                            .replace('_', ' ');
         };
     }
 
-    private static String textoDetalle(Object valor) {
-        if (valor == null) return "Sin dato";
-        if (valor instanceof Instant fecha) {
-            return java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss z")
-                    .withZone(java.time.ZoneId.of("America/Argentina/Buenos_Aires")).format(fecha);
+    // =========================================================
+    // FORMATEAR VALORES
+    // =========================================================
+
+    private static String textoDetalle(
+            Object valor
+    ) {
+
+        if (valor == null) {
+            return "Sin dato";
         }
-        if (valor instanceof java.util.Date fecha) return textoDetalle(fecha.toInstant());
+
+        if (valor instanceof Instant fecha) {
+
+            return java.time.format.DateTimeFormatter
+                    .ofPattern("dd/MM/yyyy HH:mm:ss z")
+                    .withZone(
+                            java.time.ZoneId.of(
+                                    "America/Argentina/Buenos_Aires"
+                            )
+                    )
+                    .format(fecha);
+        }
+
+        if (valor instanceof java.util.Date fecha) {
+
+            return textoDetalle(
+                    fecha.toInstant()
+            );
+        }
+
         return valor.toString();
     }
 
     // =========================================================
-    // MOSTRAR POSICIONES
+    // MOSTRAR POSICIONES GPS
     // =========================================================
 
     private void mostrarPosiciones(
@@ -448,112 +811,68 @@ public class SeguimientoEnvioPanelController {
         JXMapViewer mapa =
                 view.getMapa();
 
+        Set<Waypoint> waypoints =
+                new HashSet<>();
 
-        // =====================================================
-        // TODOS LOS PUNTOS
-        // =====================================================
-
-        Set<Waypoint> waypoints = new HashSet<>();
         puntosVisibles.clear();
 
-
-        // =====================================================
-        // AGRUPAR POSICIONES POR SENSOR
-        // =====================================================
-
-        Map<String, List<PosicionGPS>>
-                posicionesPorSensor =
+        Map<String, List<PosicionGPS>> posicionesPorSensor =
                 new HashMap<>();
-
-
-        // =====================================================
-        // RECORRER POSICIONES
-        // =====================================================
 
         for (Row row : posiciones) {
 
             try {
 
-                // =============================================
-                // SENSOR ID
-                // =============================================
-
                 String sensorId =
-                        row.getString(
-                                "sensor_id"
-                        );
-
+                        row.getString("sensor_id");
 
                 if (sensorId == null) {
                     continue;
                 }
 
+                java.math.BigDecimal latitudValor =
+                        row.getBigDecimal("latitud");
 
-                // =============================================
-                // LATITUD
-                // =============================================
+                java.math.BigDecimal longitudValor =
+                        row.getBigDecimal("longitud");
+
+                if (latitudValor == null
+                        || longitudValor == null) {
+
+                    continue;
+                }
 
                 double latitud =
-                        row.getBigDecimal(
-                                "latitud"
-                        ).doubleValue();
-
-
-                // =============================================
-                // LONGITUD
-                // =============================================
+                        latitudValor.doubleValue();
 
                 double longitud =
-                        row.getBigDecimal(
-                                "longitud"
-                        ).doubleValue();
+                        longitudValor.doubleValue();
 
-
-                // =============================================
-                // VALIDAR COORDENADAS
-                // =============================================
-
-                if (
-                        latitud < -90
-                                || latitud > 90
-                ) {
+                if (latitud < -90 || latitud > 90) {
                     continue;
                 }
 
-
-                if (
-                        longitud < -180
-                                || longitud > 180
-                ) {
+                if (longitud < -180 || longitud > 180) {
                     continue;
                 }
 
-
-                // =============================================
-                // FECHA Y HORA
-                // posiciones_sensor no contiene fecha_dia;
-                // Cassandra timestamp se obtiene como Instant.
-                // =============================================
-
-                Instant fechaHora = row.getInstant("fecha_hora");
+                Instant fechaHora =
+                        row.getInstant("fecha_hora");
 
                 if (fechaHora == null) {
+
                     System.err.println(
                             "Se omitió una posición GPS sin fecha_hora."
                     );
+
                     continue;
                 }
 
-                // Derivar la fecha del día desde fecha_hora en UTC.
-                LocalDate fechaDia = LocalDate.ofInstant(
-                        fechaHora,
-                        java.time.ZoneOffset.UTC
-                );
-
-
-                // =============================================
-                // CREAR OBJETO
-                // =============================================
+                LocalDate fechaDia =
+                        LocalDate.ofInstant(
+                                fechaHora,
+                                java.time.ZoneOffset.UTC
+                        );
 
                 PosicionGPS posicion =
                         new PosicionGPS(
@@ -564,19 +883,16 @@ public class SeguimientoEnvioPanelController {
                                 fechaHora
                         );
 
+                GPSWaypoint punto =
+                        new GPSWaypoint(
+                                latitud,
+                                longitud,
+                                row
+                        );
 
-                // =============================================
-                // AGREGAR PUNTO
-                // =============================================
-
-                GPSWaypoint punto = new GPSWaypoint(latitud, longitud, row);
                 waypoints.add(punto);
+
                 puntosVisibles.add(punto);
-
-
-                // =============================================
-                // AGRUPAR POR SENSOR
-                // =============================================
 
                 posicionesPorSensor
                         .computeIfAbsent(
@@ -584,7 +900,6 @@ public class SeguimientoEnvioPanelController {
                                 k -> new ArrayList<>()
                         )
                         .add(posicion);
-
 
             } catch (Exception e) {
 
@@ -595,144 +910,61 @@ public class SeguimientoEnvioPanelController {
             }
         }
 
-
         // =====================================================
-        // COLORES DISPONIBLES
+        // COLORES PARA CADA SENSOR
         // =====================================================
 
         List<Color> colores =
                 Arrays.asList(
-
-                        new Color(
-                                220,
-                                38,
-                                38
-                        ),
-
-                        new Color(
-                                37,
-                                99,
-                                235
-                        ),
-
-                        new Color(
-                                22,
-                                163,
-                                74
-                        ),
-
-                        new Color(
-                                147,
-                                51,
-                                234
-                        ),
-
-                        new Color(
-                                234,
-                                88,
-                                12
-                        ),
-
-                        new Color(
-                                8,
-                                145,
-                                178
-                        ),
-
-                        new Color(
-                                219,
-                                39,
-                                119
-                        ),
-
-                        new Color(
-                                101,
-                                163,
-                                13
-                        ),
-
-                        new Color(
-                                124,
-                                58,
-                                237
-                        ),
-
-                        new Color(
-                                202,
-                                138,
-                                4
-                        )
+                        new Color(220, 38, 38),
+                        new Color(37, 99, 235),
+                        new Color(22, 163, 74),
+                        new Color(147, 51, 234),
+                        new Color(234, 88, 12),
+                        new Color(8, 145, 178),
+                        new Color(219, 39, 119),
+                        new Color(101, 163, 13),
+                        new Color(124, 58, 237),
+                        new Color(202, 138, 4)
                 );
-
-
-        // =====================================================
-        // LISTA DE PAINTERS
-        // =====================================================
 
         List<Painter<JXMapViewer>> painters =
                 new ArrayList<>();
 
-
-        // =====================================================
-        // CREAR UNA RUTA POR CADA SENSOR
-        // =====================================================
-
         int indiceColor = 0;
 
+        // =====================================================
+        // CREAR RUTA POR SENSOR
+        // =====================================================
 
-        for (
-                Map.Entry<String, List<PosicionGPS>> entry
-                : posicionesPorSensor.entrySet()
-        ) {
-
-            String sensorId =
-                    entry.getKey();
-
+        for (Map.Entry<String, List<PosicionGPS>> entry :
+                posicionesPorSensor.entrySet()) {
 
             List<PosicionGPS> ruta =
                     entry.getValue();
 
-
-            // =============================================
-            // ORDENAR POR FECHA Y HORA
-            // =============================================
-
             ruta.sort(
                     Comparator.comparing(
                             PosicionGPS::getFechaHora,
-                            Comparator.nullsLast(Comparator.naturalOrder())
+                            Comparator.nullsLast(
+                                    Comparator.naturalOrder()
+                            )
                     )
             );
 
-
-            // =============================================
-            // COLOR DEL SENSOR
-            // =============================================
-
             Color color =
                     colores.get(
-                            indiceColor
-                                    % colores.size()
+                            indiceColor % colores.size()
                     );
 
-
             indiceColor++;
-
-
-            // =============================================
-            // CREAR RUTA
-            // =============================================
 
             if (ruta.size() >= 2) {
 
                 List<GeoPosition> puntosRuta =
                         new ArrayList<>();
 
-
-                for (
-                        PosicionGPS posicion
-                        : ruta
-                ) {
+                for (PosicionGPS posicion : ruta) {
 
                     puntosRuta.add(
                             new GeoPosition(
@@ -741,7 +973,6 @@ public class SeguimientoEnvioPanelController {
                             )
                     );
                 }
-
 
                 painters.add(
                         new RoutePainter(
@@ -752,57 +983,44 @@ public class SeguimientoEnvioPanelController {
             }
         }
 
-
         // =====================================================
-        // PAINTER DE LOS PUNTOS
+        // DIBUJAR MARCADORES
         // =====================================================
 
-        WaypointPainter<Waypoint>
-                waypointPainter =
+        WaypointPainter<Waypoint> waypointPainter =
                 new WaypointPainter<>();
-
 
         waypointPainter.setWaypoints(
                 waypoints
         );
 
-
-        painters.add(
-                waypointPainter
-        );
-
+        painters.add(waypointPainter);
 
         // =====================================================
-        // COMBINAR RUTAS + PUNTOS
+        // COMBINAR RUTAS Y MARCADORES
         // =====================================================
 
-        CompoundPainter<JXMapViewer>
-                compoundPainter =
+        CompoundPainter<JXMapViewer> compoundPainter =
                 new CompoundPainter<>(
                         painters
                 );
-
 
         mapa.setOverlayPainter(
                 compoundPainter
         );
 
-
         mapa.repaint();
     }
 
-
     // =========================================================
-    // PAINTER DE LAS RUTAS
+    // PAINTER DE RUTAS
     // =========================================================
 
     private static class RoutePainter
             implements Painter<JXMapViewer> {
 
         private final List<GeoPosition> track;
-
         private final Color color;
-
 
         public RoutePainter(
                 List<GeoPosition> track,
@@ -810,14 +1028,10 @@ public class SeguimientoEnvioPanelController {
         ) {
 
             this.track =
-                    new ArrayList<>(
-                            track
-                    );
+                    new ArrayList<>(track);
 
-            this.color =
-                    color;
+            this.color = color;
         }
-
 
         @Override
         public void paint(
@@ -830,43 +1044,20 @@ public class SeguimientoEnvioPanelController {
             Graphics2D graphics =
                     (Graphics2D) g.create();
 
-
-            // =================================================
-            // VIEWPORT
-            // =================================================
-
             Rectangle rect =
                     mapa.getViewportBounds();
-
 
             graphics.translate(
                     -rect.x,
                     -rect.y
             );
 
-
-            // =================================================
-            // ANTIALIASING
-            // =================================================
-
             graphics.setRenderingHint(
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON
             );
 
-
-            // =================================================
-            // COLOR DE LA RUTA
-            // =================================================
-
-            graphics.setColor(
-                    color
-            );
-
-
-            // =================================================
-            // GROSOR
-            // =================================================
+            graphics.setColor(color);
 
             graphics.setStroke(
                     new BasicStroke(
@@ -876,19 +1067,9 @@ public class SeguimientoEnvioPanelController {
                     )
             );
 
+            Point2D anterior = null;
 
-            // =================================================
-            // DIBUJAR RECORRIDO
-            // =================================================
-
-            Point2D anterior =
-                    null;
-
-
-            for (
-                    GeoPosition posicion
-                    : track
-            ) {
+            for (GeoPosition posicion : track) {
 
                 Point2D actual =
                         mapa.getTileFactory()
@@ -896,7 +1077,6 @@ public class SeguimientoEnvioPanelController {
                                         posicion,
                                         mapa.getZoom()
                                 );
-
 
                 if (anterior != null) {
 
@@ -908,16 +1088,12 @@ public class SeguimientoEnvioPanelController {
                     );
                 }
 
-
-                anterior =
-                        actual;
+                anterior = actual;
             }
-
 
             graphics.dispose();
         }
     }
-
 
     // =========================================================
     // MODELO DE POSICIÓN GPS
@@ -926,15 +1102,10 @@ public class SeguimientoEnvioPanelController {
     private static class PosicionGPS {
 
         private final String sensorId;
-
         private final double latitud;
-
         private final double longitud;
-
         private final LocalDate fechaDia;
-
         private final Instant fechaHora;
-
 
         public PosicionGPS(
                 String sensorId,
@@ -944,53 +1115,33 @@ public class SeguimientoEnvioPanelController {
                 Instant fechaHora
         ) {
 
-            this.sensorId =
-                    sensorId;
-
-            this.latitud =
-                    latitud;
-
-            this.longitud =
-                    longitud;
-
-            this.fechaDia =
-                    fechaDia;
-
-            this.fechaHora =
-                    fechaHora;
+            this.sensorId = sensorId;
+            this.latitud = latitud;
+            this.longitud = longitud;
+            this.fechaDia = fechaDia;
+            this.fechaHora = fechaHora;
         }
 
-
         public String getSensorId() {
-
             return sensorId;
         }
 
-
         public double getLatitud() {
-
             return latitud;
         }
 
-
         public double getLongitud() {
-
             return longitud;
         }
 
-
         public LocalDate getFechaDia() {
-
             return fechaDia;
         }
 
-
         public Instant getFechaHora() {
-
             return fechaHora;
         }
     }
-
 
     // =========================================================
     // WAYPOINT GPS
@@ -1009,6 +1160,7 @@ public class SeguimientoEnvioPanelController {
         ) {
 
             this.datos = datos;
+
             this.posicion =
                     new GeoPosition(
                             latitud,
@@ -1016,10 +1168,8 @@ public class SeguimientoEnvioPanelController {
                     );
         }
 
-
         @Override
         public GeoPosition getPosition() {
-
             return posicion;
         }
     }

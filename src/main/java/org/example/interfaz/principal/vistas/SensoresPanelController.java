@@ -5,6 +5,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.ContenedorController;
 import org.example.mongoDB.controller.SensorController;
+import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -21,6 +22,9 @@ public class SensoresPanelController {
     private final SensoresPanel view;
     private final SensorController sensorController;
     private final ContenedorController contenedorController;
+    private final PermisosService permisosService;
+
+    private final String usuarioId;
 
     private final Map<String, String> contenedoresPorCodigo;
     private final List<Document> sensoresCargados;
@@ -31,20 +35,61 @@ public class SensoresPanelController {
     // CONSTRUCTOR
     // =========================================================
 
-    public SensoresPanelController(SensoresPanel view) {
+    public SensoresPanelController(
+            SensoresPanel view,
+            String usuarioId
+    ) {
 
         this.view = view;
+        this.usuarioId = usuarioId;
+
         this.sensorController = new SensorController();
         this.contenedorController = new ContenedorController();
+        this.permisosService = new PermisosService();
 
         this.contenedoresPorCodigo = new HashMap<>();
         this.sensoresCargados = new ArrayList<>();
 
         this.sensorIdEditando = null;
 
+        if (!permisosService.puedeAccederVista(
+                usuarioId, "SENSORES")) {
+
+            throw new SecurityException(
+                    "No tiene permiso para acceder a Sensores."
+            );
+        }
+
+        configurarPermisos();
         configurarEventos();
         cargarContenedores();
         cargarSensores();
+    }
+
+    // =========================================================
+    // PERMISOS
+    // =========================================================
+
+    private void configurarPermisos() {
+
+        boolean admin = permisosService.esAdmin(usuarioId);
+
+        // El operador puede editar, pero no agregar ni eliminar.
+        view.getBtnMostrarFormulario().setVisible(admin);
+        view.getBtnEliminar().setVisible(admin);
+
+        view.getBtnEditar().setVisible(true);
+        view.getBtnActualizar().setVisible(true);
+    }
+
+    private void exigirAdministrador() {
+
+        permisosService.exigirAdmin(usuarioId);
+    }
+
+    private void exigirEdicionPermitida() {
+
+        permisosService.exigirAdminUOperador(usuarioId);
     }
 
     // =========================================================
@@ -94,6 +139,8 @@ public class SensoresPanelController {
 
     private void prepararNuevoSensor() {
 
+        exigirAdministrador();
+
         sensorIdEditando = null;
 
         cargarContenedores();
@@ -116,11 +163,11 @@ public class SensoresPanelController {
 
             for (Document contenedor : contenedores) {
 
-                ObjectId id = contenedor.getObjectId("_id");
+                ObjectId id =
+                        contenedor.getObjectId("_id");
 
-                String codigo = contenedor.getString(
-                        "codigo_internacional"
-                );
+                String codigo =
+                        contenedor.getString("codigo_internacional");
 
                 if (id != null && codigo != null) {
 
@@ -168,8 +215,8 @@ public class SensoresPanelController {
 
             for (Document sensor : sensores) {
 
-                // Código automático del sensor.
-                String codigoSensor = sensor.getString("codigo");
+                String codigoSensor =
+                        sensor.getString("codigo");
 
                 if (codigoSensor == null) {
                     codigoSensor = "";
@@ -181,15 +228,14 @@ public class SensoresPanelController {
                 String codigoContenedor =
                         obtenerCodigoContenedor(contenedorId);
 
-                Date fecha = sensor.getDate(
-                        "fecha_instalacion"
-                );
+                Date fecha =
+                        sensor.getDate("fecha_instalacion");
 
-                String fechaTexto = fecha != null
-                        ? formatoFecha.format(fecha)
-                        : "";
+                String fechaTexto =
+                        fecha != null
+                                ? formatoFecha.format(fecha)
+                                : "";
 
-                // La tabla ahora tiene seis columnas.
                 modelo.addRow(new Object[]{
                         codigoSensor,
                         codigoContenedor,
@@ -236,9 +282,8 @@ public class SensoresPanelController {
                 return contenedorId.toHexString();
             }
 
-            String codigo = contenedor.getString(
-                    "codigo_internacional"
-            );
+            String codigo =
+                    contenedor.getString("codigo_internacional");
 
             return codigo != null
                     ? codigo
@@ -258,18 +303,21 @@ public class SensoresPanelController {
 
         JTable tabla = view.getTablaSensores();
 
-        int filaSeleccionada = tabla.getSelectedRow();
+        int filaSeleccionada =
+                tabla.getSelectedRow();
 
         if (filaSeleccionada == -1) {
             return null;
         }
 
-        int filaModelo = tabla.convertRowIndexToModel(
-                filaSeleccionada
-        );
+        int filaModelo =
+                tabla.convertRowIndexToModel(
+                        filaSeleccionada
+                );
 
         if (filaModelo < 0
                 || filaModelo >= sensoresCargados.size()) {
+
             return null;
         }
 
@@ -277,10 +325,12 @@ public class SensoresPanelController {
     }
 
     // =========================================================
-    // EDITAR SENSOR SELECCIONADO
+    // EDITAR SENSOR
     // =========================================================
 
     private void editarSensorSeleccionado() {
+
+        exigirEdicionPermitida();
 
         Document sensor = obtenerSensorSeleccionado();
 
@@ -296,7 +346,8 @@ public class SensoresPanelController {
             return;
         }
 
-        ObjectId sensorId = sensor.getObjectId("_id");
+        ObjectId sensorId =
+                sensor.getObjectId("_id");
 
         if (sensorId == null) {
 
@@ -310,7 +361,8 @@ public class SensoresPanelController {
             return;
         }
 
-        sensorIdEditando = sensorId.toHexString();
+        sensorIdEditando =
+                sensorId.toHexString();
 
         cargarContenedores();
 
@@ -324,19 +376,22 @@ public class SensoresPanelController {
                 codigoContenedor
         );
 
-        String tipo = sensor.getString("tipo");
+        String tipo =
+                sensor.getString("tipo");
 
         view.getTxtTipo().setText(
                 tipo != null ? tipo : ""
         );
 
-        String fabricante = sensor.getString("fabricante");
+        String fabricante =
+                sensor.getString("fabricante");
 
         view.getTxtFabricante().setText(
                 fabricante != null ? fabricante : ""
         );
 
-        Date fecha = sensor.getDate("fecha_instalacion");
+        Date fecha =
+                sensor.getDate("fecha_instalacion");
 
         if (fecha != null) {
 
@@ -352,20 +407,27 @@ public class SensoresPanelController {
             view.getTxtFechaInstalacion().setText("");
         }
 
-        String estado = sensor.getString("estado");
+        String estado =
+                sensor.getString("estado");
 
         if (estado != null) {
-            view.getCmbEstado().setSelectedItem(estado);
+
+            view.getCmbEstado().setSelectedItem(
+                    estado
+            );
         }
 
         view.mostrarFormularioEdicion();
     }
 
     // =========================================================
-    // ELIMINAR SENSOR SELECCIONADO
+    // ELIMINAR SENSOR
     // =========================================================
 
     private void eliminarSensorSeleccionado() {
+
+        // Solamente el Administrador puede eliminar.
+        exigirAdministrador();
 
         Document sensor = obtenerSensorSeleccionado();
 
@@ -381,7 +443,8 @@ public class SensoresPanelController {
             return;
         }
 
-        ObjectId sensorId = sensor.getObjectId("_id");
+        ObjectId sensorId =
+                sensor.getObjectId("_id");
 
         if (sensorId == null) {
 
@@ -395,26 +458,32 @@ public class SensoresPanelController {
             return;
         }
 
-        String codigo = sensor.getString("codigo");
+        String codigo =
+                sensor.getString("codigo");
 
-        String descripcion = codigo != null
-                ? codigo
-                : sensorId.toHexString();
+        String descripcion =
+                codigo != null
+                        ? codigo
+                        : sensorId.toHexString();
 
-        int respuesta = JOptionPane.showConfirmDialog(
-                view,
-                "¿Seguro que querés eliminar el sensor "
-                        + descripcion + "?",
-                "Eliminar sensor",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+        int respuesta =
+                JOptionPane.showConfirmDialog(
+                        view,
+                        "¿Seguro que querés eliminar el sensor "
+                                + descripcion + "?",
+                        "Eliminar sensor",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
 
         if (respuesta != JOptionPane.YES_OPTION) {
             return;
         }
 
         try {
+
+            // Validación antes de modificar MongoDB.
+            exigirAdministrador();
 
             sensorController.eliminarSensor(
                     sensorId.toHexString()
@@ -428,6 +497,7 @@ public class SensoresPanelController {
             );
 
             sensorIdEditando = null;
+
             view.limpiarFormulario();
             view.ocultarFormulario();
 
@@ -449,14 +519,21 @@ public class SensoresPanelController {
     private void guardarSensor() {
 
         if (sensorIdEditando == null) {
+
+            // Crear requiere Administrador.
+            exigirAdministrador();
             agregarSensor();
+
         } else {
+
+            // Editar admite Administrador u Operador.
+            exigirEdicionPermitida();
             modificarSensor();
         }
     }
 
     // =========================================================
-    // OBTENER ID DEL CONTENEDOR SELECCIONADO
+    // OBTENER CONTENEDOR SELECCIONADO
     // =========================================================
 
     private String obtenerContenedorIdSeleccionado() {
@@ -476,7 +553,8 @@ public class SensoresPanelController {
             return null;
         }
 
-        String codigo = seleccionado.toString().trim();
+        String codigo =
+                seleccionado.toString().trim();
 
         String contenedorId =
                 contenedoresPorCodigo.get(codigo);
@@ -502,6 +580,8 @@ public class SensoresPanelController {
 
     private void agregarSensor() {
 
+        exigirAdministrador();
+
         String contenedorId =
                 obtenerContenedorIdSeleccionado();
 
@@ -509,12 +589,14 @@ public class SensoresPanelController {
             return;
         }
 
-        String tipo = view.getTxtTipo().getText().trim();
+        String tipo =
+                view.getTxtTipo().getText().trim();
 
         String fabricante =
                 view.getTxtFabricante().getText().trim();
 
-        Date fechaInstalacion = obtenerFechaFormulario();
+        Date fechaInstalacion =
+                obtenerFechaFormulario();
 
         if (fechaInstalacion == null) {
             return;
@@ -537,6 +619,7 @@ public class SensoresPanelController {
             );
 
             sensorIdEditando = null;
+
             view.limpiarFormulario();
             view.ocultarFormulario();
 
@@ -557,6 +640,15 @@ public class SensoresPanelController {
 
     private void modificarSensor() {
 
+        exigirEdicionPermitida();
+
+        if (sensorIdEditando == null) {
+
+            throw new IllegalStateException(
+                    "No hay un sensor seleccionado para editar."
+            );
+        }
+
         String contenedorId =
                 obtenerContenedorIdSeleccionado();
 
@@ -564,12 +656,14 @@ public class SensoresPanelController {
             return;
         }
 
-        String tipo = view.getTxtTipo().getText().trim();
+        String tipo =
+                view.getTxtTipo().getText().trim();
 
         String fabricante =
                 view.getTxtFabricante().getText().trim();
 
-        Date fechaInstalacion = obtenerFechaFormulario();
+        Date fechaInstalacion =
+                obtenerFechaFormulario();
 
         if (fechaInstalacion == null) {
             return;
@@ -578,9 +672,10 @@ public class SensoresPanelController {
         Object estadoSeleccionado =
                 view.getCmbEstado().getSelectedItem();
 
-        String estado = estadoSeleccionado != null
-                ? estadoSeleccionado.toString()
-                : "ACTIVO";
+        String estado =
+                estadoSeleccionado != null
+                        ? estadoSeleccionado.toString()
+                        : "ACTIVO";
 
         try {
 
@@ -601,6 +696,7 @@ public class SensoresPanelController {
             );
 
             sensorIdEditando = null;
+
             view.limpiarFormulario();
             view.ocultarFormulario();
 
@@ -616,7 +712,7 @@ public class SensoresPanelController {
     }
 
     // =========================================================
-    // OBTENER FECHA DEL FORMULARIO
+    // OBTENER FECHA
     // =========================================================
 
     private Date obtenerFechaFormulario() {

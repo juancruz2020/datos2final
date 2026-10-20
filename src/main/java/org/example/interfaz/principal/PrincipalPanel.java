@@ -173,9 +173,7 @@ public class PrincipalPanel extends JPanel {
                     "CONTENEDORES"
             );
 
-            new ContenedoresPanelController(
-                    contenedoresPanel
-            );
+            new ContenedoresPanelController(contenedoresPanel, usuarioId);
         }
 
         // =====================================================
@@ -192,9 +190,7 @@ public class PrincipalPanel extends JPanel {
                     "VEHICULOS"
             );
 
-            new VehiculosPanelController(
-                    vehiculosPanel
-            );
+                new VehiculosPanelController(vehiculosPanel, usuarioId);
         }
 
         // =====================================================
@@ -211,9 +207,7 @@ public class PrincipalPanel extends JPanel {
                     "SENSORES"
             );
 
-            new SensoresPanelController(
-                    sensoresPanel
-            );
+            new SensoresPanelController(sensoresPanel, usuarioId);
         }
 
         // =====================================================
@@ -257,7 +251,7 @@ public class PrincipalPanel extends JPanel {
         if (tienePermiso("SEGUIMIENTO_ENVIO")) {
             SeguimientoEnvioPanel panel = new SeguimientoEnvioPanel();
             contenido.add(panel, "SEGUIMIENTO_ENVIO");
-            new SeguimientoEnvioPanelController(panel);
+            new SeguimientoEnvioPanelController(panel, usuarioId);
         }
 
         // =====================================================
@@ -274,9 +268,7 @@ public class PrincipalPanel extends JPanel {
                     "TRAZABILIDAD"
             );
 
-            new TrazabilidadPanelController(
-                    trazabilidadPanel
-            );
+new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
         }
 
         // =====================================================
@@ -313,9 +305,10 @@ public class PrincipalPanel extends JPanel {
                     "FACTURACION"
             );
 
-            new FacturacionPanelController(
-                    facturacionPanel
-            );
+                new FacturacionPanelController(
+                        facturacionPanel,
+                        usuarioId
+                );
         }
 
         // =====================================================
@@ -371,9 +364,10 @@ public class PrincipalPanel extends JPanel {
                     "RIESGOS"
             );
 
-            new IncidentesPanelController(
-                    incidentesPanel
-            );
+                new IncidentesPanelController(
+                        incidentesPanel,
+                        usuarioId
+                );
         }
 
         // =====================================================

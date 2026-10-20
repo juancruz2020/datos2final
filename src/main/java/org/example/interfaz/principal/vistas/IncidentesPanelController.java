@@ -4,15 +4,27 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.EnvioController;
 import org.example.mongoDB.controller.IncidenteController;
+import org.example.mongoDB.dao.UsuarioMongoDAO;
+import org.example.mongoDB.dao.RolMongoDAO;
 
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Locale;
 
 public class IncidentesPanelController {
 
     private final IncidentesPanel vista;
+    private final String usuarioId;
+    private final UsuarioMongoDAO usuarioDAO;
+    private final RolMongoDAO rolDAO;
+    private String rolActual;
+    private String clienteIdActual;
+    private final Set<String> idsEnviosCliente = new HashSet<>();
 
     private final IncidenteController incidenteController;
     private final EnvioController envioController;
@@ -25,11 +37,16 @@ public class IncidentesPanelController {
     // =========================================================
 
     public IncidentesPanelController(
-            IncidentesPanel vista
+            IncidentesPanel vista,
+            String usuarioId
     ) {
 
         this.vista =
                 vista;
+
+        this.usuarioId = usuarioId;
+        this.usuarioDAO = new UsuarioMongoDAO();
+        this.rolDAO = new RolMongoDAO();
 
         this.incidenteController =
                 new IncidenteController();
@@ -41,6 +58,8 @@ public class IncidentesPanelController {
                 null;
 
 
+        cargarUsuarioActual();
+
         configurarEventos();
 
         cargarEnvios();
@@ -48,8 +67,120 @@ public class IncidentesPanelController {
         cargarIncidentes();
 
         vista.modoRegistrar();
+        configurarPermisos();
     }
 
+
+    // =========================================================
+    // USUARIO AUTENTICADO Y PERMISOS
+    // =========================================================
+
+    private void cargarUsuarioActual() {
+
+        if (usuarioId == null || !ObjectId.isValid(usuarioId)) {
+            throw new SecurityException(
+                    "No se pudo identificar al usuario autenticado."
+            );
+        }
+
+        Document usuario = usuarioDAO.buscarPorId(usuarioId);
+
+        if (usuario == null) {
+            throw new SecurityException("El usuario autenticado no existe.");
+        }
+
+        ObjectId rolId = usuario.getObjectId("rol_id");
+
+        if (rolId == null) {
+            throw new SecurityException("El usuario no tiene un rol asignado.");
+        }
+
+        Document rol = rolDAO.buscarPorId(rolId.toHexString());
+
+        if (rol == null) {
+            throw new SecurityException("No se encontró el rol del usuario.");
+        }
+
+        String descripcion = rol.getString("descripcion");
+        rolActual = descripcion == null
+                ? ""
+                : descripcion.trim().toUpperCase(Locale.ROOT);
+
+        if (!"ADMINISTRADOR".equals(rolActual)
+                && !"OPERADOR".equals(rolActual)
+                && !"CLIENTE".equals(rolActual)) {
+            throw new SecurityException("Rol sin permisos definidos para Riesgos.");
+        }
+
+        ObjectId clienteId = usuario.getObjectId("cliente_id");
+        clienteIdActual = clienteId == null ? null : clienteId.toHexString();
+
+        if ("CLIENTE".equals(rolActual)
+                && (clienteIdActual == null || clienteIdActual.isBlank())) {
+            throw new SecurityException("Tu usuario no tiene un cliente asociado.");
+        }
+    }
+
+    private void configurarPermisos() {
+
+        boolean puedeEditar = !"CLIENTE".equals(rolActual);
+
+        vista.getBtnEditar().setVisible(puedeEditar);
+        vista.getBtnEditar().setEnabled(puedeEditar);
+        boolean puedeEliminar = "ADMINISTRADOR".equals(rolActual);
+        vista.getBtnEliminar().setVisible(puedeEliminar);
+        vista.getBtnEliminar().setEnabled(puedeEliminar);
+    }
+
+    private void validarPermisoEdicion() {
+
+        cargarUsuarioActual();
+
+        if ("CLIENTE".equals(rolActual)) {
+            throw new SecurityException(
+                    "El rol CLIENTE solo puede registrar y consultar incidentes propios."
+            );
+        }
+    }
+
+    private void validarPermisoEliminar() {
+
+        cargarUsuarioActual();
+
+        if (!"ADMINISTRADOR".equals(rolActual)) {
+            throw new SecurityException(
+                    "Solo el ADMINISTRADOR puede eliminar incidentes."
+            );
+        }
+    }
+
+    private void validarEnvioPropio(String envioId) {
+
+        cargarUsuarioActual();
+
+        if (envioId == null || envioId.isBlank()) {
+            throw new IllegalArgumentException("Seleccioná un envío.");
+        }
+
+        if ("CLIENTE".equals(rolActual)) {
+            boolean pertenece = false;
+
+            // Comprobar nuevamente el vínculo desde el origen de datos.
+            for (Document envio : envioController.buscarPorCliente(clienteIdActual)) {
+                Object id = envio.get("_id");
+                if (id != null && envioId.equals(id.toString())) {
+                    pertenece = true;
+                    break;
+                }
+            }
+
+            if (!pertenece) {
+                throw new SecurityException(
+                        "No tenés permisos para registrar incidentes en ese envío."
+                );
+            }
+        }
+    }
 
     // =========================================================
     // CONFIGURAR EVENTOS
@@ -104,6 +235,15 @@ public class IncidentesPanelController {
 
     private void guardar() {
 
+        if (incidenteIdEdicion != null) {
+            try {
+                validarPermisoEdicion();
+            } catch (Exception ex) {
+                mostrarError(ex.getMessage());
+                return;
+            }
+        }
+
         if (incidenteIdEdicion == null) {
 
             registrarIncidente();
@@ -127,6 +267,8 @@ public class IncidentesPanelController {
                     (String) vista
                             .getComboEnvio()
                             .getSelectedItem();
+
+            validarEnvioPropio(envioId);
 
 
             String tipo =
@@ -182,6 +324,13 @@ public class IncidentesPanelController {
     // =========================================================
 
     private void editarIncidenteSeleccionado() {
+
+        try {
+            validarPermisoEdicion();
+        } catch (Exception ex) {
+            mostrarError(ex.getMessage());
+            return;
+        }
 
         int fila =
                 vista.getTablaIncidentes()
@@ -296,6 +445,8 @@ public class IncidentesPanelController {
 
         try {
 
+            validarPermisoEdicion();
+
             String envioId =
                     (String) vista
                             .getComboEnvio()
@@ -363,6 +514,13 @@ public class IncidentesPanelController {
     // =========================================================
 
     private void eliminarIncidenteSeleccionado() {
+
+        try {
+            validarPermisoEliminar();
+        } catch (Exception ex) {
+            mostrarError(ex.getMessage());
+            return;
+        }
 
         int fila =
                 vista.getTablaIncidentes()
@@ -467,6 +625,8 @@ public class IncidentesPanelController {
 
         try {
 
+            cargarUsuarioActual();
+            configurarPermisos();
             cancelarEdicion();
 
             cargarEnvios();
@@ -493,9 +653,26 @@ public class IncidentesPanelController {
                 .removeAllItems();
 
 
-        List<String> ids =
-                envioController
-                        .obtenerTodosLosIds();
+        List<String> ids;
+
+        idsEnviosCliente.clear();
+
+        if ("CLIENTE".equals(rolActual)) {
+            ids = new ArrayList<>();
+
+            for (Document envio : envioController.buscarPorCliente(clienteIdActual)) {
+                Object id = envio.get("_id");
+
+                if (id != null) {
+                    String idTexto = id.toString();
+                    ids.add(idTexto);
+                    idsEnviosCliente.add(idTexto);
+                }
+            }
+
+        } else {
+            ids = envioController.obtenerTodosLosIds();
+        }
 
 
         for (String id : ids) {
@@ -520,9 +697,18 @@ public class IncidentesPanelController {
                 );
 
 
-        List<Document> incidentes =
-                incidenteController
-                        .listarIncidentes();
+        List<Document> incidentes;
+
+        if ("CLIENTE".equals(rolActual)) {
+            incidentes = new ArrayList<>();
+
+            for (String envioId : idsEnviosCliente) {
+                incidentes.addAll(incidenteController.buscarPorEnvio(envioId));
+            }
+
+        } else {
+            incidentes = incidenteController.listarIncidentes();
+        }
 
 
         SimpleDateFormat formatoFecha =

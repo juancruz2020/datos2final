@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.example.interfaz.tema.Colores;
@@ -18,7 +19,6 @@ public class SeguimientoEnvioPanel extends JPanel {
     private final JButton btnActualizar;
 
     private final JComboBox<String> comboEnvios;
-
 
     public SeguimientoEnvioPanel() {
 
@@ -48,7 +48,6 @@ public class SeguimientoEnvioPanel extends JPanel {
         construir();
     }
 
-
     // =========================================================
     // CONSTRUIR
     // =========================================================
@@ -75,7 +74,6 @@ public class SeguimientoEnvioPanel extends JPanel {
                 )
         );
 
-
         // =====================================================
         // CABECERA
         // =====================================================
@@ -86,7 +84,6 @@ public class SeguimientoEnvioPanel extends JPanel {
                 );
 
         cabecera.setOpaque(false);
-
 
         JLabel titulo =
                 new JLabel(
@@ -105,7 +102,6 @@ public class SeguimientoEnvioPanel extends JPanel {
                 Colores.TEXTO
         );
 
-
         JLabel subtitulo =
                 new JLabel(
                         "Rutas GPS de los sensores asociados al envío"
@@ -118,7 +114,6 @@ public class SeguimientoEnvioPanel extends JPanel {
         subtitulo.setForeground(
                 Colores.TEXTO_SECUNDARIO
         );
-
 
         JPanel textos =
                 new JPanel();
@@ -140,12 +135,10 @@ public class SeguimientoEnvioPanel extends JPanel {
 
         textos.add(subtitulo);
 
-
         cabecera.add(
                 textos,
                 BorderLayout.WEST
         );
-
 
         // =====================================================
         // CONTROLES
@@ -162,7 +155,6 @@ public class SeguimientoEnvioPanel extends JPanel {
 
         controles.setOpaque(false);
 
-
         JLabel lblSensor =
                 new JLabel(
                         "Envío:"
@@ -176,7 +168,6 @@ public class SeguimientoEnvioPanel extends JPanel {
                 Colores.TEXTO
         );
 
-
         /*
          * Tamaño del selector.
          */
@@ -186,7 +177,6 @@ public class SeguimientoEnvioPanel extends JPanel {
                         32
                 )
         );
-
 
         controles.add(
                 lblSensor
@@ -200,18 +190,15 @@ public class SeguimientoEnvioPanel extends JPanel {
                 btnActualizar
         );
 
-
         cabecera.add(
                 controles,
                 BorderLayout.EAST
         );
 
-
         add(
                 cabecera,
                 BorderLayout.NORTH
         );
-
 
         // =====================================================
         // MAPA
@@ -236,12 +223,10 @@ public class SeguimientoEnvioPanel extends JPanel {
                 )
         );
 
-
         add(
                 mapa,
                 BorderLayout.CENTER
         );
-
 
         // =====================================================
         // PIE
@@ -254,7 +239,6 @@ public class SeguimientoEnvioPanel extends JPanel {
 
         pie.setOpaque(false);
 
-
         lblEstado.setFont(
                 Fuentes.NORMAL
         );
@@ -262,7 +246,6 @@ public class SeguimientoEnvioPanel extends JPanel {
         lblEstado.setForeground(
                 Colores.TEXTO_SECUNDARIO
         );
-
 
         lblCantidad.setFont(
                 Fuentes.NORMAL
@@ -272,25 +255,21 @@ public class SeguimientoEnvioPanel extends JPanel {
                 Colores.TEXTO_SECUNDARIO
         );
 
-
         pie.add(
                 lblEstado,
                 BorderLayout.WEST
         );
-
 
         pie.add(
                 lblCantidad,
                 BorderLayout.EAST
         );
 
-
         add(
                 pie,
                 BorderLayout.SOUTH
         );
     }
-
 
     // =========================================================
     // GETTERS
@@ -300,21 +279,17 @@ public class SeguimientoEnvioPanel extends JPanel {
         return mapa;
     }
 
-
     public JLabel getLblEstado() {
         return lblEstado;
     }
-
 
     public JLabel getLblCantidad() {
         return lblCantidad;
     }
 
-
     public JButton getBtnActualizar() {
         return btnActualizar;
     }
-
 
     public JComboBox<String> getComboEnvios() {
         return comboEnvios;

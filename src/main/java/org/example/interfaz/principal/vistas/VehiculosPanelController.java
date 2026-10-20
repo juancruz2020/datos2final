@@ -1,8 +1,10 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.VehiculoController;
+import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,113 +14,105 @@ import java.util.List;
 public class VehiculosPanelController {
 
     private final VehiculosPanel view;
-
     private final VehiculoController controller;
+    private final PermisosService permisosService;
+    private final String usuarioId;
 
     private List<Document> vehiculosActuales;
 
     private String vehiculoIdEditando;
-
     private boolean modoEdicion;
-
 
     // =========================================================
     // CONSTRUCTOR
     // =========================================================
 
     public VehiculosPanelController(
-            VehiculosPanel view
+            VehiculosPanel view,
+            String usuarioId
     ) {
 
         this.view = view;
+        this.usuarioId = usuarioId;
 
-        this.controller =
-                new VehiculoController();
+        this.controller = new VehiculoController();
+        this.permisosService = new PermisosService();
 
-        this.vehiculosActuales =
-                new ArrayList<>();
+        this.vehiculosActuales = new ArrayList<>();
+        this.vehiculoIdEditando = null;
+        this.modoEdicion = false;
 
-        this.vehiculoIdEditando =
-                null;
+        if (!permisosService.puedeAccederVista(
+                usuarioId, "VEHICULOS")) {
 
-        this.modoEdicion =
-                false;
+            throw new SecurityException(
+                    "No tiene permiso para acceder a Vehículos."
+            );
+        }
 
+        configurarPermisos();
         configurarEventos();
-
         cargarVehiculos();
     }
 
+    // =========================================================
+    // CONFIGURAR PERMISOS
+    // =========================================================
+
+    private void configurarPermisos() {
+
+        boolean admin = permisosService.esAdmin(usuarioId);
+
+        // Solo Administrador puede agregar y eliminar.
+        view.getBtnMostrarFormulario().setVisible(admin);
+        view.getBtnEliminar().setVisible(admin);
+
+        // Administrador y Operador pueden editar.
+        view.getBtnEditar().setVisible(true);
+        view.getBtnActualizar().setVisible(true);
+    }
+
+    private void exigirAdministrador() {
+        permisosService.exigirAdmin(usuarioId);
+    }
+
+    private void exigirEdicionPermitida() {
+        permisosService.exigirAdminUOperador(usuarioId);
+    }
 
     // =========================================================
-    // EVENTOS
+    // CONFIGURAR EVENTOS
     // =========================================================
 
     private void configurarEventos() {
 
-        // -----------------------------------------------------
-        // ACTUALIZAR
-        // -----------------------------------------------------
+        view.getBtnActualizar().addActionListener(
+                e -> cargarVehiculos()
+        );
 
-        view.getBtnActualizar()
-                .addActionListener(
-                        e -> cargarVehiculos()
-                );
+        view.getBtnMostrarFormulario().addActionListener(
+                e -> prepararNuevoVehiculo()
+        );
 
+        view.getBtnEditar().addActionListener(
+                e -> prepararEdicion()
+        );
 
-        // -----------------------------------------------------
-        // MOSTRAR FORMULARIO PARA AGREGAR
-        // -----------------------------------------------------
+        view.getBtnEliminar().addActionListener(
+                e -> eliminarVehiculo()
+        );
 
-        view.getBtnMostrarFormulario()
-                .addActionListener(
-                        e -> prepararNuevoVehiculo()
-                );
+        view.getBtnCancelar().addActionListener(
+                e -> cancelar()
+        );
 
-
-        // -----------------------------------------------------
-        // EDITAR
-        // -----------------------------------------------------
-
-        view.getBtnEditar()
-                .addActionListener(
-                        e -> prepararEdicion()
-                );
-
-
-        // -----------------------------------------------------
-        // ELIMINAR
-        // -----------------------------------------------------
-
-        view.getBtnEliminar()
-                .addActionListener(
-                        e -> eliminarVehiculo()
-                );
-
-
-        // -----------------------------------------------------
-        // CANCELAR
-        // -----------------------------------------------------
-
-        view.getBtnCancelar()
-                .addActionListener(
-                        e -> cancelar()
-                );
-
-
-        // -----------------------------------------------------
-        // GUARDAR
-        // -----------------------------------------------------
-
-        view.getBtnGuardar()
-                .addActionListener(
-                        e -> guardar()
-                );
+        view.getBtnGuardar().addActionListener(
+                e -> guardar()
+        );
     }
 
-
     // =========================================================
-    // CARGAR VEHICULOS
+    // CARGAR VEHÍCULOS
     // =========================================================
 
     private void cargarVehiculos() {
@@ -129,47 +123,29 @@ public class VehiculosPanelController {
                     controller.listarVehiculos();
 
             vehiculosActuales =
-                    new ArrayList<>(
-                            vehiculos
-                    );
+                    new ArrayList<>(vehiculos);
 
             DefaultTableModel modelo =
-                    (DefaultTableModel)
-                            view.getTablaVehiculos()
-                                    .getModel();
+                    (DefaultTableModel) view
+                            .getTablaVehiculos()
+                            .getModel();
 
-            modelo.setRowCount(
-                    0
-            );
+            modelo.setRowCount(0);
 
             for (Document vehiculo : vehiculos) {
 
-                modelo.addRow(
-                        new Object[]{
-                                vehiculo.getString(
-                                        "tipo"
-                                ),
-
-                                vehiculo.getString(
-                                        "identificacion"
-                                ),
-
-                                vehiculo.getString(
-                                        "empresa_operadora"
-                                ),
-
-                                vehiculo.getString(
-                                        "estado"
-                                )
-                        }
-                );
+                modelo.addRow(new Object[]{
+                        vehiculo.getString("tipo"),
+                        vehiculo.getString("identificacion"),
+                        vehiculo.getString("empresa_operadora"),
+                        vehiculo.getString("estado")
+                });
             }
 
-            view.getLblEstado()
-                    .setText(
-                            "Vehículos registrados: "
-                                    + vehiculos.size()
-                    );
+            view.getLblEstado().setText(
+                    "Vehículos registrados: "
+                            + vehiculos.size()
+            );
 
         } catch (Exception e) {
 
@@ -180,38 +156,60 @@ public class VehiculosPanelController {
         }
     }
 
+    // =========================================================
+    // OBTENER VEHÍCULO SELECCIONADO
+    // =========================================================
+
+    private Document obtenerVehiculoSeleccionado() {
+
+        JTable tabla = view.getTablaVehiculos();
+
+        int fila = tabla.getSelectedRow();
+
+        if (fila == -1) {
+            return null;
+        }
+
+        int filaModelo =
+                tabla.convertRowIndexToModel(fila);
+
+        if (filaModelo < 0
+                || filaModelo >= vehiculosActuales.size()) {
+
+            return null;
+        }
+
+        return vehiculosActuales.get(filaModelo);
+    }
 
     // =========================================================
-    // PREPARAR NUEVO VEHICULO
+    // PREPARAR NUEVO VEHÍCULO
     // =========================================================
 
     private void prepararNuevoVehiculo() {
 
-        modoEdicion =
-                false;
+        exigirAdministrador();
 
-        vehiculoIdEditando =
-                null;
+        modoEdicion = false;
+        vehiculoIdEditando = null;
 
         view.limpiarFormulario();
-
         view.modoAgregar();
-
         view.mostrarFormulario();
     }
 
-
     // =========================================================
-    // PREPARAR EDICION
+    // PREPARAR EDICIÓN
     // =========================================================
 
     private void prepararEdicion() {
 
-        int fila =
-                view.getTablaVehiculos()
-                        .getSelectedRow();
+        exigirEdicionPermitida();
 
-        if (fila == -1) {
+        Document vehiculo =
+                obtenerVehiculoSeleccionado();
+
+        if (vehiculo == null) {
 
             JOptionPane.showMessageDialog(
                     view,
@@ -223,27 +221,8 @@ public class VehiculosPanelController {
             return;
         }
 
-        if (fila >= vehiculosActuales.size()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el vehículo seleccionado.",
-                    "Editar vehículo",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        Document vehiculo =
-                vehiculosActuales.get(
-                        fila
-                );
-
         ObjectId id =
-                vehiculo.getObjectId(
-                        "_id"
-                );
+                vehiculo.getObjectId("_id");
 
         if (id == null) {
 
@@ -257,71 +236,49 @@ public class VehiculosPanelController {
             return;
         }
 
-        vehiculoIdEditando =
-                id.toHexString();
+        vehiculoIdEditando = id.toHexString();
+        modoEdicion = true;
 
-        modoEdicion =
-                true;
-
-
-        // -----------------------------------------------------
-        // CARGAR DATOS EN FORMULARIO
-        // -----------------------------------------------------
+        // CARGAR DATOS DEL VEHÍCULO
 
         String tipo =
-                vehiculo.getString(
-                        "tipo"
-                );
+                vehiculo.getString("tipo");
 
         String identificacion =
-                vehiculo.getString(
-                        "identificacion"
-                );
+                vehiculo.getString("identificacion");
 
         String empresaOperadora =
-                vehiculo.getString(
-                        "empresa_operadora"
-                );
+                vehiculo.getString("empresa_operadora");
 
         String estado =
-                vehiculo.getString(
-                        "estado"
-                );
+                vehiculo.getString("estado");
 
-        view.getTxtTipo()
-                .setText(
-                        tipo != null
-                                ? tipo
-                                : ""
-                );
+        view.getTxtTipo().setText(
+                tipo != null ? tipo : ""
+        );
 
-        view.getTxtIdentificacion()
-                .setText(
-                        identificacion != null
-                                ? identificacion
-                                : ""
-                );
+        view.getTxtIdentificacion().setText(
+                identificacion != null
+                        ? identificacion
+                        : ""
+        );
 
-        view.getTxtEmpresaOperadora()
-                .setText(
-                        empresaOperadora != null
-                                ? empresaOperadora
-                                : ""
-                );
+        view.getTxtEmpresaOperadora().setText(
+                empresaOperadora != null
+                        ? empresaOperadora
+                        : ""
+        );
 
         if (estado != null) {
 
-            view.getComboEstado()
-                    .setSelectedItem(
-                            estado
-                    );
+            view.getComboEstado().setSelectedItem(
+                    estado
+            );
         }
 
         view.modoEditar();
-
         view.mostrarFormulario();
     }
-
 
     // =========================================================
     // GUARDAR
@@ -331,20 +288,23 @@ public class VehiculosPanelController {
 
         if (modoEdicion) {
 
+            exigirEdicionPermitida();
             modificarVehiculo();
 
         } else {
 
+            exigirAdministrador();
             agregarVehiculo();
         }
     }
 
-
     // =========================================================
-    // AGREGAR VEHICULO
+    // AGREGAR VEHÍCULO
     // =========================================================
 
     private void agregarVehiculo() {
+
+        exigirAdministrador();
 
         String tipo =
                 view.getTxtTipo()
@@ -387,12 +347,13 @@ public class VehiculosPanelController {
         }
     }
 
-
     // =========================================================
-    // MODIFICAR VEHICULO
+    // MODIFICAR VEHÍCULO
     // =========================================================
 
     private void modificarVehiculo() {
+
+        exigirEdicionPermitida();
 
         if (vehiculoIdEditando == null) {
 
@@ -422,9 +383,8 @@ public class VehiculosPanelController {
                         .trim();
 
         String estado =
-                (String)
-                        view.getComboEstado()
-                                .getSelectedItem();
+                (String) view.getComboEstado()
+                        .getSelectedItem();
 
         try {
 
@@ -454,18 +414,18 @@ public class VehiculosPanelController {
         }
     }
 
-
     // =========================================================
-    // ELIMINAR VEHICULO
+    // ELIMINAR VEHÍCULO
     // =========================================================
 
     private void eliminarVehiculo() {
 
-        int fila =
-                view.getTablaVehiculos()
-                        .getSelectedRow();
+        exigirAdministrador();
 
-        if (fila == -1) {
+        Document vehiculo =
+                obtenerVehiculoSeleccionado();
+
+        if (vehiculo == null) {
 
             JOptionPane.showMessageDialog(
                     view,
@@ -477,27 +437,8 @@ public class VehiculosPanelController {
             return;
         }
 
-        if (fila >= vehiculosActuales.size()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "No se pudo obtener el vehículo seleccionado.",
-                    "Eliminar vehículo",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
-        Document vehiculo =
-                vehiculosActuales.get(
-                        fila
-                );
-
         ObjectId id =
-                vehiculo.getObjectId(
-                        "_id"
-                );
+                vehiculo.getObjectId("_id");
 
         if (id == null) {
 
@@ -512,9 +453,7 @@ public class VehiculosPanelController {
         }
 
         String identificacion =
-                vehiculo.getString(
-                        "identificacion"
-                );
+                vehiculo.getString("identificacion");
 
         int respuesta =
                 JOptionPane.showConfirmDialog(
@@ -529,11 +468,13 @@ public class VehiculosPanelController {
                 );
 
         if (respuesta != JOptionPane.YES_OPTION) {
-
             return;
         }
 
         try {
+
+            // Validar nuevamente antes de eliminar.
+            exigirAdministrador();
 
             controller.eliminarVehiculo(
                     id.toHexString()
@@ -547,7 +488,6 @@ public class VehiculosPanelController {
             );
 
             cancelar();
-
             cargarVehiculos();
 
         } catch (Exception e) {
@@ -559,26 +499,20 @@ public class VehiculosPanelController {
         }
     }
 
-
     // =========================================================
-    // FINALIZAR OPERACION
+    // FINALIZAR OPERACIÓN
     // =========================================================
 
     private void finalizarOperacion() {
 
-        modoEdicion =
-                false;
-
-        vehiculoIdEditando =
-                null;
+        modoEdicion = false;
+        vehiculoIdEditando = null;
 
         view.limpiarFormulario();
-
         view.ocultarFormulario();
 
         cargarVehiculos();
     }
-
 
     // =========================================================
     // CANCELAR
@@ -586,20 +520,15 @@ public class VehiculosPanelController {
 
     private void cancelar() {
 
-        modoEdicion =
-                false;
-
-        vehiculoIdEditando =
-                null;
+        modoEdicion = false;
+        vehiculoIdEditando = null;
 
         view.limpiarFormulario();
-
         view.ocultarFormulario();
     }
 
-
     // =========================================================
-    // ERROR
+    // MOSTRAR ERROR
     // =========================================================
 
     private void mostrarError(
@@ -609,13 +538,10 @@ public class VehiculosPanelController {
 
         JOptionPane.showMessageDialog(
                 view,
-                mensaje
-                        + "\n\n"
-                        + (
-                        e.getMessage() != null
-                                ? e.getMessage()
-                                : "Ocurrió un error."
-                ),
+                mensaje + "\n\n"
+                        + (e.getMessage() != null
+                        ? e.getMessage()
+                        : "Ocurrió un error."),
                 "Error",
                 JOptionPane.ERROR_MESSAGE
         );
