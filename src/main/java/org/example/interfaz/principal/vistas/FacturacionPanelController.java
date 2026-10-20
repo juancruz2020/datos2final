@@ -8,10 +8,12 @@ import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.FacturaController;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
+import org.example.mongoDB.service.PagoFacturaService;
 import org.example.pdf.factura.FacturaPDFController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.GridLayout;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class FacturacionPanelController {
 
@@ -31,11 +34,14 @@ public class FacturacionPanelController {
 
     private final FacturacionPanel view;
     private final String usuarioId;
+
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
+
     private final FacturaController facturaController;
     private final ClienteController clienteController;
     private final FacturaPDFController facturaPDFController;
+    private final PagoFacturaService pagoFacturaService;
 
     private final Map<String, String> clientesPorNombre =
             new HashMap<>();
@@ -59,9 +65,11 @@ public class FacturacionPanelController {
 
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
+
         this.facturaController = new FacturaController();
         this.clienteController = new ClienteController();
         this.facturaPDFController = new FacturaPDFController();
+        this.pagoFacturaService = new PagoFacturaService();
 
         cargarUsuarioActual();
         configurarEstados();
@@ -99,7 +107,9 @@ public class FacturacionPanelController {
             );
         }
 
-        Document rol = rolDAO.buscarPorId(rolId.toHexString());
+        Document rol = rolDAO.buscarPorId(
+                rolId.toHexString()
+        );
 
         if (rol == null) {
             throw new SecurityException(
@@ -139,41 +149,43 @@ public class FacturacionPanelController {
         }
     }
 
+    private boolean puedeGestionar() {
+        return "ADMINISTRADOR".equals(rolActual)
+                || "OPERADOR".equals(rolActual);
+    }
+
     private void configurarPermisos() {
 
-        boolean puedeModificar =
-                "ADMINISTRADOR".equals(rolActual)
-                        || "OPERADOR".equals(rolActual);
+        boolean autorizado = puedeGestionar();
 
-        view.getBtnMostrarFormulario().setVisible(puedeModificar);
-        view.getBtnMostrarFormulario().setEnabled(puedeModificar);
+        view.getBtnMostrarFormulario().setVisible(autorizado);
+        view.getBtnMostrarFormulario().setEnabled(autorizado);
 
-        view.getBtnGuardar().setEnabled(puedeModificar);
+        view.getBtnGuardar().setEnabled(autorizado);
 
-        view.getBtnModificarFactura().setVisible(puedeModificar);
+        view.getBtnModificarFactura().setVisible(autorizado);
+        view.getBtnPagarFactura().setVisible(autorizado);
 
-        actualizarBotonModificar();
+        actualizarBotones();
 
-        if (!puedeModificar) {
+        if (!autorizado) {
             view.ocultarFormulario();
         }
     }
 
-    private void validarPermisoAgregar() {
+    private void validarPermisoGestionar() {
 
         cargarUsuarioActual();
 
-        if (!"ADMINISTRADOR".equals(rolActual)
-                && !"OPERADOR".equals(rolActual)) {
-
+        if (!puedeGestionar()) {
             throw new SecurityException(
-                    "No tenés permisos para modificar facturas."
+                    "No tenés permisos para gestionar facturas."
             );
         }
     }
 
     // ==========================================
-    // ESTADOS DEL FORMULARIO
+    // ESTADO INICIAL
     // ==========================================
 
     private void configurarEstados() {
@@ -182,8 +194,6 @@ public class FacturacionPanelController {
 
         combo.removeAllItems();
         combo.addItem("PENDIENTE");
-        combo.addItem("PAGADA");
-
         combo.setSelectedItem("PENDIENTE");
     }
 
@@ -200,7 +210,7 @@ public class FacturacionPanelController {
         view.getBtnMostrarFormulario().addActionListener(
                 e -> {
                     try {
-                        validarPermisoAgregar();
+                        validarPermisoGestionar();
                         cargarClientes();
                         configurarEstados();
                         view.mostrarFormulario();
@@ -226,12 +236,16 @@ public class FacturacionPanelController {
                 .getSelectionModel()
                 .addListSelectionListener(e -> {
                     if (!e.getValueIsAdjusting()) {
-                        actualizarBotonModificar();
+                        actualizarBotones();
                     }
                 });
 
         view.getBtnModificarFactura().addActionListener(
                 e -> modificarFactura()
+        );
+
+        view.getBtnPagarFactura().addActionListener(
+                e -> pagarFactura()
         );
     }
 
@@ -277,7 +291,6 @@ public class FacturacionPanelController {
             for (Document cliente : clientes) {
 
                 ObjectId id = cliente.getObjectId("_id");
-
                 String razonSocial =
                         cliente.getString("razon_social");
 
@@ -310,11 +323,9 @@ public class FacturacionPanelController {
             List<Document> facturas;
 
             if ("CLIENTE".equals(rolActual)) {
-
                 facturas = facturaController.buscarPorCliente(
                         clienteIdActual
                 );
-
             } else {
                 facturas = facturaController.listarFacturas();
             }
@@ -326,8 +337,7 @@ public class FacturacionPanelController {
             modelo.setRowCount(0);
             idsFacturas.clear();
 
-            SimpleDateFormat formato =
-                    crearFormatoFecha();
+            SimpleDateFormat formato = crearFormatoFecha();
 
             for (Document factura : facturas) {
 
@@ -376,7 +386,7 @@ public class FacturacionPanelController {
                     "Facturas registradas: " + facturas.size()
             );
 
-            actualizarBotonModificar();
+            actualizarBotones();
 
         } catch (Exception e) {
             mostrarError(
@@ -418,8 +428,27 @@ public class FacturacionPanelController {
     }
 
     // ==========================================
-    // MOSTRAR IMPORTE
+    // CONVERTIR IMPORTE
     // ==========================================
+
+    private BigDecimal convertirImporte(Object valor) {
+
+        if (valor instanceof Decimal128 decimal) {
+            return decimal.bigDecimalValue();
+        }
+
+        if (valor instanceof BigDecimal decimal) {
+            return decimal;
+        }
+
+        if (valor instanceof Number numero) {
+            return new BigDecimal(numero.toString());
+        }
+
+        throw new IllegalArgumentException(
+                "La factura tiene un importe inválido."
+        );
+    }
 
     private String obtenerImporteTexto(Object importe) {
 
@@ -435,7 +464,7 @@ public class FacturacionPanelController {
     }
 
     // ==========================================
-    // FORMATO DE FECHAS
+    // FECHAS
     // ==========================================
 
     private SimpleDateFormat crearFormatoFecha() {
@@ -444,18 +473,22 @@ public class FacturacionPanelController {
                 new SimpleDateFormat("dd/MM/yyyy");
 
         formato.setLenient(false);
+
         formato.setTimeZone(
-                java.util.TimeZone.getTimeZone(ZONA_HORARIA)
+                TimeZone.getTimeZone(ZONA_HORARIA)
         );
 
         return formato;
     }
 
-    private Date convertirFecha(String texto, String campo) {
+    private Date convertirFecha(
+            String texto,
+            String nombreCampo
+    ) {
 
         if (texto == null || texto.isBlank()) {
             throw new IllegalArgumentException(
-                    "Ingresá la " + campo + "."
+                    "Ingresá la " + nombreCampo + "."
             );
         }
 
@@ -464,13 +497,16 @@ public class FacturacionPanelController {
 
         } catch (ParseException e) {
             throw new IllegalArgumentException(
-                    "La " + campo
+                    "La " + nombreCampo
                             + " debe tener el formato dd/MM/yyyy."
             );
         }
     }
 
-    private void validarFechas(Date emision, Date vencimiento) {
+    private void validarFechas(
+            Date emision,
+            Date vencimiento
+    ) {
 
         LocalDate fechaEmision = emision.toInstant()
                 .atZone(ZONA_HORARIA)
@@ -495,7 +531,7 @@ public class FacturacionPanelController {
     private void agregarFactura() {
 
         try {
-            validarPermisoAgregar();
+            validarPermisoGestionar();
 
             Object clienteSeleccionado =
                     view.getCmbCliente().getSelectedItem();
@@ -528,7 +564,7 @@ public class FacturacionPanelController {
 
             validarFechas(fechaEmision, fechaVencimiento);
 
-            String textoImporte =
+            String importeTexto =
                     view.getTxtImporteTotal()
                             .getText()
                             .trim()
@@ -537,7 +573,7 @@ public class FacturacionPanelController {
             BigDecimal importe;
 
             try {
-                importe = new BigDecimal(textoImporte);
+                importe = new BigDecimal(importeTexto);
 
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(
@@ -551,42 +587,38 @@ public class FacturacionPanelController {
                 );
             }
 
-            String estado = (String)
-                    view.getCmbEstado().getSelectedItem();
-
-            if (estado == null) {
-                throw new IllegalArgumentException(
-                        "Seleccioná un estado."
-                );
-            }
-
-            // Guardar en MongoDB.
+            // Una factura nueva comienza sin pagar.
             facturaController.crearFactura(
                     clienteId,
                     fechaEmision,
                     fechaVencimiento,
                     importe,
-                    estado
+                    "PENDIENTE"
             );
 
-            // Obtener el estado real calculado.
-            String estadoFinal = calcularEstadoParaPDF(
-                    estado,
-                    fechaVencimiento
-            );
+            String estadoPDF = "PENDIENTE";
 
-            // Generar el PDF incluyendo el vencimiento.
-            // Se mantiene separado del guardado en MongoDB.
+            LocalDate diaVencimiento =
+                    fechaVencimiento.toInstant()
+                            .atZone(ZONA_HORARIA)
+                            .toLocalDate();
+
+            if (diaVencimiento.isBefore(
+                    LocalDate.now(ZONA_HORARIA))) {
+                estadoPDF = "VENCIDA";
+            }
+
             try {
                 facturaPDFController.generarFactura(
                         clienteId,
                         fechaEmision,
                         fechaVencimiento,
                         importe,
-                        estadoFinal
+                        estadoPDF
                 );
 
             } catch (Exception errorPDF) {
+
                 cargarFacturas();
 
                 JOptionPane.showMessageDialog(
@@ -614,7 +646,6 @@ public class FacturacionPanelController {
             view.limpiarFormulario();
             configurarEstados();
             view.ocultarFormulario();
-
             cargarFacturas();
 
         } catch (IllegalArgumentException e) {
@@ -636,61 +667,43 @@ public class FacturacionPanelController {
     }
 
     // ==========================================
-    // ESTADO QUE FIGURA EN EL PDF
+    // ACTUALIZAR BOTONES
     // ==========================================
 
-    private String calcularEstadoParaPDF(
-            String estadoManual,
-            Date vencimiento
-    ) {
+    private void actualizarBotones() {
 
-        if ("PAGADA".equalsIgnoreCase(estadoManual)) {
-            return "PAGADA";
-        }
-
-        LocalDate fechaVencimiento = vencimiento.toInstant()
-                .atZone(ZONA_HORARIA)
-                .toLocalDate();
-
-        if (fechaVencimiento.isBefore(
-                LocalDate.now(ZONA_HORARIA)
-        )) {
-            return "VENCIDA";
-        }
-
-        return "PENDIENTE";
-    }
-
-    // ==========================================
-    // BOTÓN MODIFICAR
-    // ==========================================
-
-    private void actualizarBotonModificar() {
-
-        boolean autorizado =
-                "ADMINISTRADOR".equals(rolActual)
-                        || "OPERADOR".equals(rolActual);
+        boolean autorizado = puedeGestionar();
 
         JTable tabla = view.getTablaFacturas();
 
         int filaVista = tabla.getSelectedRow();
 
+        int filaModelo = filaVista < 0
+                ? -1
+                : tabla.convertRowIndexToModel(filaVista);
+
+        boolean seleccionValida =
+                filaModelo >= 0
+                        && filaModelo < idsFacturas.size()
+                        && !idsFacturas.get(filaModelo).isBlank();
+
         view.getBtnModificarFactura().setEnabled(
-                autorizado
-                        && filaVista >= 0
-                        && tabla.convertRowIndexToModel(filaVista)
-                        < idsFacturas.size()
+                autorizado && seleccionValida
+        );
+
+        view.getBtnPagarFactura().setEnabled(
+                autorizado && seleccionValida
         );
     }
 
     // ==========================================
-    // MODIFICAR FACTURA
+    // PAGAR FACTURA COMPLETA
     // ==========================================
 
-    private void modificarFactura() {
+    private void pagarFactura() {
 
         try {
-            validarPermisoAgregar();
+            validarPermisoGestionar();
 
             JTable tabla = view.getTablaFacturas();
 
@@ -707,6 +720,156 @@ public class FacturacionPanelController {
 
             if (filaModelo < 0
                     || filaModelo >= idsFacturas.size()) {
+
+                throw new IllegalArgumentException(
+                        "No se pudo identificar la factura."
+                );
+            }
+
+            String facturaId = idsFacturas.get(filaModelo);
+
+            if (facturaId == null || facturaId.isBlank()) {
+                throw new IllegalArgumentException(
+                        "La factura no tiene un ID válido."
+                );
+            }
+
+            Document factura =
+                    facturaController.buscarPorId(facturaId);
+
+            if ("PAGADA".equalsIgnoreCase(
+                    factura.getString("estado"))) {
+
+                throw new IllegalArgumentException(
+                        "Esta factura ya está pagada."
+                );
+            }
+
+            // ======================================
+            // IMPORTE FIJO DE LA FACTURA
+            // ======================================
+
+            BigDecimal importeTotal = convertirImporte(
+                    factura.get("importe_total")
+            );
+
+            if (importeTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException(
+                        "El importe de la factura no es válido."
+                );
+            }
+
+            // ======================================
+            // SELECCIONAR MEDIO DE PAGO
+            // ======================================
+
+            JComboBox<String> cmbMedioPago =
+                    new JComboBox<>(new String[]{
+                            "TRANSFERENCIA",
+                            "EFECTIVO",
+                            "TARJETA"
+                    });
+
+            JPanel formulario = new JPanel(
+                    new GridLayout(2, 2, 8, 8)
+            );
+
+            formulario.add(
+                    new JLabel("Importe total a pagar:")
+            );
+
+            formulario.add(
+                    new JLabel(
+                            "$ " + importeTotal.toPlainString()
+                    )
+            );
+
+            formulario.add(
+                    new JLabel("Medio de pago:")
+            );
+
+            formulario.add(cmbMedioPago);
+
+            int respuesta = JOptionPane.showConfirmDialog(
+                    view,
+                    formulario,
+                    "Confirmar pago completo",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (respuesta != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            String medioPago =
+                    (String) cmbMedioPago.getSelectedItem();
+
+            // ======================================
+            // REGISTRAR Y DESCONTAR
+            // ======================================
+
+            pagoFacturaService.registrarPago(
+                    facturaId,
+                    importeTotal,
+                    medioPago
+            );
+
+            cargarFacturas();
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Factura pagada correctamente.\n"
+                            + "Importe descontado: $"
+                            + importeTotal.toPlainString(),
+                    "Pago realizado",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+        } catch (IllegalArgumentException
+                 | IllegalStateException e) {
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    e.getMessage(),
+                    "No se pudo registrar el pago",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+        } catch (Exception e) {
+
+            mostrarError(
+                    "No se pudo registrar el pago.",
+                    e
+            );
+        }
+    }
+
+    // ==========================================
+    // MODIFICAR FACTURA
+    // ==========================================
+
+    private void modificarFactura() {
+
+        try {
+            validarPermisoGestionar();
+
+            JTable tabla = view.getTablaFacturas();
+
+            int filaVista = tabla.getSelectedRow();
+
+            if (filaVista < 0) {
+                throw new IllegalArgumentException(
+                        "Seleccioná una factura."
+                );
+            }
+
+            int filaModelo =
+                    tabla.convertRowIndexToModel(filaVista);
+
+            if (filaModelo < 0
+                    || filaModelo >= idsFacturas.size()) {
+
                 throw new IllegalArgumentException(
                         "No se pudo identificar la factura."
                 );
@@ -716,55 +879,35 @@ public class FacturacionPanelController {
 
             if (facturaId.isBlank()) {
                 throw new IllegalArgumentException(
-                        "La factura no tiene un ID válido."
+                        "Factura sin ID."
                 );
             }
 
             Document factura =
                     facturaController.buscarPorId(facturaId);
 
-            Date fechaVencimientoActual =
+            Date vencimientoActual =
                     factura.getDate("fecha_vencimiento");
-
-            String estadoActual =
-                    factura.getString("estado");
 
             JTextField campoVencimiento =
                     new JTextField(
-                            fechaVencimientoActual == null
+                            vencimientoActual == null
                                     ? ""
                                     : crearFormatoFecha().format(
-                                            fechaVencimientoActual
+                                            vencimientoActual
                                     ),
                             12
                     );
 
-            JComboBox<String> comboEstado =
-                    new JComboBox<>(new String[]{
-                            "PENDIENTE",
-                            "PAGADA"
-                    });
-
-            // Si estaba VENCIDA, se muestra PENDIENTE
-            // como opción manual. El servicio determinará
-            // nuevamente si corresponde VENCIDA.
-            comboEstado.setSelectedItem(
-                    "PAGADA".equalsIgnoreCase(estadoActual)
-                            ? "PAGADA"
-                            : "PENDIENTE"
-            );
-
             JPanel formulario = new JPanel(
-                    new java.awt.GridLayout(2, 2, 8, 8)
+                    new GridLayout(1, 2, 8, 8)
             );
 
             formulario.add(
                     new JLabel("Vencimiento (dd/MM/yyyy):")
             );
-            formulario.add(campoVencimiento);
 
-            formulario.add(new JLabel("Estado:"));
-            formulario.add(comboEstado);
+            formulario.add(campoVencimiento);
 
             int respuesta = JOptionPane.showConfirmDialog(
                     view,
@@ -794,8 +937,16 @@ public class FacturacionPanelController {
 
             validarFechas(fechaEmision, fechaVencimiento);
 
-            String estado = (String)
-                    comboEstado.getSelectedItem();
+            // El estado de pago no se modifica acá.
+            // Se conserva si ya figura PAGADA.
+            // En las demás facturas se recalcula
+            // PENDIENTE o VENCIDA por la fecha.
+            String estado =
+                    "PAGADA".equalsIgnoreCase(
+                            factura.getString("estado")
+                    )
+                            ? "PAGADA"
+                            : "PENDIENTE";
 
             facturaController.modificarVencimientoYEstado(
                     facturaId,
@@ -835,19 +986,21 @@ public class FacturacionPanelController {
     // ==========================================
 
     private void cancelar() {
+
         view.limpiarFormulario();
         configurarEstados();
         view.ocultarFormulario();
     }
 
     // ==========================================
-    // ERRORES
+    // MOSTRAR ERROR
     // ==========================================
 
     private void mostrarError(
             String mensaje,
             Exception e
     ) {
+
         JOptionPane.showMessageDialog(
                 view,
                 mensaje + "\n\n" + e.getMessage(),

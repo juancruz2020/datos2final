@@ -104,9 +104,14 @@ public class ClienteService {
         // GUARDAR
         // -----------------------------------------------------
 
-        clienteDAO.agregar(
-                cliente
-        );
+        clienteDAO.agregar(cliente);
+
+        // Crear automáticamente la cuenta corriente
+        // y su apertura inicial.
+        CuentaCorrienteService cuentaService =
+                new CuentaCorrienteService();
+
+        cuentaService.crearCuenta(cliente.getId());
     }
 
 

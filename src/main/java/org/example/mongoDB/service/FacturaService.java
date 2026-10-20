@@ -24,8 +24,12 @@ public class FacturaService {
     private static final ZoneId ZONA_HORARIA =
             ZoneId.of("America/Argentina/Buenos_Aires");
 
-    private static final Set<String> ESTADOS_MANUALES =
-            Set.of("PENDIENTE", "PAGADA");
+    private static final Set<String> ESTADOS_CONSULTA =
+            Set.of("PENDIENTE", "PAGADA", "VENCIDA");
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public FacturaService() {
         this.facturaDAO = new FacturaMongoDAO();
@@ -33,7 +37,7 @@ public class FacturaService {
     }
 
     // ==========================================
-    // CREAR FACTURA
+    // CREAR FACTURA CON VENCIMIENTO
     // ==========================================
 
     public void crearFactura(
@@ -43,16 +47,8 @@ public class FacturaService {
             BigDecimal importeTotal,
             String estado
     ) {
-        validarObjectId(
-                clienteId,
-                "El ID del cliente no es válido."
-        );
 
-        if (!clienteDAO.existePorId(clienteId)) {
-            throw new IllegalArgumentException(
-                    "El cliente seleccionado no existe."
-            );
-        }
+        validarCliente(clienteId);
 
         if (fechaEmision == null) {
             throw new IllegalArgumentException(
@@ -66,13 +62,17 @@ public class FacturaService {
             );
         }
 
-        validarVencimiento(fechaEmision, fechaVencimiento);
+        validarVencimiento(
+                fechaEmision,
+                fechaVencimiento
+        );
+
         validarImporte(importeTotal);
 
-        String estadoValidado = validarEstadoManual(estado);
+        validarEstadoInicial(estado);
 
         String estadoFinal = calcularEstado(
-                estadoValidado,
+                "PENDIENTE",
                 fechaVencimiento
         );
 
@@ -99,16 +99,8 @@ public class FacturaService {
             BigDecimal importeTotal,
             String estado
     ) {
-        validarObjectId(
-                clienteId,
-                "El ID del cliente no es válido."
-        );
 
-        if (!clienteDAO.existePorId(clienteId)) {
-            throw new IllegalArgumentException(
-                    "El cliente seleccionado no existe."
-            );
-        }
+        validarCliente(clienteId);
 
         if (fechaEmision == null) {
             throw new IllegalArgumentException(
@@ -117,11 +109,7 @@ public class FacturaService {
         }
 
         validarImporte(importeTotal);
-
-        String estadoFinal = calcularEstado(
-                validarEstadoManual(estado),
-                null
-        );
+        validarEstadoInicial(estado);
 
         Factura factura = new Factura(
                 null,
@@ -129,14 +117,14 @@ public class FacturaService {
                 fechaEmision,
                 null,
                 importeTotal,
-                estadoFinal
+                "PENDIENTE"
         );
 
         facturaDAO.agregar(factura);
     }
 
     // ==========================================
-    // MODIFICAR VENCIMIENTO Y ESTADO
+    // MODIFICAR FECHA DE VENCIMIENTO
     // ==========================================
 
     public void modificarVencimientoYEstado(
@@ -144,16 +132,28 @@ public class FacturaService {
             Date fechaVencimiento,
             String estado
     ) {
+
         Document factura = buscarPorId(facturaId);
 
-        Date fechaEmision = factura.getDate("fecha_emision");
+        Date fechaEmision =
+                factura.getDate("fecha_emision");
 
-        validarVencimiento(fechaEmision, fechaVencimiento);
+        validarVencimiento(
+                fechaEmision,
+                fechaVencimiento
+        );
 
-        String estadoValidado = validarEstadoManual(estado);
+        // El estado recibido NO puede marcar
+        // una factura como pagada.
+        //
+        // Si ya estaba pagada, se conserva.
+        // Si no, el estado se calcula por fecha.
+
+        String estadoActual =
+                factura.getString("estado");
 
         String estadoFinal = calcularEstado(
-                estadoValidado,
+                estadoActual,
                 fechaVencimiento
         );
 
@@ -169,7 +169,9 @@ public class FacturaService {
     // ==========================================
 
     public List<Document> listarFacturas() {
-        List<Document> facturas = facturaDAO.listarTodos();
+
+        List<Document> facturas =
+                facturaDAO.listarTodos();
 
         actualizarEstados(facturas);
 
@@ -177,16 +179,18 @@ public class FacturaService {
     }
 
     // ==========================================
-    // BUSCAR POR ID
+    // BUSCAR FACTURA POR ID
     // ==========================================
 
     public Document buscarPorId(String id) {
+
         validarObjectId(
                 id,
                 "El ID de la factura no es válido."
         );
 
-        Document factura = facturaDAO.buscarPorId(id);
+        Document factura =
+                facturaDAO.buscarPorId(id);
 
         if (factura == null) {
             throw new IllegalArgumentException(
@@ -204,6 +208,7 @@ public class FacturaService {
     // ==========================================
 
     public boolean existePorId(String id) {
+
         validarObjectId(
                 id,
                 "El ID de la factura no es válido."
@@ -221,10 +226,13 @@ public class FacturaService {
     }
 
     // ==========================================
-    // BUSCAR POR CLIENTE
+    // BUSCAR FACTURAS POR CLIENTE
     // ==========================================
 
-    public List<Document> buscarPorCliente(String clienteId) {
+    public List<Document> buscarPorCliente(
+            String clienteId
+    ) {
+
         validarObjectId(
                 clienteId,
                 "El ID del cliente no es válido."
@@ -239,15 +247,18 @@ public class FacturaService {
     }
 
     // ==========================================
-    // BUSCAR POR ESTADO
+    // BUSCAR FACTURAS POR ESTADO
     // ==========================================
 
-    public List<Document> buscarPorEstado(String estado) {
-        String estadoBuscado = validarEstadoConsulta(estado);
+    public List<Document> buscarPorEstado(
+            String estado
+    ) {
 
-        // Actualizar antes de filtrar para incluir las
-        // facturas que vencieron desde la última consulta.
-        List<Document> facturas = listarFacturas();
+        String estadoBuscado =
+                validarEstadoConsulta(estado);
+
+        List<Document> facturas =
+                listarFacturas();
 
         return facturas.stream()
                 .filter(factura ->
@@ -262,14 +273,19 @@ public class FacturaService {
     // ACTUALIZAR ESTADOS AUTOMÁTICAMENTE
     // ==========================================
 
-    private void actualizarEstados(List<Document> facturas) {
+    private void actualizarEstados(
+            List<Document> facturas
+    ) {
+
         for (Document factura : facturas) {
             actualizarEstado(factura);
         }
     }
 
     private void actualizarEstado(Document factura) {
-        String estadoActual = factura.getString("estado");
+
+        String estadoActual =
+                factura.getString("estado");
 
         Date fechaVencimiento =
                 factura.getDate("fecha_vencimiento");
@@ -281,45 +297,51 @@ public class FacturaService {
 
         if (!estadoNuevo.equals(estadoActual)) {
 
-            ObjectId id = factura.getObjectId("_id");
+            ObjectId id =
+                    factura.getObjectId("_id");
 
             if (id != null) {
+
                 facturaDAO.actualizarVencimientoYEstado(
                         id.toHexString(),
                         fechaVencimiento,
                         estadoNuevo
                 );
 
-                factura.put("estado", estadoNuevo);
+                factura.put(
+                        "estado",
+                        estadoNuevo
+                );
             }
         }
     }
 
     // ==========================================
-    // CALCULAR ESTADO DE LA FACTURA
+    // CALCULAR ESTADO
     // ==========================================
 
     private String calcularEstado(
             String estadoActual,
             Date fechaVencimiento
     ) {
-        // Una factura pagada nunca vuelve a pendiente
-        // o vencida por el paso del tiempo.
-        if ("PAGADA".equalsIgnoreCase(estadoActual)) {
+
+        // Las facturas pagadas siguen pagadas.
+        if ("PAGADA".equalsIgnoreCase(
+                estadoActual
+        )) {
             return "PAGADA";
         }
 
-        // Compatibilidad con facturas antiguas
-        // que todavía no tienen vencimiento.
+        // Facturas antiguas sin vencimiento.
         if (fechaVencimiento == null) {
             return "PENDIENTE";
         }
 
-        LocalDate vencimiento = convertirFecha(
-                fechaVencimiento
-        );
+        LocalDate vencimiento =
+                convertirFecha(fechaVencimiento);
 
-        LocalDate hoy = LocalDate.now(ZONA_HORARIA);
+        LocalDate hoy =
+                LocalDate.now(ZONA_HORARIA);
 
         if (vencimiento.isBefore(hoy)) {
             return "VENCIDA";
@@ -336,8 +358,9 @@ public class FacturaService {
             Date fechaEmision,
             Date fechaVencimiento
     ) {
+
+        // Compatibilidad con facturas anteriores.
         if (fechaVencimiento == null) {
-            // Permitido al editar facturas antiguas.
             return;
         }
 
@@ -347,32 +370,60 @@ public class FacturaService {
             );
         }
 
-        LocalDate emision = convertirFecha(fechaEmision);
+        LocalDate emision =
+                convertirFecha(fechaEmision);
 
         LocalDate vencimiento =
                 convertirFecha(fechaVencimiento);
 
         if (vencimiento.isBefore(emision)) {
+
             throw new IllegalArgumentException(
-                    "La fecha de vencimiento no puede ser " +
-                    "anterior a la fecha de emisión."
+                    "La fecha de vencimiento no puede ser "
+                            + "anterior a la fecha de emisión."
             );
         }
     }
 
     private LocalDate convertirFecha(Date fecha) {
-        return Instant.ofEpochMilli(fecha.getTime())
+
+        return Instant
+                .ofEpochMilli(fecha.getTime())
                 .atZone(ZONA_HORARIA)
                 .toLocalDate();
+    }
+
+    // ==========================================
+    // VALIDAR CLIENTE
+    // ==========================================
+
+    private void validarCliente(String clienteId) {
+
+        validarObjectId(
+                clienteId,
+                "El ID del cliente no es válido."
+        );
+
+        if (!clienteDAO.existePorId(clienteId)) {
+
+            throw new IllegalArgumentException(
+                    "El cliente seleccionado no existe."
+            );
+        }
     }
 
     // ==========================================
     // VALIDAR IMPORTE
     // ==========================================
 
-    private void validarImporte(BigDecimal importeTotal) {
+    private void validarImporte(
+            BigDecimal importeTotal
+    ) {
+
         if (importeTotal == null
-                || importeTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                || importeTotal.compareTo(
+                        BigDecimal.ZERO
+                ) <= 0) {
 
             throw new IllegalArgumentException(
                     "El importe total debe ser mayor a 0."
@@ -381,10 +432,11 @@ public class FacturaService {
     }
 
     // ==========================================
-    // VALIDAR ESTADO MANUAL
+    // VALIDAR ESTADO INICIAL
     // ==========================================
 
-    private String validarEstadoManual(String estado) {
+    private void validarEstadoInicial(String estado) {
+
         if (estado == null || estado.isBlank()) {
             throw new IllegalArgumentException(
                     "El estado es obligatorio."
@@ -394,21 +446,25 @@ public class FacturaService {
         String valor = estado.trim()
                 .toUpperCase(Locale.ROOT);
 
-        if (!ESTADOS_MANUALES.contains(valor)) {
+        if (!"PENDIENTE".equals(valor)) {
+
             throw new IllegalArgumentException(
-                    "Solo podés seleccionar PENDIENTE o PAGADA. " +
-                    "El estado VENCIDA se calcula automáticamente."
+                    "Las facturas nuevas deben comenzar "
+                            + "como PENDIENTE. "
+                            + "El estado PAGADA se asigna "
+                            + "cuando se completa el pago."
             );
         }
-
-        return valor;
     }
 
     // ==========================================
     // VALIDAR ESTADO PARA CONSULTAS
     // ==========================================
 
-    private String validarEstadoConsulta(String estado) {
+    private String validarEstadoConsulta(
+            String estado
+    ) {
+
         if (estado == null || estado.isBlank()) {
             throw new IllegalArgumentException(
                     "El estado es obligatorio."
@@ -418,8 +474,8 @@ public class FacturaService {
         String valor = estado.trim()
                 .toUpperCase(Locale.ROOT);
 
-        if (!Set.of("PENDIENTE", "PAGADA", "VENCIDA")
-                .contains(valor)) {
+        if (!ESTADOS_CONSULTA.contains(valor)) {
+
             throw new IllegalArgumentException(
                     "El estado no es válido."
             );
@@ -436,6 +492,7 @@ public class FacturaService {
             String id,
             String mensaje
     ) {
+
         if (id == null
                 || id.isBlank()
                 || !ObjectId.isValid(id)) {
