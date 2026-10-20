@@ -31,6 +31,8 @@ public class AdministracionPanel extends JPanel {
 
     private final JTextField txtEmail;
 
+    private JLabel lblEmailUsuario;
+
     private final JPasswordField txtContrasena;
 
     private final JComboBox<String> cmbRol;
@@ -929,6 +931,12 @@ public class AdministracionPanel extends JPanel {
         );
 
 
+        // Conservar la etiqueta del correo para mostrarla u ocultarla
+        // junto con su campo, según el rol seleccionado.
+        if (campo == txtEmail) {
+            lblEmailUsuario = label;
+        }
+
         panel.add(
                 label,
                 gbc
@@ -1145,6 +1153,17 @@ public class AdministracionPanel extends JPanel {
         return txtApellido;
     }
 
+
+    // Para Cliente, el correo solo se carga en Datos del cliente.
+    // Para Administrador/Operador, se muestra el correo de usuario.
+    public void mostrarEmailUsuario(boolean mostrar) {
+        if (lblEmailUsuario != null) {
+            lblEmailUsuario.setVisible(mostrar);
+        }
+        txtEmail.setVisible(mostrar);
+        revalidate();
+        repaint();
+    }
 
     public JTextField getTxtEmail() {
 

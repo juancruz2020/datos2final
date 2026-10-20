@@ -86,9 +86,11 @@ public class ClientesPanel extends JPanel {
 
                 new JButton("Actualizar");
 
-        btnMostrarFormulario =
 
+        btnMostrarFormulario =
                 new JButton("+ Agregar cliente");
+
+        btnMostrarFormulario.setVisible(false);
 
         btnEditar =
 

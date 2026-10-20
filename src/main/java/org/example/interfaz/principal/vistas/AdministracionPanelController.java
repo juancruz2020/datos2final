@@ -174,38 +174,23 @@ public class AdministracionPanelController {
     // =========================================================
 
     private void actualizarFormularioCliente() {
+        Object seleccionado = view.getCmbRol().getSelectedItem();
 
-        Object seleccionado =
-                view.getCmbRol()
-                        .getSelectedItem();
+        boolean esCliente = seleccionado != null
+                && "Cliente".equalsIgnoreCase(
+                        seleccionado.toString().trim()
+                );
 
-
-        if (seleccionado == null) {
-
-            view.ocultarDatosCliente();
-
-            return;
-        }
-
-
-        String rol =
-                seleccionado
-                        .toString()
-                        .trim();
-
-
-        if (
-                rol.equalsIgnoreCase(
-                        "Cliente"
-                )
-        ) {
-
+        if (esCliente) {
+            // Un único correo visible, el de Datos del cliente.
+            view.getTxtEmail().setText("");
+            view.mostrarEmailUsuario(false);
             view.mostrarDatosCliente();
-
         } else {
-
+            // Administrador y Operador necesitan un correo de acceso,
+            // pero no tienen una ficha de cliente.
+            view.mostrarEmailUsuario(true);
             view.ocultarDatosCliente();
-
             view.limpiarDatosCliente();
         }
     }
@@ -224,11 +209,6 @@ public class AdministracionPanelController {
 
         String apellido =
                 view.getTxtApellido()
-                        .getText()
-                        .trim();
-
-        String email =
-                view.getTxtEmail()
                         .getText()
                         .trim();
 
@@ -260,6 +240,22 @@ public class AdministracionPanelController {
                 rolSeleccionado
                         .toString()
                         .trim();
+
+        // Para Cliente, el email de Datos del cliente se usa
+        // en ambas colecciones: clientes y usuarios.
+        String email = descripcionRol.equalsIgnoreCase("Cliente")
+                ? view.getTxtEmailCliente().getText().trim()
+                : view.getTxtEmail().getText().trim();
+
+        if (email.isBlank()) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Ingresá el email.",
+                    "Validación",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
 
 
         try {
@@ -475,10 +471,15 @@ public class AdministracionPanelController {
 
     private void eliminarUsuario() {
 
-        String email =
-                view.getTxtEmail()
-                        .getText()
-                        .trim();
+        Object rolSeleccionado = view.getCmbRol().getSelectedItem();
+        boolean esCliente = rolSeleccionado != null
+                && "Cliente".equalsIgnoreCase(
+                        rolSeleccionado.toString().trim()
+                );
+
+        String email = esCliente
+                ? view.getTxtEmailCliente().getText().trim()
+                : view.getTxtEmail().getText().trim();
 
 
         if (email.isEmpty()) {

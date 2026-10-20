@@ -7,6 +7,7 @@ import org.example.mongoDB.model.*;
 import java.math.BigDecimal;
 
 import java.util.Date;
+import java.util.List;
 
 public class GeneradorDatosPruebaMongo {
 
@@ -15,6 +16,10 @@ public class GeneradorDatosPruebaMongo {
     private final RolMongoDAO rolDAO = new RolMongoDAO();
 
     private final UsuarioMongoDAO usuarioDAO = new UsuarioMongoDAO();
+
+    private final ConversacionMongoDAO conversacionDAO = new ConversacionMongoDAO();
+
+    private final MensajeMongoDAO mensajeDAO = new MensajeMongoDAO();
 
     private final ContenedorMongoDAO contenedorDAO = new ContenedorMongoDAO();
 
@@ -457,6 +462,142 @@ public class GeneradorDatosPruebaMongo {
         usuarioDAO.agregar(usuario7);
         usuarioDAO.agregar(usuarioClientePrueba);
         usuarioDAO.agregar(usuarioOperadorPrueba);
+
+        // =====================================================
+        // COMUNICACION: CHATS PRIVADOS Y GRUPALES
+        // IDs reales de los usuarios recién insertados, incluidas las cuentas 1, 2 y 3.
+        // =====================================================
+
+        Date fechaConversaciones = new Date(System.currentTimeMillis() - 24L * 60 * 60 * 1000);
+
+        Conversacion privadoCoordinacion = new Conversacion(
+                null, "Juan Perez - Maria Gomez", "PRIVADA",
+                List.of(usuario1.getId(), usuario2.getId()), fechaConversaciones
+        );
+        Conversacion privadoLucas = new Conversacion(
+                null, "Maria Gomez - Lucas Fernandez", "PRIVADA",
+                List.of(usuario2.getId(), usuario3.getId()), fechaConversaciones
+        );
+        Conversacion privadoSofia = new Conversacion(
+                null, "Maria Gomez - Sofia Martinez", "PRIVADA",
+                List.of(usuario2.getId(), usuario4.getId()), fechaConversaciones
+        );
+        Conversacion privadoMartin = new Conversacion(
+                null, "Juan Perez - Martin Lopez", "PRIVADA",
+                List.of(usuario1.getId(), usuario5.getId()), fechaConversaciones
+        );
+        Conversacion privadoTransportes = new Conversacion(
+                null, "Carolina Ruiz - Diego Torres", "PRIVADA",
+                List.of(usuario6.getId(), usuario7.getId()), fechaConversaciones
+        );
+        Conversacion privadoClientePrueba = new Conversacion(
+                null, "1 1 - 2 2", "PRIVADA",
+                List.of(usuarioAdministrador.getId(), usuarioClientePrueba.getId()), fechaConversaciones
+        );
+        Conversacion privadoOperadorPrueba = new Conversacion(
+                null, "Maria Gomez - 3 3", "PRIVADA",
+                List.of(usuario2.getId(), usuarioOperadorPrueba.getId()), fechaConversaciones
+        );
+        Conversacion grupoOperaciones = new Conversacion(
+                null, "Coordinacion de operaciones", "GRUPAL",
+                List.of(usuario1.getId(), usuario2.getId(), usuarioAdministrador.getId(),
+                        usuarioOperadorPrueba.getId()), fechaConversaciones
+        );
+        Conversacion grupoClientes = new Conversacion(
+                null, "Atencion a clientes", "GRUPAL",
+                List.of(usuario2.getId(), usuario3.getId(), usuario4.getId(), usuario5.getId(),
+                        usuarioClientePrueba.getId()), fechaConversaciones
+        );
+        Conversacion grupoTransportes = new Conversacion(
+                null, "Coordinacion de transportes", "GRUPAL",
+                List.of(usuario1.getId(), usuario6.getId(), usuario7.getId()), fechaConversaciones
+        );
+
+        conversacionDAO.agregar(privadoCoordinacion);
+        conversacionDAO.agregar(privadoLucas);
+        conversacionDAO.agregar(privadoSofia);
+        conversacionDAO.agregar(privadoMartin);
+        conversacionDAO.agregar(privadoTransportes);
+        conversacionDAO.agregar(privadoClientePrueba);
+        conversacionDAO.agregar(privadoOperadorPrueba);
+        conversacionDAO.agregar(grupoOperaciones);
+        conversacionDAO.agregar(grupoClientes);
+        conversacionDAO.agregar(grupoTransportes);
+
+        // Cada remitente pertenece al chat y los mensajes son posteriores a su creación.
+        Date primerMensaje = new Date(fechaConversaciones.getTime() + 60_000);
+        Date segundoMensaje = new Date(fechaConversaciones.getTime() + 120_000);
+        Date tercerMensaje = new Date(fechaConversaciones.getTime() + 180_000);
+
+        mensajeDAO.agregar(new Mensaje(null, privadoCoordinacion.getId(), usuario1.getId(),
+                "Maria, revisemos las novedades de operaciones.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoCoordinacion.getId(), usuario2.getId(),
+                "Estoy reuniendo las consultas de los clientes.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoCoordinacion.getId(), usuario1.getId(),
+                "Gracias, coordinamos las prioridades por el grupo.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, privadoLucas.getId(), usuario3.getId(),
+                "Hola Maria, necesito consultar la documentacion de Comercio Internacional SA.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoLucas.getId(), usuario2.getId(),
+                "Hola Lucas, indicame que documentacion necesitas revisar.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoLucas.getId(), usuario3.getId(),
+                "Quisiera confirmar los requisitos para el proximo despacho.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, privadoSofia.getId(), usuario4.getId(),
+                "Hola Maria, estamos preparando una carga de Exportadora Pampeana.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoSofia.getId(), usuario2.getId(),
+                "Hola Sofia, pasame el horario previsto para coordinar la recepcion.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoSofia.getId(), usuario4.getId(),
+                "La carga estara lista a las 10, te confirmo antes de salir.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, privadoMartin.getId(), usuario5.getId(),
+                "Juan, necesitamos coordinar una consulta de Patagonia Cargo.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoMartin.getId(), usuario1.getId(),
+                "Hola Martin, contame que necesitan y lo revisamos.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoMartin.getId(), usuario5.getId(),
+                "Queremos confirmar la disponibilidad para una nueva carga refrigerada.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, privadoTransportes.getId(), usuario6.getId(),
+                "Diego, podemos revisar los horarios de recepcion entre ambas empresas?", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoTransportes.getId(), usuario7.getId(),
+                "Si Carolina, Transportes Andinos recibe consultas hasta las 18.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoTransportes.getId(), usuario6.getId(),
+                "Gracias, comparto el dato con Logistica del Sur.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, privadoClientePrueba.getId(), usuarioClientePrueba.getId(),
+                "Hola, quisiera consultar como coordinar un despacho de Comercio Internacional SA.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoClientePrueba.getId(), usuarioAdministrador.getId(),
+                "Indicanos la carga y la fecha prevista para revisar la solicitud.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoClientePrueba.getId(), usuarioClientePrueba.getId(),
+                "Gracias, voy a reunir esos datos para enviarlos.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, privadoOperadorPrueba.getId(), usuario2.getId(),
+                "Podemos repasar las consultas pendientes del turno?", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoOperadorPrueba.getId(), usuarioOperadorPrueba.getId(),
+                "Si, estoy disponible para revisar las prioridades.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, privadoOperadorPrueba.getId(), usuario2.getId(),
+                "Empecemos por las solicitudes de documentacion.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, grupoOperaciones.getId(), usuarioAdministrador.getId(),
+                "Usaremos este grupo para coordinar al equipo interno.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, grupoOperaciones.getId(), usuario1.getId(),
+                "Voy a revisar las prioridades con Maria.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, grupoOperaciones.getId(), usuarioOperadorPrueba.getId(),
+                "Quedo disponible para atender las consultas del turno.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, grupoClientes.getId(), usuario2.getId(),
+                "Bienvenidos, por este grupo coordinaremos consultas generales de los clientes.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, grupoClientes.getId(), usuario3.getId(),
+                "Gracias Maria, estamos preparando la documentacion del proximo despacho.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, grupoClientes.getId(), usuarioClientePrueba.getId(),
+                "Confirmo que puedo ver los mensajes del grupo.", tercerMensaje));
+
+        mensajeDAO.agregar(new Mensaje(null, grupoTransportes.getId(), usuario1.getId(),
+                "Coordinemos aqui las consultas entre Logistica del Sur y Transportes Andinos.", primerMensaje));
+        mensajeDAO.agregar(new Mensaje(null, grupoTransportes.getId(), usuario6.getId(),
+                "De acuerdo, voy a reunir los horarios de Logistica del Sur.", segundoMensaje));
+        mensajeDAO.agregar(new Mensaje(null, grupoTransportes.getId(), usuario7.getId(),
+                "Por Transportes Andinos voy a confirmar los horarios disponibles.", tercerMensaje));
 
         // =====================================================
 
