@@ -1,16 +1,23 @@
+
 package org.example.pdf.reporte;
 
 import org.bson.Document;
 import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.EnvioController;
 import org.example.mongoDB.controller.IncidenteController;
+import org.example.mongoDB.controller.SensorController;
+import org.example.mongoDB.model.Sensor;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -20,17 +27,24 @@ public class ReportePDFService {
     private final ClienteController clienteController;
     private final EnvioController envioController;
     private final IncidenteController incidenteController;
+    private final SensorController sensorController;
     private final ReportePDFGenerator pdfGenerator;
 
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
+
     public ReportePDFService() {
+
         this.clienteController = new ClienteController();
         this.envioController = new EnvioController();
         this.incidenteController = new IncidenteController();
+        this.sensorController = new SensorController();
         this.pdfGenerator = new ReportePDFGenerator();
     }
 
     // =========================================================
-    // REPORTE POR CLIENTE
+    // REPORTE DE ENVIOS POR CLIENTE
     // =========================================================
 
     public File generarEnviosPorCliente(
@@ -50,7 +64,7 @@ public class ReportePDFService {
     }
 
     // =========================================================
-    // REPORTE POR ESTADO - ADMINISTRADOR
+    // ENVIOS POR ESTADO - ADMINISTRADOR
     // =========================================================
 
     public File generarEnviosPorEstado(
@@ -70,7 +84,7 @@ public class ReportePDFService {
     }
 
     // =========================================================
-    // REPORTE POR ESTADO - CLIENTE
+    // ENVIOS POR ESTADO - CLIENTE
     // =========================================================
 
     public File generarEnviosPorEstado(
@@ -85,11 +99,13 @@ public class ReportePDFService {
         List<Document> enviosCliente =
                 envioController.buscarPorCliente(clienteId);
 
-        List<Document> enviosFiltrados = new ArrayList<>();
+        List<Document> enviosFiltrados =
+                new ArrayList<>();
 
         for (Document envio : enviosCliente) {
 
-            String estadoEnvio = envio.getString("estado");
+            String estadoEnvio =
+                    envio.getString("estado");
 
             if (estadoEnvio != null
                     && estado.equalsIgnoreCase(estadoEnvio)) {
@@ -106,7 +122,7 @@ public class ReportePDFService {
     }
 
     // =========================================================
-    // REPORTE POR PAIS - ADMINISTRADOR
+    // ENVIOS POR PAIS - ADMINISTRADOR
     // =========================================================
 
     public File generarEnviosPorPais(
@@ -126,7 +142,7 @@ public class ReportePDFService {
     }
 
     // =========================================================
-    // REPORTE POR PAIS - CLIENTE
+    // ENVIOS POR PAIS - CLIENTE
     // =========================================================
 
     public File generarEnviosPorPais(
@@ -141,27 +157,28 @@ public class ReportePDFService {
         List<Document> enviosCliente =
                 envioController.buscarPorCliente(clienteId);
 
-        List<Document> enviosFiltrados = new ArrayList<>();
+        List<Document> enviosFiltrados =
+                new ArrayList<>();
 
         for (Document envio : enviosCliente) {
 
-            Document origen = envio.get(
-                    "origen",
-                    Document.class
-            );
+            Document origen =
+                    envio.get("origen", Document.class);
 
-            Document destino = envio.get(
-                    "destino",
-                    Document.class
-            );
+            Document destino =
+                    envio.get("destino", Document.class);
 
             boolean coincideOrigen =
                     origen != null
-                            && pais.equals(origen.getString("pais"));
+                            && pais.equals(
+                                    origen.getString("pais")
+                            );
 
             boolean coincideDestino =
                     destino != null
-                            && pais.equals(destino.getString("pais"));
+                            && pais.equals(
+                                    destino.getString("pais")
+                            );
 
             if (coincideOrigen || coincideDestino) {
                 enviosFiltrados.add(envio);
@@ -179,7 +196,8 @@ public class ReportePDFService {
     // ENVIOS DEMORADOS - ADMINISTRADOR
     // =========================================================
 
-    public File generarEnviosDemorados() throws IOException {
+    public File generarEnviosDemorados()
+            throws IOException {
 
         List<Document> envios =
                 envioController.buscarDemorados();
@@ -204,15 +222,15 @@ public class ReportePDFService {
         List<Document> enviosCliente =
                 envioController.buscarPorCliente(clienteId);
 
-        List<Document> enviosDemorados = new ArrayList<>();
+        List<Document> enviosDemorados =
+                new ArrayList<>();
 
         for (Document envio : enviosCliente) {
 
-            String estado = envio.getString("estado");
+            String estado =
+                    envio.getString("estado");
 
-            if (estado != null
-                    && "DEMORADO".equalsIgnoreCase(estado)) {
-
+            if ("DEMORADO".equalsIgnoreCase(estado)) {
                 enviosDemorados.add(envio);
             }
         }
@@ -227,7 +245,8 @@ public class ReportePDFService {
     // INCIDENTES ABIERTOS - ADMINISTRADOR
     // =========================================================
 
-    public File generarIncidentesAbiertos() throws IOException {
+    public File generarIncidentesAbiertos()
+            throws IOException {
 
         List<Document> incidentes =
                 incidenteController.buscarAbiertos();
@@ -252,7 +271,8 @@ public class ReportePDFService {
         List<Document> enviosCliente =
                 envioController.buscarPorCliente(clienteId);
 
-        Set<String> idsEnvios = new HashSet<>();
+        Set<String> idsEnvios =
+                new HashSet<>();
 
         for (Document envio : enviosCliente) {
 
@@ -271,10 +291,13 @@ public class ReportePDFService {
 
         for (Document incidente : incidentesAbiertos) {
 
-            Object envioId = incidente.get("envio_id");
+            Object envioId =
+                    incidente.get("envio_id");
 
             if (envioId != null
-                    && idsEnvios.contains(envioId.toString())) {
+                    && idsEnvios.contains(
+                            envioId.toString()
+                    )) {
 
                 incidentesFiltrados.add(incidente);
             }
@@ -287,7 +310,7 @@ public class ReportePDFService {
     }
 
     // =========================================================
-    // REPORTE ANALITICO - PROMEDIO DE INCIDENTES
+    // PROMEDIO DE INCIDENTES
     // =========================================================
 
     public File generarPromedioIncidentes(
@@ -312,7 +335,7 @@ public class ReportePDFService {
                 && !"CLIENTE".equals(agrupacion)) {
 
             throw new IllegalArgumentException(
-                    "La agrupacion debe ser PAIS, ESTADO o CLIENTE."
+                    "La agrupación debe ser PAIS, ESTADO o CLIENTE."
             );
         }
 
@@ -326,15 +349,12 @@ public class ReportePDFService {
 
             validarCliente(clienteId);
 
-            envios = envioController.buscarPorCliente(
-                    clienteId
-            );
+            envios =
+                    envioController.buscarPorCliente(clienteId);
         }
 
         List<Document> incidentes =
                 incidenteController.listarIncidentes();
-
-        // Cantidad de incidentes por envio.
 
         Map<String, Integer> incidentesPorEnvio =
                 new HashMap<>();
@@ -347,16 +367,12 @@ public class ReportePDFService {
                 continue;
             }
 
-            String envioId = id.toString();
-
             incidentesPorEnvio.merge(
-                    envioId,
+                    id.toString(),
                     1,
                     Integer::sum
             );
         }
-
-        // Agrupar envios e incidentes.
 
         Map<String, EstadisticaIncidentes> estadisticas =
                 new TreeMap<>();
@@ -377,11 +393,13 @@ public class ReportePDFService {
                             0
                     );
 
-            Set<String> grupos = new HashSet<>();
+            Set<String> grupos =
+                    new HashSet<>();
 
             if ("CLIENTE".equals(agrupacion)) {
 
-                Object cliente = envio.get("cliente_id");
+                Object cliente =
+                        envio.get("cliente_id");
 
                 if (cliente == null) {
 
@@ -389,39 +407,33 @@ public class ReportePDFService {
 
                 } else {
 
-                    String idCliente = cliente.toString();
-
-                    // Buscar la razon social en MongoDB.
+                    String idCliente =
+                            cliente.toString();
 
                     Document datosCliente =
                             clienteController.buscarPorId(
                                     idCliente
                             );
 
-                    String razonSocial = null;
+                    String razonSocial =
+                            datosCliente == null
+                                    ? null
+                                    : datosCliente.getString(
+                                            "razon_social"
+                                    );
 
-                    if (datosCliente != null) {
-                        razonSocial =
-                                datosCliente.getString("razon_social");
-                    }
-
-                    if (razonSocial != null
-                            && !razonSocial.isBlank()) {
-
-                        grupos.add(razonSocial);
-
-                    } else {
-
-                        // Si no existe la razon social,
-                        // conservamos el ID como respaldo.
-
-                        grupos.add(idCliente);
-                    }
+                    grupos.add(
+                            razonSocial != null
+                                    && !razonSocial.isBlank()
+                                    ? razonSocial
+                                    : idCliente
+                    );
                 }
 
             } else if ("ESTADO".equals(agrupacion)) {
 
-                String estado = envio.getString("estado");
+                String estado =
+                        envio.getString("estado");
 
                 grupos.add(
                         estado == null || estado.isBlank()
@@ -431,19 +443,16 @@ public class ReportePDFService {
 
             } else {
 
-                Document origen = envio.get(
-                        "origen",
-                        Document.class
-                );
+                Document origen =
+                        envio.get("origen", Document.class);
 
-                Document destino = envio.get(
-                        "destino",
-                        Document.class
-                );
+                Document destino =
+                        envio.get("destino", Document.class);
 
                 if (origen != null) {
 
-                    String pais = origen.getString("pais");
+                    String pais =
+                            origen.getString("pais");
 
                     if (pais != null && !pais.isBlank()) {
                         grupos.add(pais);
@@ -452,7 +461,8 @@ public class ReportePDFService {
 
                 if (destino != null) {
 
-                    String pais = destino.getString("pais");
+                    String pais =
+                            destino.getString("pais");
 
                     if (pais != null && !pais.isBlank()) {
                         grupos.add(pais);
@@ -477,7 +487,8 @@ public class ReportePDFService {
             }
         }
 
-        List<Document> resultados = new ArrayList<>();
+        List<Document> resultados =
+                new ArrayList<>();
 
         for (Map.Entry<String, EstadisticaIncidentes> entry
                 : estadisticas.entrySet()) {
@@ -516,7 +527,7 @@ public class ReportePDFService {
     }
 
     // =========================================================
-    // RANKING DE RUTAS CON MAYOR CANTIDAD DE INCIDENTES
+    // RANKING DE RUTAS CON INCIDENTES
     // =========================================================
 
     public List<Document> obtenerRankingRutasIncidentes() {
@@ -537,10 +548,9 @@ public class ReportePDFService {
 
             validarCliente(clienteId);
 
-            envios = envioController.buscarPorCliente(clienteId);
+            envios =
+                    envioController.buscarPorCliente(clienteId);
         }
-
-        // Contar los incidentes de cada envio.
 
         Map<String, Integer> incidentesPorEnvio =
                 new HashMap<>();
@@ -548,7 +558,8 @@ public class ReportePDFService {
         for (Document incidente :
                 incidenteController.listarIncidentes()) {
 
-            Object envioId = incidente.get("envio_id");
+            Object envioId =
+                    incidente.get("envio_id");
 
             if (envioId != null) {
 
@@ -560,37 +571,38 @@ public class ReportePDFService {
             }
         }
 
-        // Agrupar los envios por pais de origen y destino.
-
-        Map<String, Document> rutas = new HashMap<>();
+        Map<String, Document> rutas =
+                new HashMap<>();
 
         for (Document envio : envios) {
 
-            Object envioId = envio.get("_id");
+            Object envioId =
+                    envio.get("_id");
 
             if (envioId == null) {
                 continue;
             }
 
-            Document origen = envio.get(
-                    "origen",
-                    Document.class
-            );
+            Document origen =
+                    envio.get("origen", Document.class);
 
-            Document destino = envio.get(
-                    "destino",
-                    Document.class
-            );
+            Document destino =
+                    envio.get("destino", Document.class);
 
             if (origen == null || destino == null) {
                 continue;
             }
 
-            String paisOrigen = origen.getString("pais");
-            String paisDestino = destino.getString("pais");
+            String paisOrigen =
+                    origen.getString("pais");
 
-            if (paisOrigen == null || paisOrigen.isBlank()
-                    || paisDestino == null || paisDestino.isBlank()) {
+            String paisDestino =
+                    destino.getString("pais");
+
+            if (paisOrigen == null
+                    || paisOrigen.isBlank()
+                    || paisDestino == null
+                    || paisDestino.isBlank()) {
 
                 continue;
             }
@@ -599,22 +611,23 @@ public class ReportePDFService {
             paisDestino = paisDestino.trim();
 
             String clave =
-                    paisOrigen.toLowerCase(java.util.Locale.ROOT)
+                    paisOrigen.toLowerCase(Locale.ROOT)
                             + "\u0000"
-                            + paisDestino.toLowerCase(java.util.Locale.ROOT);
+                            + paisDestino.toLowerCase(Locale.ROOT);
 
             Document ruta = rutas.get(clave);
 
             if (ruta == null) {
 
-                ruta = new Document("origen", paisOrigen)
-                        .append("destino", paisDestino)
-                        .append(
-                                "ruta",
-                                paisOrigen + " → " + paisDestino
-                        )
-                        .append("cantidad_envios", 0)
-                        .append("cantidad_incidentes", 0);
+                ruta =
+                        new Document("origen", paisOrigen)
+                                .append("destino", paisDestino)
+                                .append(
+                                        "ruta",
+                                        paisOrigen + " → " + paisDestino
+                                )
+                                .append("cantidad_envios", 0)
+                                .append("cantidad_incidentes", 0);
 
                 rutas.put(clave, ruta);
             }
@@ -634,8 +647,6 @@ public class ReportePDFService {
             );
         }
 
-        // Ordenar de mayor a menor cantidad de incidentes.
-
         List<Document> ranking =
                 new ArrayList<>(rutas.values());
 
@@ -648,7 +659,8 @@ public class ReportePDFService {
 
             return porIncidentes != 0
                     ? porIncidentes
-                    : a.getString("ruta").compareToIgnoreCase(
+                    : a.getString("ruta")
+                    .compareToIgnoreCase(
                             b.getString("ruta")
                     );
         });
@@ -656,24 +668,26 @@ public class ReportePDFService {
         return ranking;
     }
 
-        // =========================================================
-        // GENERAR PDF - RANKING DE RUTAS CON INCIDENTES
-        // =========================================================
+    // =========================================================
+    // PDF - RANKING DE RUTAS
+    // =========================================================
 
-        public File generarRankingRutasIncidentes() throws IOException {
+    public File generarRankingRutasIncidentes()
+            throws IOException {
 
-        List<Document> ranking = obtenerRankingRutasIncidentes();
+        List<Document> ranking =
+                obtenerRankingRutasIncidentes();
 
         return pdfGenerator.generarRankingRutasIncidentes(
                 null,
                 ranking
         );
-        }
+    }
 
-        public File generarRankingRutasIncidentes(
-                String clienteId,
-                String nombreCliente
-        ) throws IOException {
+    public File generarRankingRutasIncidentes(
+            String clienteId,
+            String nombreCliente
+    ) throws IOException {
 
         List<Document> ranking =
                 obtenerRankingRutasIncidentes(clienteId);
@@ -682,9 +696,399 @@ public class ReportePDFService {
                 nombreCliente,
                 ranking
         );
-        }
+    }
+
     // =========================================================
-    // CLASE AUXILIAR PARA CALCULOS
+    // REPORTE DE ESTADO DE SENSORES
+    // =========================================================
+
+    public File generarEstadoSensores()
+            throws IOException {
+
+        List<Document> documentos =
+                sensorController.listarSensores();
+
+        List<Sensor> sensores =
+                new ArrayList<>();
+
+        for (Document documento : documentos) {
+
+            Object id =
+                    documento.get("_id");
+
+            Object contenedorId =
+                    documento.get("contenedor_id");
+
+            sensores.add(
+                    new Sensor(
+                            id == null
+                                    ? null
+                                    : id.toString(),
+                            documento.getString("codigo"),
+                            contenedorId == null
+                                    ? null
+                                    : contenedorId.toString(),
+                            documento.getString("tipo"),
+                            documento.getString("fabricante"),
+                            documento.getDate("fecha_instalacion"),
+                            documento.getString("estado")
+                    )
+            );
+        }
+
+        return pdfGenerator.generarEstadoSensores(
+                sensores
+        );
+    }
+
+    // =========================================================
+    // TIEMPOS DE ENTREGA POR CLIENTE
+    // =========================================================
+
+    public List<Document> obtenerTiemposEntregaPorCliente(
+            String clienteId
+    ) {
+
+        List<Document> envios =
+                clienteId == null
+                        ? envioController.listarEnvios()
+                        : envioController.buscarPorCliente(clienteId);
+
+        Map<String, List<Long>> duraciones =
+                new TreeMap<>();
+
+        for (Document envio : envios) {
+
+            Long dias = calcularDiasEntrega(envio);
+
+            if (dias == null) {
+                continue;
+            }
+
+            Object cliente =
+                    envio.get("cliente_id");
+
+            if (cliente == null
+                    || cliente.toString().isBlank()) {
+                continue;
+            }
+
+            duraciones.computeIfAbsent(
+                    cliente.toString(),
+                    k -> new ArrayList<>()
+            ).add(dias);
+        }
+
+        List<Document> resultados =
+                new ArrayList<>();
+
+        for (Map.Entry<String, List<Long>> entry
+                : duraciones.entrySet()) {
+
+            List<Long> dias =
+                    entry.getValue();
+
+            long minimo =
+                    dias.stream()
+                            .mapToLong(Long::longValue)
+                            .min()
+                            .orElse(0);
+
+            long maximo =
+                    dias.stream()
+                            .mapToLong(Long::longValue)
+                            .max()
+                            .orElse(0);
+
+            double promedio =
+                    dias.stream()
+                            .mapToLong(Long::longValue)
+                            .average()
+                            .orElse(0);
+
+            Document datosCliente =
+                    clienteController.buscarPorId(
+                            entry.getKey()
+                    );
+
+            String nombre =
+                    datosCliente == null
+                            ? null
+                            : datosCliente.getString("razon_social");
+
+            if (nombre == null || nombre.isBlank()) {
+                nombre = entry.getKey();
+            }
+
+            resultados.add(
+                    new Document(
+                            "cliente_id",
+                            entry.getKey()
+                    )
+                            .append("cliente", nombre)
+                            .append(
+                                    "cantidad_envios",
+                                    dias.size()
+                            )
+                            .append("minimo_dias", minimo)
+                            .append("maximo_dias", maximo)
+                            .append("promedio_dias", promedio)
+            );
+        }
+
+        return resultados;
+    }
+
+    // =========================================================
+    // TIEMPO PROMEDIO DE ENTREGA
+    // =========================================================
+
+    public Document obtenerTiempoPromedioEntrega(
+            String clienteId
+    ) {
+
+        List<Document> envios =
+                clienteId == null
+                        ? envioController.listarEnvios()
+                        : envioController.buscarPorCliente(clienteId);
+
+        long cantidad = 0;
+        long diasTotales = 0;
+
+        for (Document envio : envios) {
+
+            Long dias = calcularDiasEntrega(envio);
+
+            if (dias != null) {
+                cantidad++;
+                diasTotales += dias;
+            }
+        }
+
+        return new Document(
+                "cliente_id",
+                clienteId
+        )
+                .append(
+                        "cantidad_envios",
+                        cantidad
+                )
+                .append(
+                        "promedio_dias",
+                        cantidad == 0
+                                ? null
+                                : (double) diasTotales / cantidad
+                );
+    }
+
+    // =========================================================
+    // CALCULAR DIAS DE ENTREGA
+    // =========================================================
+
+    private Long calcularDiasEntrega(
+            Document envio
+    ) {
+
+        if (!"ENTREGADO".equalsIgnoreCase(
+                envio.getString("estado")
+        )) {
+            return null;
+        }
+
+        LocalDate salida =
+                leerFechaEnvio(
+                        envio.get("fecha_salida")
+                );
+
+        LocalDate entrega =
+                leerFechaEnvio(
+                        envio.get("fecha_entrega")
+                );
+
+        if (salida == null
+                || entrega == null
+                || entrega.isBefore(salida)) {
+
+            return null;
+        }
+
+        return ChronoUnit.DAYS.between(
+                salida,
+                entrega
+        );
+    }
+
+    private LocalDate leerFechaEnvio(
+            Object valor
+    ) {
+
+        if (valor == null
+                || valor.toString().isBlank()) {
+            return null;
+        }
+
+        try {
+
+            return LocalDate.parse(
+                    valor.toString().trim()
+            );
+
+        } catch (java.time.format.DateTimeParseException e) {
+
+            return null;
+        }
+    }
+
+    // =========================================================
+    // PDF - TIEMPOS MINIMOS Y MAXIMOS
+    // =========================================================
+
+    public File generarTiemposPorCliente(
+            String clienteId
+    ) throws IOException {
+
+        List<Document> resultados =
+                obtenerTiemposEntregaPorCliente(clienteId);
+
+        return pdfGenerator.generarTiemposPorCliente(
+                resultados
+        );
+    }
+
+    // =========================================================
+    // PDF - TIEMPO PROMEDIO DE ENTREGA
+    // =========================================================
+
+    public File generarTiempoPromedioEntrega(
+            String clienteId
+    ) throws IOException {
+
+        Document resultado =
+                obtenerTiempoPromedioEntrega(clienteId);
+
+        return pdfGenerator.generarTiempoPromedioEntrega(
+                resultado
+        );
+    }
+
+    // =========================================================
+    // COSTOS POR TIPO DE TRANSPORTE
+    // =========================================================
+
+    public List<Document> obtenerCostosPorTipoTransporte(
+            String clienteId
+    ) {
+
+        List<Document> envios;
+
+        if (clienteId == null) {
+
+            envios = envioController.listarEnvios();
+
+        } else {
+
+            validarCliente(clienteId);
+
+            envios =
+                    envioController.buscarPorCliente(clienteId);
+        }
+
+        Map<String, EstadisticaCostos> estadisticas =
+                new TreeMap<>();
+
+        for (Document envio : envios) {
+
+            String transporte =
+                    envio.getString("tipo_transporte");
+
+            Object costoValor =
+                    envio.get("costo_envio");
+
+            if (transporte == null
+                    || transporte.isBlank()
+                    || !(costoValor instanceof Number)) {
+
+                continue;
+            }
+
+            double costo =
+                    ((Number) costoValor).doubleValue();
+
+            if (!Double.isFinite(costo)
+                    || costo < 0) {
+
+                continue;
+            }
+
+            String tipo =
+                    transporte.trim()
+                            .toUpperCase(Locale.ROOT);
+
+            EstadisticaCostos estadistica =
+                    estadisticas.computeIfAbsent(
+                            tipo,
+                            k -> new EstadisticaCostos()
+                    );
+
+            estadistica.cantidadEnvios++;
+            estadistica.costoTotal =
+                    estadistica.costoTotal.add(
+                            BigDecimal.valueOf(costo)
+                    );
+        }
+
+        List<Document> resultados =
+                new ArrayList<>();
+
+        for (Map.Entry<String, EstadisticaCostos> entry
+                : estadisticas.entrySet()) {
+
+            EstadisticaCostos estadistica =
+                    entry.getValue();
+
+            resultados.add(
+                    new Document(
+                            "tipo_transporte",
+                            entry.getKey()
+                    )
+                            .append(
+                                    "cantidad_envios",
+                                    estadistica.cantidadEnvios
+                            )
+                            .append(
+                                    "costo_total",
+                                    estadistica.costoTotal.doubleValue()
+                            )
+            );
+        }
+
+        return resultados;
+    }
+
+    // =========================================================
+    // PDF - COSTOS POR TIPO DE TRANSPORTE
+    // =========================================================
+
+    public File generarCostosPorTipoTransporte(
+            String clienteId,
+            String nombreCliente
+    ) throws IOException {
+
+        if (clienteId != null) {
+            validarCliente(clienteId);
+        }
+
+        List<Document> resultados =
+                obtenerCostosPorTipoTransporte(clienteId);
+
+        return pdfGenerator.generarCostosPorTipoTransporte(
+                nombreCliente,
+                resultados
+        );
+    }
+
+    // =========================================================
+    // CLASES AUXILIARES
     // =========================================================
 
     private static class EstadisticaIncidentes {
@@ -693,11 +1097,19 @@ public class ReportePDFService {
         private int incidentes = 0;
     }
 
+    private static class EstadisticaCostos {
+
+        private int cantidadEnvios = 0;
+        private BigDecimal costoTotal = BigDecimal.ZERO;
+    }
+
     // =========================================================
     // VALIDACIONES
     // =========================================================
 
-    private void validarEstado(String estado) {
+    private void validarEstado(
+            String estado
+    ) {
 
         if (estado == null || estado.isBlank()) {
 
@@ -707,7 +1119,9 @@ public class ReportePDFService {
         }
     }
 
-    private void validarPais(String pais) {
+    private void validarPais(
+            String pais
+    ) {
 
         if (pais == null || pais.isBlank()) {
 
@@ -717,7 +1131,9 @@ public class ReportePDFService {
         }
     }
 
-    private void validarCliente(String clienteId) {
+    private void validarCliente(
+            String clienteId
+    ) {
 
         if (clienteId == null || clienteId.isBlank()) {
 

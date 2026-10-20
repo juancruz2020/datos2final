@@ -200,18 +200,27 @@ public class EnvioController {
         throw new UnsupportedOperationException("Los tramos de envíos se gestionan en Neo4j.");
     }
 
+
     private Document documentoNeo4j(java.util.Map<String, Object> envio) {
+
         Document origen = new Document("ciudad", envio.get("ciudadOrigen"))
                 .append("pais", envio.get("paisOrigen"));
+
         Document destino = new Document("ciudad", envio.get("ciudadDestino"))
                 .append("pais", envio.get("paisDestino"));
+
         return new Document("_id", envio.get("id"))
                 .append("cliente_id", envio.get("clienteId"))
                 .append("contenedores_ids", envio.get("contenedoresIds"))
                 .append("fecha_creacion", envio.get("fechaCreacion"))
+                .append("fecha_salida", envio.get("fechaSalida"))
+                .append("fecha_entrega", envio.get("fechaEntrega"))
+                .append("tipo_transporte", envio.get("vehiculoTipo"))
                 .append("origen", origen)
                 .append("destino", destino)
                 .append("estado", envio.get("estado"))
-                .append("prioridad", envio.get("prioridad"));
+                .append("prioridad", envio.get("prioridad"))
+                .append("costo_envio", envio.get("costoEnvio"));
     }
+
 }

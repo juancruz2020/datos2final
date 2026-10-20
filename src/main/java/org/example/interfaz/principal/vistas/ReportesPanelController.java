@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
@@ -47,7 +48,6 @@ public class ReportesPanelController {
             ReportesPanel vista,
             String usuarioId
     ) {
-
         this.vista = vista;
         this.usuarioId = usuarioId;
 
@@ -61,17 +61,14 @@ public class ReportesPanelController {
         configurarEventos();
 
         try {
-
             cargarUsuarioActual();
             cargarClientes();
             cargarPaises();
             cargarReportes();
 
         } catch (Exception e) {
-
             vista.getBtnGenerar().setEnabled(false);
             vista.getBtnActualizar().setEnabled(false);
-
             mostrarError(e.getMessage());
         }
     }
@@ -81,7 +78,6 @@ public class ReportesPanelController {
     // =========================================================
 
     private void configurarEventos() {
-
         vista.getBtnGenerar().addActionListener(
                 e -> generarReporte()
         );
@@ -98,7 +94,6 @@ public class ReportesPanelController {
     private void cargarUsuarioActual() {
 
         if (usuarioId == null || !ObjectId.isValid(usuarioId)) {
-
             throw new SecurityException(
                     "No se pudo identificar al usuario autenticado."
             );
@@ -107,7 +102,6 @@ public class ReportesPanelController {
         Document usuario = usuarioDAO.buscarPorId(usuarioId);
 
         if (usuario == null) {
-
             throw new SecurityException(
                     "El usuario autenticado no existe."
             );
@@ -116,7 +110,6 @@ public class ReportesPanelController {
         ObjectId rolId = usuario.getObjectId("rol_id");
 
         if (rolId == null) {
-
             throw new SecurityException(
                     "El usuario no tiene un rol asignado."
             );
@@ -127,7 +120,6 @@ public class ReportesPanelController {
         );
 
         if (rol == null) {
-
             throw new SecurityException(
                     "No se encontró el rol del usuario."
             );
@@ -160,30 +152,21 @@ public class ReportesPanelController {
         String email = texto(usuario.getString("email"));
 
         String nombreCompleto = (nombre + " " + apellido).trim();
-
         String etiqueta;
 
         if (!nombreCompleto.isEmpty() && !email.isEmpty()) {
-
             etiqueta = nombreCompleto + " (" + email + ")";
-
         } else if (!nombreCompleto.isEmpty()) {
-
             etiqueta = nombreCompleto;
-
         } else if (!email.isEmpty()) {
-
             etiqueta = email;
-
         } else {
-
             etiqueta = usuarioId;
         }
 
         vista.getTxtUsuario().setText(etiqueta);
 
         if (rolActual.equals("OPERADOR")) {
-
             vista.getBtnGenerar().setEnabled(false);
             vista.getBtnActualizar().setEnabled(false);
 
@@ -199,6 +182,11 @@ public class ReportesPanelController {
             throw new SecurityException(
                     "Tu usuario no tiene un cliente asociado."
             );
+        }
+
+        // El cliente no puede generar reportes de sensores.
+        if ("CLIENTE".equals(rolActual)) {
+            vista.getComboTipo().removeItem("Estado de sensores");
         }
     }
 
@@ -226,7 +214,6 @@ public class ReportesPanelController {
 
             if (rolActual.equals("CLIENTE")
                     && !idCliente.equals(clienteIdActual)) {
-
                 continue;
             }
 
@@ -237,14 +224,12 @@ public class ReportesPanelController {
             }
 
             clientesIds.add(idCliente);
-
             vista.getComboCliente().addItem(nombre);
         }
 
         if (rolActual.equals("CLIENTE")) {
 
             if (clientesIds.isEmpty()) {
-
                 throw new SecurityException(
                         "No se encontró el cliente asociado a tu usuario."
                 );
@@ -254,7 +239,6 @@ public class ReportesPanelController {
             vista.getComboCliente().setEnabled(false);
 
         } else {
-
             vista.getComboCliente().setEnabled(true);
         }
     }
@@ -270,13 +254,10 @@ public class ReportesPanelController {
         List<Document> envios;
 
         if (rolActual.equals("CLIENTE")) {
-
             envios = envioController.buscarPorCliente(
                     clienteIdActual
             );
-
         } else {
-
             envios = envioController.listarEnvios();
         }
 
@@ -295,23 +276,17 @@ public class ReportesPanelController {
             );
 
             if (origen != null) {
-
                 String paisOrigen = origen.getString("pais");
 
-                if (paisOrigen != null
-                        && !paisOrigen.isBlank()) {
-
+                if (paisOrigen != null && !paisOrigen.isBlank()) {
                     paises.add(paisOrigen);
                 }
             }
 
             if (destino != null) {
-
                 String paisDestino = destino.getString("pais");
 
-                if (paisDestino != null
-                        && !paisDestino.isBlank()) {
-
+                if (paisDestino != null && !paisDestino.isBlank()) {
                     paises.add(paisDestino);
                 }
             }
@@ -329,11 +304,9 @@ public class ReportesPanelController {
     private void generarReporte() {
 
         try {
-
             cargarUsuarioActual();
 
             if (rolActual.equals("OPERADOR")) {
-
                 throw new SecurityException(
                         "No tenés permisos para generar reportes."
                 );
@@ -343,7 +316,6 @@ public class ReportesPanelController {
                     (String) vista.getComboTipo().getSelectedItem();
 
             if (tipoSeleccionado == null) {
-
                 throw new IllegalArgumentException(
                         "Debe seleccionar un tipo de reporte."
                 );
@@ -363,26 +335,22 @@ public class ReportesPanelController {
 
                 if (indiceCliente < 0
                         || indiceCliente >= clientesIds.size()) {
-
                     throw new IllegalArgumentException(
                             "Debe seleccionar un cliente."
                     );
                 }
 
-                String clienteId =
-                        clientesIds.get(indiceCliente);
+                String clienteId = clientesIds.get(indiceCliente);
 
                 if (rolActual.equals("CLIENTE")
                         && !clienteId.equals(clienteIdActual)) {
-
                     throw new SecurityException(
                             "No podés generar reportes de otro cliente."
                     );
                 }
 
                 String nombreCliente =
-                        (String) vista.getComboCliente()
-                                .getSelectedItem();
+                        (String) vista.getComboCliente().getSelectedItem();
 
                 archivo = pdfService.generarEnviosPorCliente(
                         clienteId,
@@ -398,27 +366,21 @@ public class ReportesPanelController {
             } else if ("Envíos por estado".equals(tipoSeleccionado)) {
 
                 String estado =
-                        (String) vista.getComboEstado()
-                                .getSelectedItem();
+                        (String) vista.getComboEstado().getSelectedItem();
 
                 if (estado == null || estado.isBlank()) {
-
                     throw new IllegalArgumentException(
                             "Debe seleccionar un estado."
                     );
                 }
 
                 if (rolActual.equals("ADMINISTRADOR")) {
-
                     archivo = pdfService.generarEnviosPorEstado(
                             estado
                     );
-
                 } else {
-
                     String nombreCliente =
-                            (String) vista.getComboCliente()
-                                    .getSelectedItem();
+                            (String) vista.getComboCliente().getSelectedItem();
 
                     archivo = pdfService.generarEnviosPorEstado(
                             estado,
@@ -436,27 +398,19 @@ public class ReportesPanelController {
             } else if ("Envíos por país".equals(tipoSeleccionado)) {
 
                 String pais =
-                        (String) vista.getComboPais()
-                                .getSelectedItem();
+                        (String) vista.getComboPais().getSelectedItem();
 
                 if (pais == null || pais.isBlank()) {
-
                     throw new IllegalArgumentException(
                             "Debe seleccionar un país."
                     );
                 }
 
                 if (rolActual.equals("ADMINISTRADOR")) {
-
-                    archivo = pdfService.generarEnviosPorPais(
-                            pais
-                    );
-
+                    archivo = pdfService.generarEnviosPorPais(pais);
                 } else {
-
                     String nombreCliente =
-                            (String) vista.getComboCliente()
-                                    .getSelectedItem();
+                            (String) vista.getComboCliente().getSelectedItem();
 
                     archivo = pdfService.generarEnviosPorPais(
                             pais,
@@ -474,14 +428,10 @@ public class ReportesPanelController {
             } else if ("Envíos demorados".equals(tipoSeleccionado)) {
 
                 if (rolActual.equals("ADMINISTRADOR")) {
-
                     archivo = pdfService.generarEnviosDemorados();
-
                 } else {
-
                     String nombreCliente =
-                            (String) vista.getComboCliente()
-                                    .getSelectedItem();
+                            (String) vista.getComboCliente().getSelectedItem();
 
                     archivo = pdfService.generarEnviosDemorados(
                             clienteIdActual,
@@ -498,14 +448,10 @@ public class ReportesPanelController {
             } else if ("Incidentes abiertos".equals(tipoSeleccionado)) {
 
                 if (rolActual.equals("ADMINISTRADOR")) {
-
                     archivo = pdfService.generarIncidentesAbiertos();
-
                 } else {
-
                     String nombreCliente =
-                            (String) vista.getComboCliente()
-                                    .getSelectedItem();
+                            (String) vista.getComboCliente().getSelectedItem();
 
                     archivo = pdfService.generarIncidentesAbiertos(
                             clienteIdActual,
@@ -516,7 +462,7 @@ public class ReportesPanelController {
                 tipo = "INCIDENTES_ABIERTOS";
 
             // =================================================
-            // PROMEDIO DE INCIDENTES POR PAIS, ESTADO Y CLIENTE
+            // PROMEDIO DE INCIDENTES
             // =================================================
 
             } else if (
@@ -528,15 +474,10 @@ public class ReportesPanelController {
                 String agrupacion;
 
                 if ("Promedio de incidentes por país".equals(tipoSeleccionado)) {
-
                     agrupacion = "PAIS";
-
                 } else if ("Promedio de incidentes por estado".equals(tipoSeleccionado)) {
-
                     agrupacion = "ESTADO";
-
                 } else {
-
                     agrupacion = "CLIENTE";
                 }
 
@@ -549,8 +490,7 @@ public class ReportesPanelController {
                 } else {
 
                     String nombreCliente =
-                            (String) vista.getComboCliente()
-                                    .getSelectedItem();
+                            (String) vista.getComboCliente().getSelectedItem();
 
                     archivo = pdfService.generarPromedioIncidentes(
                             agrupacion,
@@ -562,7 +502,7 @@ public class ReportesPanelController {
                 tipo = "PROMEDIO_INCIDENTES_POR_" + agrupacion;
 
             // =================================================
-            // RANKING DE RUTAS CON MAS INCIDENTES
+            // RANKING DE RUTAS
             // =================================================
 
             } else if (
@@ -570,14 +510,10 @@ public class ReportesPanelController {
             ) {
 
                 if (rolActual.equals("ADMINISTRADOR")) {
-
                     archivo = pdfService.generarRankingRutasIncidentes();
-
                 } else {
-
                     String nombreCliente =
-                            (String) vista.getComboCliente()
-                                    .getSelectedItem();
+                            (String) vista.getComboCliente().getSelectedItem();
 
                     archivo = pdfService.generarRankingRutasIncidentes(
                             clienteIdActual,
@@ -587,6 +523,80 @@ public class ReportesPanelController {
 
                 tipo = "RANKING_RUTAS_INCIDENTES";
 
+            // =================================================
+            // TIEMPOS MINIMOS Y MAXIMOS
+            // =================================================
+
+            } else if (
+                    "Tiempos mínimos y máximos por cliente".equals(tipoSeleccionado)
+            ) {
+
+                String clienteId = rolActual.equals("CLIENTE")
+                        ? clienteIdActual
+                        : null;
+
+                archivo = pdfService.generarTiemposPorCliente(
+                        clienteId
+                );
+
+                tipo = "TIEMPOS_POR_CLIENTE";
+
+            // =================================================
+            // TIEMPO PROMEDIO DE ENTREGA
+            // =================================================
+
+            } else if (
+                    "Tiempo promedio de entrega".equals(tipoSeleccionado)
+            ) {
+
+                String clienteId = rolActual.equals("CLIENTE")
+                        ? clienteIdActual
+                        : null;
+
+                archivo = pdfService.generarTiempoPromedioEntrega(
+                        clienteId
+                );
+
+                tipo = "TIEMPO_PROMEDIO_ENTREGA";
+
+            // =================================================
+            // COSTOS POR TIPO DE TRANSPORTE - NUEVO
+            // =================================================
+
+            } else if (
+                    "Costos por tipo de transporte".equals(tipoSeleccionado)
+            ) {
+
+                String clienteId = rolActual.equals("CLIENTE")
+                        ? clienteIdActual
+                        : null;
+
+                String nombreCliente = rolActual.equals("CLIENTE")
+                        ? (String) vista.getComboCliente().getSelectedItem()
+                        : null;
+
+                archivo = pdfService.generarCostosPorTipoTransporte(
+                        clienteId,
+                        nombreCliente
+                );
+
+                tipo = "COSTOS_POR_TIPO_TRANSPORTE";
+
+            // =================================================
+            // ESTADO DE SENSORES - SOLO ADMINISTRADOR
+            // =================================================
+
+            } else if ("Estado de sensores".equals(tipoSeleccionado)) {
+
+                if (!rolActual.equals("ADMINISTRADOR")) {
+                    throw new SecurityException(
+                            "No tenés permisos para generar el reporte de sensores."
+                    );
+                }
+
+                archivo = pdfService.generarEstadoSensores();
+                tipo = "ESTADO_SENSORES";
+
             } else {
 
                 throw new IllegalArgumentException(
@@ -595,18 +605,17 @@ public class ReportesPanelController {
             }
 
             // =================================================
-            // VERIFICAR PDF
+            // VERIFICAR QUE SE GENERO EL PDF
             // =================================================
 
             if (archivo == null || !archivo.isFile()) {
-
                 throw new IllegalStateException(
                         "No se pudo crear el archivo PDF."
                 );
             }
 
             // =================================================
-            // GUARDAR REGISTRO EN MONGODB
+            // REGISTRAR REPORTE EN MONGODB
             // =================================================
 
             reporteController.crearReporte(
@@ -645,7 +654,6 @@ public class ReportesPanelController {
             }
 
         } catch (Exception e) {
-
             mostrarError(e.getMessage());
         }
     }
@@ -678,7 +686,6 @@ public class ReportesPanelController {
 
             if (rolActual.equals("CLIENTE")
                     && !usuarioId.equals(idUsuarioTexto)) {
-
                 continue;
             }
 
@@ -692,9 +699,7 @@ public class ReportesPanelController {
                             id == null ? "" : id.toHexString(),
                             nombreUsuario,
                             reporte.getString("tipo"),
-                            fecha == null
-                                    ? ""
-                                    : formato.format(fecha),
+                            fecha == null ? "" : formato.format(fecha),
                             reporte.getString("formato"),
                             reporte.getString("estado")
                     }
@@ -703,7 +708,7 @@ public class ReportesPanelController {
     }
 
     // =========================================================
-    // OBTENER NOMBRE DEL USUARIO
+    // OBTENER NOMBRE DE USUARIO
     // =========================================================
 
     private String obtenerNombreUsuario(String id) {
@@ -721,8 +726,7 @@ public class ReportesPanelController {
         String nombre = texto(usuario.getString("nombre"));
         String apellido = texto(usuario.getString("apellido"));
 
-        String nombreCompleto =
-                (nombre + " " + apellido).trim();
+        String nombreCompleto = (nombre + " " + apellido).trim();
 
         if (nombreCompleto.isEmpty()) {
             nombreCompleto = texto(usuario.getString("email"));
@@ -744,14 +748,12 @@ public class ReportesPanelController {
     private void actualizar() {
 
         try {
-
             cargarUsuarioActual();
             cargarClientes();
             cargarPaises();
             cargarReportes();
 
         } catch (Exception e) {
-
             vista.getBtnGenerar().setEnabled(false);
             mostrarError(e.getMessage());
         }
@@ -762,7 +764,6 @@ public class ReportesPanelController {
     // =========================================================
 
     private String texto(String valor) {
-
         return valor == null ? "" : valor.trim();
     }
 

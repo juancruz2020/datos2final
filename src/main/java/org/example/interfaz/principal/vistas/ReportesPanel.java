@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import javax.swing.*;
@@ -23,6 +24,10 @@ public class ReportesPanel extends JPanel {
 
     private final JTable tablaReportes;
     private final DefaultTableModel modeloTabla;
+
+    // =========================================================
+    // CONSTRUCTOR
+    // =========================================================
 
     public ReportesPanel() {
 
@@ -92,7 +97,11 @@ public class ReportesPanel extends JPanel {
                         "Promedio de incidentes por país",
                         "Promedio de incidentes por estado",
                         "Promedio de incidentes por cliente",
-                        "Ranking de rutas con más incidentes"
+                        "Ranking de rutas con más incidentes",
+                        "Estado de sensores",
+                        "Tiempos mínimos y máximos por cliente",
+                        "Tiempo promedio de entrega",
+                        "Costos por tipo de transporte"
                 }
         );
 
@@ -222,7 +231,7 @@ public class ReportesPanel extends JPanel {
         panelCentral.add(formulario, BorderLayout.NORTH);
 
         // =========================================================
-        // TABLA
+        // TABLA DE REPORTES
         // =========================================================
 
         modeloTabla = new DefaultTableModel(
@@ -315,6 +324,10 @@ public class ReportesPanel extends JPanel {
         // - Promedio de incidentes por estado
         // - Promedio de incidentes por cliente
         // - Ranking de rutas con más incidentes
+        // - Estado de sensores
+        // - Tiempos mínimos y máximos por cliente
+        // - Tiempo promedio de entrega
+        // - Costos por tipo de transporte
 
         revalidate();
         repaint();

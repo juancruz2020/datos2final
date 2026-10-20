@@ -7,6 +7,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.bson.Document;
+import org.example.mongoDB.model.Sensor;
 
 import java.io.File;
 import java.io.IOException;
@@ -622,6 +623,71 @@ public class ReportePDFGenerator {
     // GENERADOR GENERAL DE PDF DE ENVIOS
     // =========================================================
 
+    // =========================================================
+    // REPORTE DEL ESTADO DE LOS SENSORES
+    // =========================================================
+
+    public File generarEstadoSensores(List<Sensor> sensores) throws IOException {
+
+        if (sensores == null) {
+            throw new IllegalArgumentException("La lista de sensores no puede ser nula.");
+        }
+
+        File archivo = crearArchivo("Reporte_Estado_Sensores_");
+
+        try (PDDocument pdf = new PDDocument()) {
+            PDPage pagina = new PDPage(PDRectangle.A4);
+            pdf.addPage(pagina);
+            PDPageContentStream contenido = new PDPageContentStream(pdf, pagina);
+
+            try {
+                float y = 770;
+                escribir(contenido, "REPORTE DEL ESTADO DE LOS SENSORES", 50, y, 16, true);
+                y -= 32;
+                escribir(contenido, "Fecha: " + fechaActual(), 50, y, 10, false);
+                y -= 22;
+                escribir(contenido, "Cantidad de sensores: " + sensores.size(), 50, y, 10, false);
+                y -= 35;
+
+                if (sensores.isEmpty()) {
+                    escribir(contenido, "No se encontraron sensores.", 50, y, 11, false);
+                }
+
+                for (Sensor sensor : sensores) {
+                    if (y < 145) {
+                        contenido.close();
+                        pagina = new PDPage(PDRectangle.A4);
+                        pdf.addPage(pagina);
+                        contenido = new PDPageContentStream(pdf, pagina);
+                        y = 770;
+                        escribir(contenido, "ESTADO DE SENSORES (continuacion)", 50, y, 14, true);
+                        y -= 38;
+                    }
+
+                    escribir(contenido, "Codigo: " + valor(sensor.getCodigo())
+                            + "  |  Estado: " + valor(sensor.getEstado()), 50, y, 11, true);
+                    y -= 19;
+                    escribir(contenido, "Tipo: " + valor(sensor.getTipo())
+                            + "  |  Fabricante: " + valor(sensor.getFabricante()), 50, y, 10, false);
+                    y -= 19;
+                    escribir(contenido, "Contenedor: " + valor(sensor.getContenedorId()), 50, y, 10, false);
+                    y -= 19;
+                    String fecha = sensor.getFechaInstalacion() == null
+                            ? "Sin datos"
+                            : new SimpleDateFormat("dd/MM/yyyy").format(sensor.getFechaInstalacion());
+                    escribir(contenido, "Fecha de instalacion: " + fecha, 50, y, 10, false);
+                    y -= 31;
+                }
+            } finally {
+                contenido.close();
+            }
+
+            pdf.save(archivo);
+        }
+
+        return archivo;
+    }
+
     private File generarReporte(
             String titulo,
             String detallePrincipal,
@@ -777,6 +843,344 @@ public class ReportePDFGenerator {
 
         return archivo;
     }
+
+        // =========================================================
+        // TIEMPOS MINIMOS Y MAXIMOS POR CLIENTE
+        // =========================================================
+
+        public File generarTiemposPorCliente(
+                List<Document> resultados
+        ) throws IOException {
+
+                File archivo = crearArchivo("Reporte_Tiempos_Cliente_");
+
+                try (PDDocument pdf = new PDDocument()) {
+
+                PDPage pagina = new PDPage(PDRectangle.A4);
+                pdf.addPage(pagina);
+
+                PDPageContentStream contenido =
+                        new PDPageContentStream(pdf, pagina);
+
+                try {
+                        float y = 770;
+
+                        escribir(contenido,
+                                "TIEMPOS DE ENTREGA POR CLIENTE",
+                                50, y, 16, true);
+                        y -= 35;
+
+                        escribir(contenido,
+                                "Fecha: " + fechaActual(),
+                                50, y, 10, false);
+                        y -= 35;
+
+                        if (resultados.isEmpty()) {
+                        escribir(contenido,
+                                "No hay envios entregados con fechas validas.",
+                                50, y, 11, false);
+                        }
+
+                        for (Document resultado : resultados) {
+
+                        if (y < 160) {
+                                contenido.close();
+                                pagina = new PDPage(PDRectangle.A4);
+                                pdf.addPage(pagina);
+                                contenido = new PDPageContentStream(pdf, pagina);
+                                y = 770;
+                        }
+
+                        escribir(contenido,
+                                "Cliente: " + valor(resultado.get("cliente")),
+                                50, y, 11, true);
+                        y -= 20;
+
+                        escribir(contenido,
+                                "Envios entregados: " +
+                                        resultado.get("cantidad_envios"),
+                                60, y, 10, false);
+                        y -= 18;
+
+                        escribir(contenido,
+                                "Tiempo minimo: " +
+                                        resultado.get("minimo_dias") + " dias",
+                                60, y, 10, false);
+                        y -= 18;
+
+                        escribir(contenido,
+                                "Tiempo maximo: " +
+                                        resultado.get("maximo_dias") + " dias",
+                                60, y, 10, false);
+                        y -= 18;
+
+                        escribir(contenido,
+                                "Tiempo promedio: " +
+                                        String.format(Locale.US, "%.2f",
+                                                resultado.getDouble("promedio_dias"))
+                                        + " dias",
+                                60, y, 10, false);
+                        y -= 35;
+                        }
+
+                } finally {
+                        contenido.close();
+                }
+
+                pdf.save(archivo);
+                }
+
+                return archivo;
+        }
+
+        // =========================================================
+        // TIEMPO PROMEDIO DE ENTREGA
+        // =========================================================
+
+        public File generarTiempoPromedioEntrega(
+                Document resultado
+        ) throws IOException {
+
+                File archivo = crearArchivo("Reporte_Tiempo_Promedio_");
+
+                try (PDDocument pdf = new PDDocument()) {
+
+                PDPage pagina = new PDPage(PDRectangle.A4);
+                pdf.addPage(pagina);
+
+                try (PDPageContentStream contenido =
+                                new PDPageContentStream(pdf, pagina)) {
+
+                        float y = 770;
+
+                        escribir(contenido,
+                                "TIEMPO PROMEDIO DE ENTREGA",
+                                50, y, 16, true);
+                        y -= 35;
+
+                        escribir(contenido,
+                                "Fecha: " + fechaActual(),
+                                50, y, 10, false);
+                        y -= 30;
+
+                        escribir(contenido,
+                                "Envios entregados con fechas validas: " +
+                                        resultado.get("cantidad_envios"),
+                                50, y, 11, false);
+                        y -= 25;
+
+                        Object promedio = resultado.get("promedio_dias");
+
+                        String tiempo = promedio == null
+                                ? "Sin datos suficientes"
+                                : String.format(Locale.US, "%.2f dias",
+                                        ((Number) promedio).doubleValue());
+
+                        escribir(contenido,
+                                "Tiempo promedio: " + tiempo,
+                                50, y, 12, true);
+                }
+
+                pdf.save(archivo);
+                }
+
+                return archivo;
+        }
+
+        // =========================================================
+        // REPORTE ANALITICO - COSTOS POR TIPO DE TRANSPORTE
+        // =========================================================
+
+        public File generarCostosPorTipoTransporte(
+                String nombreCliente,
+                List<Document> resultados
+        ) throws IOException {
+
+                if (resultados == null) {
+                throw new IllegalArgumentException(
+                        "La lista de resultados no puede ser nula."
+                );
+                }
+
+                File archivo = crearArchivo(
+                        "Reporte_Costos_Transporte_"
+                );
+
+                try (PDDocument pdf = new PDDocument()) {
+
+                PDPage pagina = new PDPage(PDRectangle.A4);
+                pdf.addPage(pagina);
+
+                PDPageContentStream contenido =
+                        new PDPageContentStream(pdf, pagina);
+
+                float y = 770;
+                double totalGeneral = 0.0;
+                int cantidadTotal = 0;
+
+                try {
+
+                        escribir(
+                                contenido,
+                                "COSTOS POR TIPO DE TRANSPORTE",
+                                50, y, 17, true
+                        );
+
+                        y -= 35;
+
+                        if (nombreCliente != null
+                                && !nombreCliente.isBlank()) {
+
+                        escribir(
+                                contenido,
+                                "Cliente: " + nombreCliente,
+                                50, y, 11, true
+                        );
+
+                        y -= 22;
+                        }
+
+                        escribir(
+                                contenido,
+                                "Fecha: " + fechaActual(),
+                                50, y, 10, false
+                        );
+
+                        y -= 22;
+
+                        escribir(
+                                contenido,
+                                "Tipos de transporte: " + resultados.size(),
+                                50, y, 10, false
+                        );
+
+                        y -= 35;
+
+                        if (resultados.isEmpty()) {
+
+                        escribir(
+                                contenido,
+                                "No se encontraron envios con costos registrados.",
+                                50, y, 11, false
+                        );
+                        }
+
+                        for (Document resultado : resultados) {
+
+                        if (y < 160) {
+
+                                contenido.close();
+
+                                pagina = new PDPage(PDRectangle.A4);
+                                pdf.addPage(pagina);
+
+                                contenido = new PDPageContentStream(
+                                        pdf, pagina
+                                );
+
+                                y = 770;
+                        }
+
+                        String transporte = valor(
+                                resultado.get("tipo_transporte")
+                        );
+
+                        int cantidad = resultado.getInteger(
+                                "cantidad_envios", 0
+                        );
+
+                        Object costoValor =
+                                resultado.get("costo_total");
+
+                        double costo = costoValor instanceof Number
+                                ? ((Number) costoValor).doubleValue()
+                                : 0.0;
+
+                        totalGeneral += costo;
+                        cantidadTotal += cantidad;
+
+                        escribir(
+                                contenido,
+                                "Transporte: " + transporte,
+                                50, y, 12, true
+                        );
+
+                        y -= 20;
+
+                        escribir(
+                                contenido,
+                                "Cantidad de envios: " + cantidad,
+                                60, y, 10, false
+                        );
+
+                        y -= 18;
+
+                        escribir(
+                                contenido,
+                                "Costo total: $"
+                                        + String.format(
+                                                Locale.US,
+                                                "%,.2f",
+                                                costo
+                                        ),
+                                60, y, 10, true
+                        );
+
+                        y -= 35;
+                        }
+
+                        if (y < 130) {
+
+                        contenido.close();
+
+                        pagina = new PDPage(PDRectangle.A4);
+                        pdf.addPage(pagina);
+
+                        contenido = new PDPageContentStream(
+                                pdf, pagina
+                        );
+
+                        y = 770;
+                        }
+
+                        escribir(
+                                contenido,
+                                "RESUMEN GENERAL",
+                                50, y, 13, true
+                        );
+
+                        y -= 23;
+
+                        escribir(
+                                contenido,
+                                "Total de envios: " + cantidadTotal,
+                                50, y, 11, false
+                        );
+
+                        y -= 20;
+
+                        escribir(
+                                contenido,
+                                "Costo total general: $"
+                                        + String.format(
+                                                Locale.US,
+                                                "%,.2f",
+                                                totalGeneral
+                                        ),
+                                50, y, 12, true
+                        );
+
+                } finally {
+
+                        contenido.close();
+                }
+
+                pdf.save(archivo);
+                }
+
+                return archivo;
+        }
+
 
     // =========================================================
     // CREAR ARCHIVO
