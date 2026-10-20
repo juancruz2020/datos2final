@@ -1,3 +1,4 @@
+
 package org.example.pdf.factura;
 
 import java.io.IOException;
@@ -8,17 +9,45 @@ public class FacturaPDFController {
 
     private final FacturaPDFService facturaPDFService;
 
-    // =====================================================
+    // ==========================================
     // CONSTRUCTOR
-    // =====================================================
+    // ==========================================
 
     public FacturaPDFController() {
         this.facturaPDFService = new FacturaPDFService();
     }
 
-    // =====================================================
-    // GENERAR FACTURA PDF
-    // =====================================================
+    // ==========================================
+    // GENERAR FACTURA CON VENCIMIENTO
+    // ==========================================
+
+    public void generarFactura(
+            String clienteId,
+            Date fechaEmision,
+            Date fechaVencimiento,
+            BigDecimal importeTotal,
+            String estado
+    ) {
+        try {
+            facturaPDFService.generarFactura(
+                    clienteId,
+                    fechaEmision,
+                    fechaVencimiento,
+                    importeTotal,
+                    estado
+            );
+
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "No se pudo generar la factura PDF.",
+                    e
+            );
+        }
+    }
+
+    // ==========================================
+    // COMPATIBILIDAD CON EL METODO ANTERIOR
+    // ==========================================
 
     public void generarFactura(
             String clienteId,
@@ -26,22 +55,12 @@ public class FacturaPDFController {
             BigDecimal importeTotal,
             String estado
     ) {
-
-        try {
-
-            facturaPDFService.generarFactura(
-                    clienteId,
-                    fechaEmision,
-                    importeTotal,
-                    estado
-            );
-
-        } catch (IOException e) {
-
-            throw new RuntimeException(
-                    "No se pudo generar la factura PDF.",
-                    e
-            );
-        }
+        generarFactura(
+                clienteId,
+                fechaEmision,
+                null,
+                importeTotal,
+                estado
+        );
     }
 }

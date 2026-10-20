@@ -16,9 +16,21 @@ import java.util.Date;
 
 public class FacturaPDFGenerator {
 
+    // Compatibilidad con otras llamadas del proyecto.
     public File generar(
             Document cliente,
             Date fechaEmision,
+            BigDecimal importeTotal,
+            String estado
+    ) throws IOException {
+        return generar(cliente, fechaEmision, null, importeTotal, estado);
+    }
+
+    // Permite incluir la fecha de vencimiento en la factura.
+    public File generar(
+            Document cliente,
+            Date fechaEmision,
+            Date fechaVencimiento,
             BigDecimal importeTotal,
             String estado
     ) throws IOException {
@@ -150,6 +162,21 @@ public class FacturaPDFGenerator {
                                 + formato.format(fechaEmision)
                 );
 
+                contenido.endText();
+
+                // Vencimiento, ubicado en la misma línea sin invadir la caja del cliente.
+                contenido.beginText();
+                contenido.setFont(
+                        new PDType1Font(Standard14Fonts.FontName.HELVETICA),
+                        10
+                );
+                contenido.newLineAtOffset(290, 725);
+                contenido.showText(
+                        "Vencimiento: "
+                                + (fechaVencimiento == null
+                                        ? "Sin especificar"
+                                        : formato.format(fechaVencimiento))
+                );
                 contenido.endText();
 
                 // =====================================================

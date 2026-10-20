@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.dao;
 
 import com.mongodb.client.MongoCollection;
@@ -27,7 +28,6 @@ public class FacturaMongoDAO {
         this.coleccion = database.getCollection("facturas");
     }
 
-
     // =========================
     // AGREGAR FACTURA
     // =========================
@@ -44,6 +44,10 @@ public class FacturaMongoDAO {
                         factura.getFechaEmision()
                 )
                 .append(
+                        "fecha_vencimiento",
+                        factura.getFechaVencimiento()
+                )
+                .append(
                         "importe_total",
                         new Decimal128(factura.getImporteTotal())
                 )
@@ -58,7 +62,6 @@ public class FacturaMongoDAO {
                 documento.getObjectId("_id").toHexString()
         );
     }
-
 
     // =========================
     // MODIFICAR FACTURA
@@ -78,6 +81,10 @@ public class FacturaMongoDAO {
                                 factura.getFechaEmision()
                         ),
                         set(
+                                "fecha_vencimiento",
+                                factura.getFechaVencimiento()
+                        ),
+                        set(
                                 "importe_total",
                                 new Decimal128(factura.getImporteTotal())
                         ),
@@ -89,6 +96,23 @@ public class FacturaMongoDAO {
         );
     }
 
+    // =========================
+    // ACTUALIZAR VENCIMIENTO Y ESTADO
+    // =========================
+
+    public void actualizarVencimientoYEstado(
+            String facturaId,
+            java.util.Date fechaVencimiento,
+            String estado
+    ) {
+        coleccion.updateOne(
+                eq("_id", new ObjectId(facturaId)),
+                combine(
+                        set("fecha_vencimiento", fechaVencimiento),
+                        set("estado", estado)
+                )
+        );
+    }
 
     // =========================
     // ELIMINAR FACTURA
@@ -101,7 +125,6 @@ public class FacturaMongoDAO {
         );
     }
 
-
     // =========================
     // BUSCAR FACTURA POR ID
     // =========================
@@ -113,7 +136,6 @@ public class FacturaMongoDAO {
         ).first();
     }
 
-
     // =========================
     // LISTAR FACTURAS
     // =========================
@@ -123,7 +145,6 @@ public class FacturaMongoDAO {
         return coleccion.find()
                 .into(new ArrayList<>());
     }
-
 
     // =========================
     // OBTENER TODOS LOS IDS
@@ -145,7 +166,6 @@ public class FacturaMongoDAO {
         return ids;
     }
 
-
     // =========================
     // VERIFICAR SI EXISTE POR ID
     // =========================
@@ -158,7 +178,6 @@ public class FacturaMongoDAO {
 
         return documento != null;
     }
-
 
     // =========================
     // BUSCAR FACTURAS POR CLIENTE
@@ -173,7 +192,6 @@ public class FacturaMongoDAO {
                 )
         ).into(new ArrayList<>());
     }
-
 
     // =========================
     // BUSCAR FACTURAS POR ESTADO

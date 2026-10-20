@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.model;
 
 import java.math.BigDecimal;
@@ -8,16 +9,42 @@ public class Factura {
     private String id;
     private String clienteId;
     private Date fechaEmision;
+    private Date fechaVencimiento;
     private BigDecimal importeTotal;
     private String estado;
 
-    public Factura(String id, String clienteId, Date fechaEmision,
-                   BigDecimal importeTotal, String estado) {
+    public Factura(
+            String id,
+            String clienteId,
+            Date fechaEmision,
+            Date fechaVencimiento,
+            BigDecimal importeTotal,
+            String estado
+    ) {
         this.id = id;
         this.clienteId = clienteId;
         this.fechaEmision = fechaEmision;
+        this.fechaVencimiento = fechaVencimiento;
         this.importeTotal = importeTotal;
         this.estado = estado;
+    }
+
+    // Constructor compatible con llamadas anteriores
+    public Factura(
+            String id,
+            String clienteId,
+            Date fechaEmision,
+            BigDecimal importeTotal,
+            String estado
+    ) {
+        this(
+                id,
+                clienteId,
+                fechaEmision,
+                null,
+                importeTotal,
+                estado
+        );
     }
 
     public String getId() {
@@ -42,6 +69,14 @@ public class Factura {
 
     public void setFechaEmision(Date fechaEmision) {
         this.fechaEmision = fechaEmision;
+    }
+
+    public Date getFechaVencimiento() {
+        return fechaVencimiento;
+    }
+
+    public void setFechaVencimiento(Date fechaVencimiento) {
+        this.fechaVencimiento = fechaVencimiento;
     }
 
     public BigDecimal getImporteTotal() {

@@ -1115,89 +1115,69 @@ public class GeneradorDatosPruebaMongo {
 
 
         // =====================================================
-
         // FACTURAS
-
         // =====================================================
 
+        // Se utilizan fechas relativas al día de ejecución, en horario argentino.
+        // La fecha de vencimiento nunca es anterior a la de emisión.
+        java.time.ZoneId zona = java.time.ZoneId.of("America/Argentina/Buenos_Aires");
+        java.time.LocalDate hoy = java.time.LocalDate.now(zona);
+
+        // 1. Pendiente: vence dentro de 10 días. Pago parcial de $50.000.
         Factura factura1 = new Factura(
-
                 null,
-
                 cliente1.getId(),
-
-                new Date(),
-
+                Date.from(hoy.atStartOfDay(zona).toInstant()),
+                Date.from(hoy.plusDays(10).atStartOfDay(zona).toInstant()),
                 new BigDecimal("150000.00"),
-
                 "PENDIENTE"
-
         );
 
+        // 2. Pagada: venció hace 10 días, pero está cancelada.
         Factura factura2 = new Factura(
-
                 null,
-
                 cliente2.getId(),
-
-                new Date(),
-
+                Date.from(hoy.minusDays(40).atStartOfDay(zona).toInstant()),
+                Date.from(hoy.minusDays(10).atStartOfDay(zona).toInstant()),
                 new BigDecimal("225000.00"),
-
                 "PAGADA"
-
         );
 
+        // 3. Pagada: su vencimiento todavía no llegó.
         Factura factura3 = new Factura(
-
                 null,
-
                 cliente3.getId(),
-
-                new Date(),
-
+                Date.from(hoy.minusDays(5).atStartOfDay(zona).toInstant()),
+                Date.from(hoy.plusDays(15).atStartOfDay(zona).toInstant()),
                 new BigDecimal("180000.00"),
-
                 "PAGADA"
-
         );
 
+        // 4. Pendiente al crearla: el servicio la mostrará VENCIDA.
+        // Tiene un pago parcial de $100.000, no está totalmente pagada.
         Factura factura4 = new Factura(
-
                 null,
-
                 cliente4.getId(),
-
-                new Date(),
-
+                Date.from(hoy.minusDays(30).atStartOfDay(zona).toInstant()),
+                Date.from(hoy.minusDays(5).atStartOfDay(zona).toInstant()),
                 new BigDecimal("310000.00"),
-
                 "PENDIENTE"
-
         );
 
+        // 5. Pagada: vence hoy. Se conserva PAGADA porque tiene pago total.
         Factura factura5 = new Factura(
-
                 null,
-
                 cliente5.getId(),
-
-                new Date(),
-
+                Date.from(hoy.minusDays(15).atStartOfDay(zona).toInstant()),
+                Date.from(hoy.atStartOfDay(zona).toInstant()),
                 new BigDecimal("95000.00"),
-
                 "PAGADA"
-
         );
 
         facturaDAO.agregar(factura1);
-
         facturaDAO.agregar(factura2);
-
         facturaDAO.agregar(factura3);
-
         facturaDAO.agregar(factura4);
-
         facturaDAO.agregar(factura5);
 
         // =====================================================

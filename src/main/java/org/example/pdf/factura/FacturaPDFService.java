@@ -1,3 +1,4 @@
+
 package org.example.pdf.factura;
 
 import org.bson.Document;
@@ -15,9 +16,9 @@ public class FacturaPDFService {
     private final PDFOpener opener;
     private final ControllerMongoDB mongoController;
 
-    // =====================================================
+    // ==========================================
     // CONSTRUCTOR
-    // =====================================================
+    // ==========================================
 
     public FacturaPDFService() {
         this.generator = new FacturaPDFGenerator();
@@ -25,21 +26,19 @@ public class FacturaPDFService {
         this.mongoController = new ControllerMongoDB();
     }
 
-    // =====================================================
-    // GENERAR FACTURA
-    // =====================================================
+    // ==========================================
+    // GENERAR FACTURA CON VENCIMIENTO
+    // ==========================================
 
     public void generarFactura(
             String clienteId,
             Date fechaEmision,
+            Date fechaVencimiento,
             BigDecimal importeTotal,
             String estado
     ) throws IOException {
 
-        // =====================================================
-        // BUSCAR CLIENTE
-        // =====================================================
-
+        // Buscar los datos del cliente en MongoDB
         Document cliente =
                 mongoController.buscarClientePorId(clienteId);
 
@@ -49,21 +48,36 @@ public class FacturaPDFService {
             );
         }
 
-        // =====================================================
-        // GENERAR PDF
-        // =====================================================
-
+        // Generar el PDF con fecha de vencimiento
         File archivo = generator.generar(
                 cliente,
                 fechaEmision,
+                fechaVencimiento,
                 importeTotal,
                 estado
         );
 
-        // =====================================================
-        // ABRIR PDF
-        // =====================================================
-
+        // Abrir el PDF generado
         opener.abrir(archivo);
+    }
+
+    // ==========================================
+    // COMPATIBILIDAD CON EL MÉTODO ANTERIOR
+    // ==========================================
+
+    public void generarFactura(
+            String clienteId,
+            Date fechaEmision,
+            BigDecimal importeTotal,
+            String estado
+    ) throws IOException {
+
+        generarFactura(
+                clienteId,
+                fechaEmision,
+                null,
+                importeTotal,
+                estado
+        );
     }
 }

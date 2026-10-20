@@ -13,11 +13,13 @@ public class FacturacionPanel extends JPanel {
 
     private JButton btnActualizar;
     private JButton btnMostrarFormulario;
+    private JButton btnModificarFactura;
     private JButton btnGuardar;
     private JButton btnCancelar;
 
     private JComboBox<String> cmbCliente;
     private JTextField txtFechaEmision;
+    private JTextField txtFechaVencimiento;
     private JTextField txtImporteTotal;
     private JComboBox<String> cmbEstado;
 
@@ -242,6 +244,7 @@ public class FacturacionPanel extends JPanel {
                         new Object[]{
                                 "Cliente",
                                 "Fecha de emisión",
+                                "Fecha de vencimiento",
                                 "Importe total",
                                 "Estado"
                         },
@@ -318,6 +321,10 @@ public class FacturacionPanel extends JPanel {
                 false
         );
 
+        btnModificarFactura = new JButton("Modificar factura");
+        btnModificarFactura.setEnabled(false);
+
+        acciones.add(btnModificarFactura);
         acciones.add(
                 btnMostrarFormulario
         );
@@ -483,6 +490,14 @@ public class FacturacionPanel extends JPanel {
 
 
         // =====================================================
+        // FECHA DE VENCIMIENTO
+        // =====================================================
+
+        agregarLabel(panel, gbc, "Fecha de vencimiento:", 4);
+        txtFechaVencimiento = new JTextField();
+        agregarCampo(panel, gbc, txtFechaVencimiento, 4);
+
+        // =====================================================
         // IMPORTE
         // =====================================================
 
@@ -490,7 +505,7 @@ public class FacturacionPanel extends JPanel {
                 panel,
                 gbc,
                 "Importe total:",
-                4
+                5
         );
 
 
@@ -502,7 +517,7 @@ public class FacturacionPanel extends JPanel {
                 panel,
                 gbc,
                 txtImporteTotal,
-                4
+                5
         );
 
 
@@ -514,7 +529,7 @@ public class FacturacionPanel extends JPanel {
                 panel,
                 gbc,
                 "Estado:",
-                5
+                6
         );
 
 
@@ -532,7 +547,7 @@ public class FacturacionPanel extends JPanel {
                 panel,
                 gbc,
                 cmbEstado,
-                5
+                6
         );
 
 
@@ -574,7 +589,7 @@ public class FacturacionPanel extends JPanel {
 
 
         gbc.gridx = 0;
-        gbc.gridy = 6;
+        gbc.gridy = 7;
         gbc.gridwidth = 2;
         gbc.weightx = 1;
 
@@ -679,6 +694,7 @@ public class FacturacionPanel extends JPanel {
         txtFechaEmision.setText(
                 ""
         );
+        txtFechaVencimiento.setText("");
 
         txtImporteTotal.setText(
                 ""
@@ -724,6 +740,10 @@ public class FacturacionPanel extends JPanel {
     }
 
 
+    public JButton getBtnModificarFactura() {
+        return btnModificarFactura;
+    }
+
     public JButton getBtnGuardar() {
 
         return btnGuardar;
@@ -747,6 +767,10 @@ public class FacturacionPanel extends JPanel {
         return txtFechaEmision;
     }
 
+
+    public JTextField getTxtFechaVencimiento() {
+        return txtFechaVencimiento;
+    }
 
     public JTextField getTxtImporteTotal() {
 
