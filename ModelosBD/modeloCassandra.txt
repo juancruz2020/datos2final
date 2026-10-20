@@ -1,0 +1,56 @@
+MODELO FISICO DE CASSANDRA
+Keyspace logistica. Fuentes: CassandraSingleton.java, CrearTablasMonitoreo.java,
+InsertarCassandraMonitoreo.java y ConsultasCassandraMonitoreo.java.
+
+lecturas_sensor
+  sensor_id text, fecha_dia date, fecha_hora timestamp, contenedor_id text
+  temperatura decimal, humedad decimal, vibracion decimal
+  latitud decimal, longitud decimal, bateria decimal, pais text, region text
+  PRIMARY KEY ((sensor_id, fecha_dia), fecha_hora)
+  Partición: sensor_id y fecha_dia. Clustering: fecha_hora DESC.
+
+metricas_iot_region_dia
+  region text, fecha_dia date, temperatura_min decimal, temperatura_max decimal
+  humedad_promedio decimal, cantidad_lecturas bigint
+  PRIMARY KEY ((region), fecha_dia)
+  Partición: region. Clustering: fecha_dia DESC.
+
+metricas_iot_pais_dia
+  pais text, fecha_dia date, humedad_promedio decimal, temperatura_promedio decimal
+  cantidad_lecturas bigint
+  PRIMARY KEY ((pais), fecha_dia)
+  Partición: pais. Clustering: fecha_dia DESC.
+
+posiciones_sensor
+  sensor_id text, fecha_hora timestamp, contenedor_id text
+  latitud decimal, longitud decimal, pais text, region text
+  PRIMARY KEY ((sensor_id), fecha_hora)
+  Partición: sensor_id. Clustering: fecha_hora DESC. Sin fecha_dia.
+
+REFERENCIAS E INTEGRIDAD
+Los IDs son String desde Java. En la carga de prueba se reciben los ObjectId de MongoDB
+convertidos a texto. Cassandra no declara claves foráneas a sensores o contenedores.
+fecha_dia es parte de la partición de lecturas y no es un identificador independiente de lectura.
+No hay tablas Sensor, Contenedor, Región ni País en Cassandra: los dos primeros
+se mantienen en MongoDB y los dos últimos son dimensiones text en las lecturas.
+
+INDICES Y DISTRIBUCION
+No hay índices secundarios en el DDL actual.
+SimpleStrategy con replication_factor 1. Un servicio Cassandra en Docker Compose.
+No se configura un nivel de consistencia de consulta desde el código.
+
+ACTUALIZACION DE METRICAS
+InsertarCassandraMonitoreo inserta la lectura, inserta su proyección GPS en
+posiciones_sensor y después actualiza región y país.
+Las métricas se actualizan mediante lectura previa y nueva escritura, no counters ni LWT.
+Las cuatro escrituras no forman una transacción común. Puede haber desajustes o
+actualizaciones perdidas si hay fallos, concurrencia o reinserción de una misma clave.
+
+CONSULTAS
+Historial por sensor y día; intervalo horario dentro de un día; temperatura, batería y GPS;
+métricas por región o país y rango de días. También existen SELECT sin filtro de todas
+las lecturas, posiciones o métricas para las vistas. El mapa obtiene todas las filas de
+posiciones_sensor y filtra por sensor en Java; su detalle muestra las columnas de esa
+proyección y el maestro MongoDB, no los valores de temperatura, humedad o batería.
+La consulta GPS por sensor y día usa un intervalo de timestamp [inicio UTC, día siguiente).
+Las posiciones no tienen corte de partición por día. No hay TTL definido en el DDL.

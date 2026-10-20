@@ -1,3 +1,4 @@
+
 package org.example;
 
 import org.example.DatosPorDefecto.DatosPruebaTotal;
@@ -8,9 +9,8 @@ public class Main {
 
     public static void main(String[] args) {
 
-
-
-        //hay que descomentar esto para que funcione
+        // Descomentar únicamente cuando se necesite
+        // eliminar los datos de prueba.
         EliminarDatos.eliminarDatosDePrueba();
 
         DatosPruebaTotal datos =

@@ -1,0 +1,64 @@
+MODELO FISICO DE NEO4J
+Fuentes: EnvioNeo4jDAO.java, GrafoNeo4jDAO.java, ClienteNeo4jDAO.java,
+VehiculoNeo4jDAO.java y GeneradorDatosPruebaNeo.java.
+
+NODOS Y PROPIEDADES
+Envio: id String, fechaCreacion String ISO instant, fechaSalida String y fechaEntrega String
+  (AAAA-MM-DD cuando se informan), estado String, prioridad String, costoEnvio Double.
+  LogisticaNeo4jService acepta fechas vacías y valida el formato y salida <= entrega.
+  EnvioController expone estos datos como fecha_salida, fecha_entrega y costo_envio
+  en Document de consulta; tipo_transporte se obtiene del Vehiculo relacionado.
+Ubicacion: clave String (ciudad y país normalizados unidos por |), ciudad String, pais String.
+  Los datos de prueba antiguos pueden incluir id String UBI-xxx; no se usa como clave del MERGE.
+Cliente: id String; razonSocial y cuit String cuando se carga el nodo completo.
+Contenedor: id String; codigo y tipo String en la carga de prueba.
+Vehiculo: id String, patente String, tipo String; identificacion String en datos de prueba.
+Operador: id String y nombre String en datos de prueba.
+Proveedor: id String y nombre String en datos de prueba.
+Sensor: id String y tipo String en datos de prueba.
+Algunas relaciones usan MERGE con solo el id; sus nodos pueden carecer de los demás campos.
+
+RELACIONES DIRIGIDAS
+(Cliente)-[:REALIZA]->(Envio)
+(Envio)-[:TRANSPORTA]->(Contenedor)
+(Envio)-[:UTILIZA]->(Vehiculo)
+(Envio)-[:SALE_DE]->(Ubicacion)
+(Envio)-[:LLEGA_A]->(Ubicacion)
+(Operador)-[:OPERA]->(Vehiculo)
+(Proveedor)-[:PROVEE]->(Vehiculo)
+(Contenedor)-[:TIENE_SENSOR]->(Sensor)
+Las relaciones no tienen propiedades en las escrituras actuales.
+No hay nodos Tramo ni relaciones TIENE o USA para el trayecto.
+
+IDENTIFICADORES Y COPIAS
+Envio usa ENV-xxx en datos de prueba y el identificador producido por el formulario en nuevas altas.
+Cliente, Contenedor y Vehiculo usan el ObjectId de MongoDB como String tras sincronizar
+las referencias de prueba. Sensor, Operador y Proveedor del generador conservan IDs propios.
+No hay sincronización automática general de todos los campos entre las bases.
+
+INDICES Y RESTRICCIONES
+No hay CREATE CONSTRAINT ni CREATE INDEX en el código.
+MERGE no debe documentarse como restricción única física de id o clave.
+No se impone cardinalidad física: el servicio y la interfaz usan List<String> de contenedores.
+
+NORMALIZACION
+El nodo Envio no repite clienteId, ciudadOrigen, paisOrigen, ciudadDestino ni paisDestino.
+Los listados y la edición obtienen esos valores mediante las relaciones.
+normalizarEnviosExistentes recupera relaciones desde las propiedades antiguas cuando faltan
+antes de quitar sus copias; se llama desde DatosPruebaTotal.
+
+TRANSACCIONES
+guardarCompleto agrupa la escritura del envío y sus relaciones de cliente, contenedor y
+ubicaciones en executeWrite. Al guardar elimina las relaciones anteriores TRANSPORTA,
+SALE_DE, LLEGA_A y UTILIZA, además de REALIZA entrante, y reconstruye las de cliente,
+contenedores y ubicaciones. La asignación del vehículo desde el formulario se hace después.
+Las reservas de MongoDB y el guardado de Neo4j no forman una transacción distribuida.
+
+CONSULTAS
+Ruta actual: origen y destino, sin etapas intermedias.
+Recorrido de contenedor: envíos relacionados con sus ciudades origen y destino.
+Red de envío: cliente, vehículo, contenedor, sensor y ubicaciones relacionados.
+No hay historial temporal de cambios del grafo. Se guardan fechas de salida y entrega,
+no una duración: ReportePDFService calcula días entre ellas para envíos ENTREGADO.
+Los reportes suman costoEnvio por tipo del vehículo y agrupan rutas por país de origen
+y país de destino. No representan una ruta por tramos.

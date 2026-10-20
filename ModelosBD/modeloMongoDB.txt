@@ -11,7 +11,7 @@
 | `clientes` | `_id` ObjectId, `codigo` String, `razon_social` String, `cuit` String, `email` String, `telefono` String, `direccion` Document, `pais` String, `estado` String |
 | `usuarios` | `_id` ObjectId, `cliente_id` ObjectId/null, `rol_id` ObjectId, `nombre` String, `apellido` String, `email` String, `contraseña_encriptada` String, `estado` String, `fecha_registro` Date |
 | `roles` | `_id` ObjectId, `descripcion` String, `nivel_permisos` Int32 |
-| `contenedores` | `_id` ObjectId, `codigo_internacional` String, `tipo` String, `capacidad` Numérico, `estado` String, `envio_asignado` String opcional |
+| `contenedores` | `_id` ObjectId, `codigo_internacional` String, `tipo` String, `capacidad` Double en escrituras del DAO, `estado` String, `envio_asignado` String opcional |
 | `vehiculos` | `_id` ObjectId, `tipo` String, `identificacion` String, `empresa_operadora` String, `estado` String |
 | `sensores` | `_id` ObjectId, `codigo` String, `contenedor_id` ObjectId, `tipo` String, `fabricante` String, `fecha_instalacion` Date, `estado` String |
 | `eventos_logisticos` | `_id` ObjectId, `envio_id` String, `fecha_hora` Date, `tipo_evento` String, `ubicacion` String, `descripcion` String |
@@ -28,7 +28,7 @@
 | `conversaciones` | `_id` ObjectId, `nombre` String, `tipo` String, `participantes_ids` Array de String, `fecha_creacion` Date |
 | `mensajes` | `_id` ObjectId, `conversacion_id` String, `remitente_id` String, `contenido` String, `fecha_envio` Date |
 
-El modelo contempla 19 colecciones: 17 verificadas en MongoDB y 2 correspondientes a Comunicaciones, identificadas en sus DAO.
+El modelo contempla 19 colecciones referenciadas por los DAO y servicios Java. Este inventario no es una inspección de las colecciones existentes en una instancia.
 
 ### 2. Relaciones
 
@@ -51,7 +51,7 @@ MongoDB no utiliza claves foráneas automáticas; las relaciones son lógicas y 
 
 Todas las colecciones tienen un índice único automático sobre `_id`.
 
-Además, se verificaron tres índices compuestos únicos:
+Los DAO de movimientos y cierres y CuentaCorrienteService declaran tres índices compuestos únicos:
 
 | Colección | Campos |
 |---|---|
@@ -61,14 +61,25 @@ Además, se verificaron tres índices compuestos únicos:
 
 El último es un índice único parcial, aplicado cuando `referencia_id` es de tipo String.
 
-No se encontraron validadores `$jsonSchema` en las 17 colecciones existentes. Las demás validaciones se realizan principalmente desde Java.
+Los archivos Java y el script de creación no declaran validadores `$jsonSchema`. Las validaciones de los servicios no equivalen a un esquema físico impuesto por el servidor.
 
 ### 4. Particionamiento
 
-No se implementó sharding ni particionamiento de colecciones, debido al volumen reducido de datos utilizado en el proyecto.
+El código y el compose no declaran sharding ni particionamiento de colecciones.
 
-La instancia consultada utiliza un replica set denominado `rs0`, compatible con las transacciones implementadas en cuentas corrientes.
+El compose local inicia mongod con `--replSet rs0`. No se incluye inicialización automática con `rs.initiate`; el estado operativo del replica set no fue comprobado. CuentaCorrienteService y CierreMensualCuentaCorrienteService usan ClientSession y transacciones para movimientos/saldo y para el cierre, respectivamente.
 
 ### 5. Script de creación
 
 El archivo `ModelosBD/scriptMongoDB.txt` contiene la creación de las 19 colecciones y los tres índices personalizados. No incluye datos de prueba ni instrucciones de eliminación.
+### 6. Operaciones y fuentes
+
+Los DAO ClienteMongoDAO, ContenedorMongoDAO y SensorMongoDAO incrementan `contadores.secuencia` mediante findOneAndUpdate con upsert y generan CLI-%03d, CONT-%03d y SEN-%03d, respectivamente. El incremento inicial usa el entero 1; los lectores aceptan Number. El código generado se conserva al modificar. No se declara un índice único adicional para esos códigos.
+
+CuentaCorrienteService registra una apertura con saldo inicial y período UTC. Cada movimiento exige importe positivo y referencia; DEBITO resta saldo y rechaza saldo insuficiente, CREDITO suma. Movimiento y saldo se escriben en una misma transacción. La creación de cuenta y su apertura son operaciones separadas. CierreMensualCuentaCorrienteService solo cierra meses finalizados, exige apertura y continuidad de cierres, y calcula saldo_final = saldo_inicial + total_creditos - total_debitos. No modifica el saldo actual de la cuenta ni programa cierres automáticos. La interfaz CuentasCorrientesPanelController permite registrar movimientos y solicitar cierres.
+
+Los PDF de reportes se generan desde ReportePDFService/ReportePDFGenerator antes de que ReportesPanelController registre sus metadatos mediante ReporteService. El documento reportes no almacena ruta o contenido del PDF. El archivo y sus metadatos no comparten transacción.
+
+Fuentes: src/main/java/org/example/mongoDB/dao/*MongoDAO.java; mongoDB/service/CuentaCorrienteService.java; mongoDB/service/CierreMensualCuentaCorrienteService.java; interfaz/principal/vistas/CuentasCorrientesPanelController.java; interfaz/principal/vistas/ReportesPanelController.java (todos bajo src/main/java/org/example salvo el primer prefijo completo).
+
+UsuarioService valida la existencia del cliente y del rol, y rechaza un cliente que ya tenga usuario; no se declara índice único para cliente_id en usuarios. GeneradorDatosPruebaMongo inserta cuentas mediante el DAO sin registrar aperturas; los servicios de movimientos y cierres exigen esa apertura. La carga de prueba por sí sola no satisface ese requisito.

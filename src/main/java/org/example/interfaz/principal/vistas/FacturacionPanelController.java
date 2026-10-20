@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.bson.Document;
@@ -5,6 +6,8 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.FacturaController;
+import org.example.mongoDB.dao.RolMongoDAO;
+import org.example.mongoDB.dao.UsuarioMongoDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,11 +18,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import org.example.pdf.factura.FacturaPDFController;
 
 public class FacturacionPanelController {
 
     private final FacturacionPanel view;
+
+    private final String usuarioId;
+
+    private final UsuarioMongoDAO usuarioDAO;
+
+    private final RolMongoDAO rolDAO;
+
+    private String rolActual;
+
+    private String clienteIdActual;
 
     private final FacturaController facturaController;
 
@@ -34,11 +48,18 @@ public class FacturacionPanelController {
     // =========================================================
 
     public FacturacionPanelController(
-            FacturacionPanel view
+            FacturacionPanel view,
+            String usuarioId
     ) {
 
         this.view =
                 view;
+
+        this.usuarioId = usuarioId;
+
+        this.usuarioDAO = new UsuarioMongoDAO();
+
+        this.rolDAO = new RolMongoDAO();
 
         this.facturaController =
                 new FacturaController();
@@ -53,11 +74,104 @@ public class FacturacionPanelController {
                 new FacturaPDFController();
 
 
+        cargarUsuarioActual();
+
         configurarEventos();
+
+        configurarPermisos();
 
         cargarClientes();
 
         cargarFacturas();
+    }
+
+
+    // =========================================================
+    // USUARIO AUTENTICADO Y PERMISOS
+    // =========================================================
+
+    private void cargarUsuarioActual() {
+
+        if (usuarioId == null || !ObjectId.isValid(usuarioId)) {
+            throw new SecurityException(
+                    "No se pudo identificar al usuario autenticado."
+            );
+        }
+
+        Document usuario = usuarioDAO.buscarPorId(usuarioId);
+
+        if (usuario == null) {
+            throw new SecurityException(
+                    "El usuario autenticado no existe."
+            );
+        }
+
+        ObjectId rolId = usuario.getObjectId("rol_id");
+
+        if (rolId == null) {
+            throw new SecurityException(
+                    "El usuario no tiene un rol asignado."
+            );
+        }
+
+        Document rol = rolDAO.buscarPorId(rolId.toHexString());
+
+        if (rol == null) {
+            throw new SecurityException(
+                    "No se encontró el rol del usuario."
+            );
+        }
+
+        String descripcion = rol.getString("descripcion");
+
+        rolActual = descripcion == null
+                ? ""
+                : descripcion.trim().toUpperCase(Locale.ROOT);
+
+        if (!"ADMINISTRADOR".equals(rolActual)
+                && !"OPERADOR".equals(rolActual)
+                && !"CLIENTE".equals(rolActual)) {
+            throw new SecurityException(
+                    "Rol sin permisos definidos para Facturación: " + rolActual
+            );
+        }
+
+        ObjectId clienteId = usuario.getObjectId("cliente_id");
+
+        clienteIdActual = clienteId == null
+                ? null
+                : clienteId.toHexString();
+
+        if ("CLIENTE".equals(rolActual)
+                && (clienteIdActual == null || clienteIdActual.isBlank())) {
+            throw new SecurityException(
+                    "Tu usuario no tiene un cliente asociado."
+            );
+        }
+    }
+
+    private void configurarPermisos() {
+
+        boolean puedeAgregar = !"CLIENTE".equals(rolActual);
+
+        view.getBtnMostrarFormulario().setVisible(puedeAgregar);
+        view.getBtnMostrarFormulario().setEnabled(puedeAgregar);
+        view.getBtnGuardar().setEnabled(puedeAgregar);
+
+        if (!puedeAgregar) {
+            view.ocultarFormulario();
+        }
+    }
+
+    private void validarPermisoAgregar() {
+
+        cargarUsuarioActual();
+
+        if ("CLIENTE".equals(rolActual)) {
+            throw new SecurityException(
+                    "El rol CLIENTE solo puede consultar sus propias facturas."
+            );
+        }
     }
 
 
@@ -76,8 +190,16 @@ public class FacturacionPanelController {
         view.getBtnMostrarFormulario()
                 .addActionListener(
                         e -> {
-                            cargarClientes();
-                            view.mostrarFormulario();
+                            try {
+                                validarPermisoAgregar();
+                                cargarClientes();
+                                view.mostrarFormulario();
+                            } catch (Exception ex) {
+                                mostrarError(
+                                        "No tenés permisos para agregar facturas.",
+                                        ex
+                                );
+                            }
                         }
                 );
 
@@ -101,6 +223,16 @@ public class FacturacionPanelController {
 
     private void actualizarTodo() {
 
+        try {
+            cargarUsuarioActual();
+            configurarPermisos();
+        } catch (Exception e) {
+            view.getBtnMostrarFormulario().setEnabled(false);
+            view.getBtnGuardar().setEnabled(false);
+            mostrarError("No se pudo validar la sesión.", e);
+            return;
+        }
+
         cargarClientes();
 
         cargarFacturas();
@@ -112,6 +244,12 @@ public class FacturacionPanelController {
     // =========================================================
 
     private void cargarClientes() {
+
+        if ("CLIENTE".equals(rolActual)) {
+            view.getCmbCliente().removeAllItems();
+            clientesPorNombre.clear();
+            return;
+        }
 
         try {
 
@@ -178,9 +316,15 @@ public class FacturacionPanelController {
 
         try {
 
-            List<Document> facturas =
-                    facturaController
-                            .listarFacturas();
+            List<Document> facturas;
+
+            if ("CLIENTE".equals(rolActual)) {
+                facturas = facturaController.buscarPorCliente(
+                        clienteIdActual
+                );
+            } else {
+                facturas = facturaController.listarFacturas();
+            }
 
 
             DefaultTableModel modelo =
@@ -375,6 +519,13 @@ public class FacturacionPanelController {
     // =========================================================
 
     private void agregarFactura() {
+
+        try {
+            validarPermisoAgregar();
+        } catch (Exception e) {
+            mostrarError("No tenés permisos para agregar facturas.", e);
+            return;
+        }
 
         Object clienteSeleccionado =
                 view.getCmbCliente()

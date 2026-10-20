@@ -1,0 +1,21 @@
+MODELO FISICO DE REDIS
+Fuente: usuarios/dao/SesionDAO.java y usuarios/service/SesionService.java.
+
+Clave: sesion:<idUsuarioMongo>
+Tipo Redis: String
+Valor: activa
+Expiración: 1800 segundos al crear o renovar una sesión.
+
+Operaciones: SETEX, EXISTS, DEL, EXPIRE, TTL y SCAN MATCH sesion:* COUNT 100.
+SCAN obtiene las claves; se consideran activas las que tienen TTL >= 0.
+El ID se toma del usuario MongoDB, no de un token independiente de sesión.
+No hay fecha de inicio, fin ni historial de sesiones guardados en esta clave.
+Una clave por usuario implica que un nuevo inicio reemplaza esa sesión.
+
+No se crean índices, claves foráneas ni particiones desde la aplicación.
+Docker Compose declara un servicio con contraseña y volumen redis_data.
+No hay configuración explícita de AOF, Redis Cluster ni réplica en el compose.
+Un volumen no debe describirse como prueba de persistencia de cada escritura.
+
+AdministracionPanelController conserva el ID en el modelo de tabla y presenta su mail
+mediante un renderer. El cierre de sesión, la selección y el TTL siguen usando el ID.

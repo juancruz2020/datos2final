@@ -1,0 +1,11 @@
+# Comandos equivalentes al DAO para redis-cli. No ejecutar literalmente los marcadores.
+# Reemplazar <idUsuarioMongo> por un ID real de la colección usuarios.
+# La conexión se autentica con REDIS_PASSWORD de .env; no se copia aquí su valor.
+SETEX sesion:<idUsuarioMongo> 1800 activa
+EXISTS sesion:<idUsuarioMongo>
+TTL sesion:<idUsuarioMongo>
+EXPIRE sesion:<idUsuarioMongo> 1800
+SCAN 0 MATCH sesion:* COUNT 100
+# SCAN debe repetirse con el cursor devuelto hasta volver a 0.
+# Cierre de la sesión:
+DEL sesion:<idUsuarioMongo>
