@@ -1,7 +1,9 @@
 package org.example.mongoDB.service;
 
+import com.mongodb.client.ClientSession;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.dao.ClienteMongoDAO;
 import org.example.mongoDB.model.Cliente;
 import org.example.mongoDB.model.Direccion;
@@ -104,14 +106,24 @@ public class ClienteService {
         // GUARDAR
         // -----------------------------------------------------
 
-        clienteDAO.agregar(cliente);
-
-        // Crear automáticamente la cuenta corriente
-        // y su apertura inicial.
         CuentaCorrienteService cuentaService =
                 new CuentaCorrienteService();
 
-        cuentaService.crearCuenta(cliente.getId());
+        try (ClientSession session = MongoSingleton
+                .getInstance()
+                .startSession()) {
+            session.startTransaction();
+            try {
+                clienteDAO.agregar(session, cliente);
+                cuentaService.crearCuenta(session, cliente.getId());
+                session.commitTransaction();
+            } catch (RuntimeException e) {
+                if (session.hasActiveTransaction()) {
+                    session.abortTransaction();
+                }
+                throw e;
+            }
+        }
     }
 
 

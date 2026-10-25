@@ -2,6 +2,9 @@
 package org.example.cassandra.monitoreo.dao;
 
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.BatchStatement;
+import com.datastax.oss.driver.api.core.cql.BatchType;
+import com.datastax.oss.driver.api.core.cql.BoundStatement;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.math.BigDecimal;
@@ -51,8 +54,7 @@ public class InsertarCassandraMonitoreo {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-        session.execute(
-                session.prepare(cql).bind(
+        BoundStatement lectura = session.prepare(cql).bind(
                         sensorId,
                         fechaDia,
                         fechaHora,
@@ -65,8 +67,7 @@ public class InsertarCassandraMonitoreo {
                         bateria,
                         pais,
                         region
-                )
-        );
+                );
 
         // =====================================================
         // 2. INSERTAR POSICIÓN EN LA TABLA NUEVA
@@ -85,8 +86,7 @@ public class InsertarCassandraMonitoreo {
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
 
-        session.execute(
-                session.prepare(cqlPosicion).bind(
+        BoundStatement posicion = session.prepare(cqlPosicion).bind(
                         sensorId,
                         fechaHora,
                         contenedorId,
@@ -94,14 +94,13 @@ public class InsertarCassandraMonitoreo {
                         longitud,
                         pais,
                         region
-                )
-        );
+                );
 
         // =====================================================
         // 3. ACTUALIZAR MÉTRICAS
         // =====================================================
 
-        actualizarMetricaRegion(
+        BoundStatement metricaRegion = actualizarMetricaRegion(
                 session,
                 region,
                 fechaDia,
@@ -109,20 +108,29 @@ public class InsertarCassandraMonitoreo {
                 humedad
         );
 
-        actualizarMetricaPais(
+        BoundStatement metricaPais = actualizarMetricaPais(
                 session,
                 pais,
                 fechaDia,
                 temperatura,
                 humedad
         );
+
+        // Un batch LOGGED evita que la lectura quede guardada solo en una
+        // de sus tablas/proyecciones si falla una de las escrituras.
+        session.execute(BatchStatement.builder(BatchType.LOGGED)
+                .addStatement(lectura)
+                .addStatement(posicion)
+                .addStatement(metricaRegion)
+                .addStatement(metricaPais)
+                .build());
     }
 
     // =====================================================
     // ACTUALIZAR MÉTRICA DE REGIÓN
     // =====================================================
 
-    private static void actualizarMetricaRegion(
+    private static BoundStatement actualizarMetricaRegion(
             CqlSession session,
             String region,
             LocalDate fechaDia,
@@ -207,23 +215,21 @@ public class InsertarCassandraMonitoreo {
             VALUES (?, ?, ?, ?, ?, ?)
             """;
 
-        session.execute(
-                session.prepare(update).bind(
+        return session.prepare(update).bind(
                         region,
                         fechaDia,
                         temperaturaMin,
                         temperaturaMax,
                         humedadPromedio,
                         cantidadLecturas
-                )
-        );
+                );
     }
 
     // =====================================================
     // ACTUALIZAR MÉTRICA DE PAÍS
     // =====================================================
 
-    private static void actualizarMetricaPais(
+    private static BoundStatement actualizarMetricaPais(
             CqlSession session,
             String pais,
             LocalDate fechaDia,
@@ -301,14 +307,12 @@ public class InsertarCassandraMonitoreo {
             VALUES (?, ?, ?, ?, ?)
             """;
 
-        session.execute(
-                session.prepare(update).bind(
+        return session.prepare(update).bind(
                         pais,
                         fechaDia,
                         humedadPromedio,
                         temperaturaPromedio,
                         cantidadLecturas
-                )
-        );
+                );
     }
 }
