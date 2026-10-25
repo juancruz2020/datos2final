@@ -2,6 +2,7 @@ package org.example.interfaz.principal;
 
 import org.example.interfaz.tema.Colores;
 import org.example.usuarios.controller.SesionController;
+import org.example.logging.AppLog;
 
 import javax.swing.*;
 import java.awt.*;
@@ -138,6 +139,9 @@ public class PrincipalFrame extends JFrame {
 
         } catch (Exception e) {
 
+            AppLog.error(PrincipalFrame.class,
+                    "No se pudo cerrar la sesión actual.", e);
+
             JOptionPane.showMessageDialog(
                     this,
                     "No se pudo cerrar la sesión:\n"
@@ -188,10 +192,8 @@ public class PrincipalFrame extends JFrame {
 
         } catch (Exception e) {
 
-            System.err.println(
-                    "Error al verificar la sesión: "
-                            + e.getMessage()
-            );
+            AppLog.debug(PrincipalFrame.class,
+                    "No se pudo consultar el tiempo restante de sesión.");
         }
     }
 

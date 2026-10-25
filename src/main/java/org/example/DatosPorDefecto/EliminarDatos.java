@@ -7,6 +7,7 @@ import org.example.conecciones.CassandraSingleton;
 import org.example.conecciones.MongoSingleton;
 import org.example.conecciones.Neo4jSingleton;
 import org.example.conecciones.RedisSingleton;
+import org.example.logging.AppLog;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
 import redis.clients.jedis.Jedis;
@@ -17,24 +18,26 @@ public final class EliminarDatos {
     }
 
     public static void eliminarDatosDePrueba() {
-        System.out.println("\n========== RESETEO TOTAL ==========");
+        AppLog.warning(EliminarDatos.class,
+                "Comienza el borrado de datos de prueba en los motores.");
 
         ejecutar("Neo4j", EliminarDatos::eliminarNeo4j);
         ejecutar("MongoDB", EliminarDatos::eliminarMongoDB);
         ejecutar("Redis", EliminarDatos::eliminarRedis);
         ejecutar("Cassandra", EliminarDatos::eliminarCassandra);
 
-        System.out.println("========== RESETEO FINALIZADO ==========\n");
+        AppLog.info(EliminarDatos.class,
+                "Finalizó el intento de borrado; revisar el resultado de cada motor.");
     }
 
     private static void ejecutar(String motor, Runnable tarea) {
         try {
             tarea.run();
-            System.out.println("[OK] " + motor + ": operación completada.");
+            AppLog.info(EliminarDatos.class,
+                    "Borrado completado en " + motor + ".");
         } catch (Exception e) {
-            System.err.println(
-                    "[ERROR] " + motor + ": " + e.getMessage()
-            );
+            AppLog.error(EliminarDatos.class,
+                    "Falló el borrado en " + motor + ".", e);
         }
     }
 

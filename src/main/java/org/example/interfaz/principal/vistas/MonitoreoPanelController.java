@@ -5,6 +5,7 @@ import org.example.interfaz.componentes.CampoFecha;
 import org.example.interfaz.componentes.CampoFechaHora;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreoInsert;
+import org.example.logging.AppLog;
 import org.example.mongoDB.controller.ControllerMongoDB;
 
 import javax.swing.*;
@@ -75,19 +76,19 @@ public class MonitoreoPanelController {
             );
 
 
-            System.out.println(
-                    "Sensores encontrados en MongoDB: "
-                            + idsMongoSensor.size()
-            );
+            AppLog.info(MonitoreoPanelController.class,
+                    "Sensores de monitoreo disponibles: " + idsMongoSensor.size());
 
 
-            System.out.println(
-                    "Contenedores encontrados en MongoDB: "
-                            + idsMongoContenedor.size()
-            );
+            AppLog.info(MonitoreoPanelController.class,
+                    "Contenedores disponibles para monitoreo: "
+                            + idsMongoContenedor.size());
 
 
         } catch (Exception ex) {
+
+            AppLog.error(MonitoreoPanelController.class,
+                    "No se pudieron cargar los identificadores de monitoreo.", ex);
 
             JOptionPane.showMessageDialog(
                     view,

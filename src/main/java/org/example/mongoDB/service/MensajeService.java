@@ -4,6 +4,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ConversacionMongoDAO;
 import org.example.mongoDB.dao.MensajeMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Mensaje;
 
 import java.util.Date;
@@ -100,6 +101,8 @@ public class MensajeService {
         mensajeDAO.agregar(
                 mensaje
         );
+
+        AppLog.info(MensajeService.class, "Mensaje agregado a una conversación.");
 
 
         return mensaje;

@@ -4,6 +4,7 @@ package org.example.mongoDB.service;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ClienteMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 import org.example.mongoDB.model.Usuario;
@@ -117,6 +118,7 @@ public class UsuarioService {
         );
 
         usuarioDAO.agregar(usuario);
+        AppLog.info(UsuarioService.class, "Usuario creado.");
 
         return usuario;
     }
@@ -262,6 +264,7 @@ public class UsuarioService {
                 usuarioId,
                 "INACTIVO"
         );
+        AppLog.info(UsuarioService.class, "Usuario desactivado.");
     }
 
     // =========================
@@ -273,6 +276,7 @@ public class UsuarioService {
         validarUsuarioExistente(usuarioId);
 
         usuarioDAO.eliminar(usuarioId);
+        AppLog.info(UsuarioService.class, "Usuario eliminado.");
     }
 
     // =========================

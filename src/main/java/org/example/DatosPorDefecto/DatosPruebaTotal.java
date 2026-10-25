@@ -3,6 +3,7 @@ package org.example.DatosPorDefecto;
 import org.example.mongoDB.controller.ControllerMongoDB;
 
 import java.util.List;
+import org.example.logging.AppLog;
 
 public class DatosPruebaTotal {
 
@@ -64,18 +65,16 @@ public class DatosPruebaTotal {
 
             if (idsMongoSensor == null || idsMongoSensor.isEmpty()) {
 
-                System.out.println(
-                        "No se encontraron sensores en MongoDB."
-                );
+                AppLog.warning(DatosPruebaTotal.class,
+                        "No se encontraron sensores MongoDB para preparar Cassandra.");
 
                 return;
             }
 
             if (idsMongoContenedor == null || idsMongoContenedor.isEmpty()) {
 
-                System.out.println(
-                        "No se encontraron contenedores en MongoDB."
-                );
+                AppLog.warning(DatosPruebaTotal.class,
+                        "No se encontraron contenedores MongoDB para preparar Cassandra.");
 
                 return;
             }
@@ -84,15 +83,13 @@ public class DatosPruebaTotal {
             // 4. MOSTRAR CANTIDAD DE IDS ENCONTRADOS
             // =====================================================
 
-            System.out.println(
-                    "Sensores encontrados en MongoDB: "
-                            + idsMongoSensor.size()
-            );
+            AppLog.info(DatosPruebaTotal.class,
+                    "Sensores disponibles para datos de prueba: "
+                            + idsMongoSensor.size());
 
-            System.out.println(
-                    "Contenedores encontrados en MongoDB: "
-                            + idsMongoContenedor.size()
-            );
+            AppLog.info(DatosPruebaTotal.class,
+                    "Contenedores disponibles para datos de prueba: "
+                            + idsMongoContenedor.size());
 
             // =====================================================
             // 5. CREAR TABLAS DE CASSANDRA
@@ -115,11 +112,12 @@ public class DatosPruebaTotal {
             // 7. FINALIZADO
             // =====================================================
 
-            System.out.println(
-                    "Datos de prueba cargados correctamente."
-            );
+            AppLog.info(DatosPruebaTotal.class,
+                    "Datos de prueba coordinados cargados correctamente.");
         } else {
             // También reparar los datos de prueba cargados con versiones anteriores.
+            AppLog.info(DatosPruebaTotal.class,
+                    "Hay datos existentes; se sincronizarán las referencias de Neo4j.");
             GeneradorDatosPruebaNeo.sincronizarReferenciasMongo();
         }
         new org.example.neo4j.dao.EnvioNeo4jDAO().normalizarEnviosExistentes();

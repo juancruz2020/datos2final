@@ -109,3 +109,17 @@ transacción distribuida entre MongoDB, Neo4j, Cassandra y Redis. En particular,
 la reserva de contenedores coordinada entre MongoDB y Neo4j usa compensación:
 si falla el guardado del envío, se restaura la reserva MongoDB; no se puede
 confirmar ambos motores en una única transacción.
+
+## Logs en consola
+
+La aplicación usa `java.util.logging` (sin dependencia adicional) y emite
+eventos de inicio/cierre, creación de conexiones, autenticación, operaciones
+de negocio relevantes, confirmación/reversión de transacciones y errores
+inesperados en los flujos instrumentados. Las consultas de monitoreo y detalles repetitivos quedan
+en nivel `FINE` para no saturar la consola en uso normal. No se registran
+contraseñas, tokens, importes, contenido de mensajes ni datos personales.
+
+**Nota sobre el arranque actual:** `Main` ejecuta `EliminarDatos.eliminarDatosDePrueba()`
+antes de cargar los datos de prueba; por eso el log avisa del borrado. No
+inicies la aplicación con datos que quieras conservar hasta desactivar esa
+llamada en `Main`.

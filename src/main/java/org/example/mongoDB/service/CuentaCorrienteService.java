@@ -13,6 +13,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import org.example.conecciones.MongoSingleton;
+import org.example.logging.AppLog;
 import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.MovimientoCuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.CierreMensualCuentaCorrienteMongoDAO;
@@ -104,9 +105,13 @@ public class CuentaCorrienteService {
                 crearCuenta(session, cuenta);
 
                 session.commitTransaction();
+                AppLog.info(CuentaCorrienteService.class,
+                        "Creación de cuenta corriente confirmada.");
             } catch (RuntimeException e) {
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
+                    AppLog.warning(CuentaCorrienteService.class,
+                            "Creación de cuenta corriente revertida.");
                 }
                 throw e;
             }
@@ -502,11 +507,15 @@ public class CuentaCorrienteService {
                 );
 
                 session.commitTransaction();
+                AppLog.info(CuentaCorrienteService.class,
+                        "Movimiento de cuenta corriente confirmado.");
 
             } catch (RuntimeException e) {
 
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
+                    AppLog.warning(CuentaCorrienteService.class,
+                            "Movimiento de cuenta corriente revertido.");
                 }
 
                 throw e;

@@ -2,6 +2,7 @@
 package org.example.mongoDB;
 
 import org.example.mongoDB.service.CuentaCorrienteService;
+import org.example.logging.AppLog;
 
 import java.math.BigDecimal;
 
@@ -14,10 +15,8 @@ public class PruebaCuentaCorriente {
 
         String clienteId = "6ace5fc67bff0717d45aa12b";
 
-        System.out.println(
-                "Saldo anterior: $" +
-                service.consultarSaldo(clienteId)
-        );
+        AppLog.info(PruebaCuentaCorriente.class,
+                "Consulta de prueba de saldo completada.");
 
         service.registrarCredito(
                 clienteId,
@@ -26,9 +25,7 @@ public class PruebaCuentaCorriente {
                 new BigDecimal("1500.00")
         );
 
-        System.out.println(
-                "Saldo actualizado: $" +
-                service.consultarSaldo(clienteId)
-        );
+        AppLog.info(PruebaCuentaCorriente.class,
+                "Actualización y consulta de saldo de prueba completadas.");
     }
 }

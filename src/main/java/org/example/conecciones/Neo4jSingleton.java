@@ -5,6 +5,7 @@ import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Config;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
+import org.example.logging.AppLog;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -33,11 +34,19 @@ public class Neo4jSingleton {
                     .withMaxConnectionLifetime(600, TimeUnit.MINUTES)
                     .build();
 
-            driver = GraphDatabase.driver(
-                    uri,
-                    AuthTokens.basic(user, password),
-                    config
-            );
+            try {
+                driver = GraphDatabase.driver(
+                        uri,
+                        AuthTokens.basic(user, password),
+                        config
+                );
+                AppLog.info(Neo4jSingleton.class,
+                        "Driver Neo4j creado; las conexiones se establecen bajo demanda.");
+            } catch (RuntimeException e) {
+                AppLog.error(Neo4jSingleton.class,
+                        "No se pudo inicializar el driver Neo4j.", e);
+                throw e;
+            }
         }
 
         return driver;
@@ -47,6 +56,7 @@ public class Neo4jSingleton {
         if (driver != null) {
             driver.close();
             driver = null;
+            AppLog.info(Neo4jSingleton.class, "Driver Neo4j cerrado.");
         }
     }
 }

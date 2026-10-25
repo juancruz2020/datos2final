@@ -10,6 +10,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import org.example.conecciones.MongoSingleton;
+import org.example.logging.AppLog;
 import org.example.mongoDB.dao.CierreMensualCuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
 import org.example.mongoDB.model.CierreMensualCuentaCorriente;
@@ -255,6 +256,8 @@ public class CierreMensualCuentaCorrienteService {
                 cierreDAO.agregar(session, cierre);
 
                 session.commitTransaction();
+                AppLog.info(CierreMensualCuentaCorrienteService.class,
+                        "Cierre mensual de cuenta corriente confirmado.");
 
                 return cierre;
 
@@ -262,6 +265,8 @@ public class CierreMensualCuentaCorrienteService {
 
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
+                    AppLog.warning(CierreMensualCuentaCorrienteService.class,
+                            "Cierre mensual revertido por un error.");
                 }
 
                 throw e;

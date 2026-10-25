@@ -4,6 +4,7 @@ package org.example.mongoDB.service;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ClienteMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.dao.FacturaMongoDAO;
 import org.example.mongoDB.model.Factura;
 
@@ -86,6 +87,7 @@ public class FacturaService {
         );
 
         facturaDAO.agregar(factura);
+        AppLog.info(FacturaService.class, "Factura creada.");
     }
 
     // ==========================================
@@ -121,6 +123,7 @@ public class FacturaService {
         );
 
         facturaDAO.agregar(factura);
+        AppLog.info(FacturaService.class, "Factura creada sin fecha de vencimiento.");
     }
 
     // ==========================================

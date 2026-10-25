@@ -1,5 +1,7 @@
 package org.example.DatosPorDefecto;
 
+import org.example.logging.AppLog;
+
 import com.datastax.oss.driver.api.core.CqlSession;
 import org.example.conecciones.CassandraSingleton;
 
@@ -101,8 +103,7 @@ public class CrearTablasMonitoreo {
     WITH CLUSTERING ORDER BY (fecha_hora DESC)
     """);
 
-        System.out.println(
-                "Tablas de monitoreo creadas/verificadas correctamente."
-        );
+        AppLog.info(CrearTablasMonitoreo.class,
+                "Tablas de monitoreo Cassandra creadas o verificadas.");
     }
 }

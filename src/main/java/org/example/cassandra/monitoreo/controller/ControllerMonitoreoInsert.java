@@ -1,6 +1,7 @@
 package org.example.cassandra.monitoreo.controller;
 
 import org.example.cassandra.monitoreo.service.MonitoreoInsertService;
+import org.example.logging.AppLog;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -50,12 +51,7 @@ public class ControllerMonitoreoInsert {
                 region
         );
 
-        System.out.println(
-                "Lectura del sensor insertada correctamente."
-        );
-
-        System.out.println(
-                "Métricas de región y país actualizadas automáticamente."
-        );
+        AppLog.debug(ControllerMonitoreoInsert.class,
+                "Lectura de monitoreo y métricas guardadas en Cassandra.");
     }
 }

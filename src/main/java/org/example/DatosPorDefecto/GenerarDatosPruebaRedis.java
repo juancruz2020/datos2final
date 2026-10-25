@@ -1,6 +1,7 @@
 package org.example.DatosPorDefecto;
 
 import org.example.usuarios.dao.SesionDAO;
+import org.example.logging.AppLog;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,7 +21,8 @@ public class GenerarDatosPruebaRedis {
      */
     public static void generar(List<String> idsUsuarios) {
         if (idsUsuarios == null || idsUsuarios.isEmpty()) {
-            System.out.println("No se encontraron usuarios para generar sesiones Redis.");
+            AppLog.warning(GenerarDatosPruebaRedis.class,
+                    "Sin usuarios para crear sesiones Redis de prueba.");
             return;
         }
 
@@ -37,8 +39,7 @@ public class GenerarDatosPruebaRedis {
             sesionDAO.crearSesion(id, DURACION_SESION_SEGUNDOS);
         }
 
-        System.out.println(
-                "Sesiones Redis de prueba generadas: " + idsValidos.size()
-        );
+        AppLog.info(GenerarDatosPruebaRedis.class,
+                "Sesiones de prueba Redis generadas: " + idsValidos.size());
     }
 }
