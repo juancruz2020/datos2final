@@ -10,6 +10,7 @@ import org.bson.Document;
 import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.ContenedorController;
 import org.example.mongoDB.controller.VehiculoController;
+import org.example.logging.AppLog;
 
 public class GeneradorDatosPruebaNeo {
 
@@ -23,9 +24,8 @@ public class GeneradorDatosPruebaNeo {
 
         try (Session session = driver.session()) {
 
-            System.out.println("=================================");
-            System.out.println(" GENERANDO DATOS DE PRUEBA NEO4J");
-            System.out.println("=================================");
+            AppLog.info(GeneradorDatosPruebaNeo.class,
+                    "Generando datos de prueba de Neo4j.");
 
             crearClientes(session);
             crearVehiculos(session);
@@ -41,8 +41,8 @@ public class GeneradorDatosPruebaNeo {
             crearRelaciones(session);
             sincronizarReferenciasMongo();
 
-            System.out.println();
-            System.out.println("Datos de prueba generados correctamente.");
+            AppLog.info(GeneradorDatosPruebaNeo.class,
+                    "Datos de prueba Neo4j generados correctamente.");
         }
     }
 

@@ -3,6 +3,7 @@ package org.example.DatosPorDefecto;
 import org.example.mongoDB.dao.*;
 
 import org.example.mongoDB.model.*;
+import org.example.logging.AppLog;
 
 import java.math.BigDecimal;
 
@@ -45,7 +46,8 @@ public class GeneradorDatosPruebaMongo {
 
     public void generarDatos() {
 
-        System.out.println("Generando datos de prueba de MongoDB...");
+        AppLog.info(GeneradorDatosPruebaMongo.class,
+                "Generando datos de prueba de MongoDB.");
 
         // =====================================================
 
@@ -1491,27 +1493,8 @@ public class GeneradorDatosPruebaMongo {
 
         // =====================================================
 
-        System.out.println("------------------------------------");
-
-        System.out.println("DATOS DE PRUEBA GENERADOS");
-
-        System.out.println("------------------------------------");
-
-        System.out.println("Cliente 1: " + cliente1.getId());
-
-        System.out.println("Cliente 2: " + cliente2.getId());
-
-        System.out.println("Cliente 3: " + cliente3.getId());
-
-        System.out.println("Cliente 4: " + cliente4.getId());
-
-        System.out.println("Cliente 5: " + cliente5.getId());
-
-        System.out.println();
-
-        System.out.println("------------------------------------");
-
-        System.out.println("Generacion finalizada correctamente.");
+        AppLog.info(GeneradorDatosPruebaMongo.class,
+                "Datos de prueba MongoDB generados correctamente.");
 
     }
 

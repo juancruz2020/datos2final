@@ -4,6 +4,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ContenedorMongoDAO;
 import org.example.mongoDB.dao.SensorMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Sensor;
 
 import java.util.Date;
@@ -96,6 +97,7 @@ public class SensorService {
         sensorDAO.agregar(
                 sensor
         );
+        AppLog.info(SensorService.class, "Sensor creado.");
     }
 
 

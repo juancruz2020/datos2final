@@ -1,6 +1,8 @@
 
 package org.example.pdf.factura;
 
+import org.example.logging.AppLog;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -38,6 +40,8 @@ public class FacturaPDFController {
             );
 
         } catch (IOException e) {
+            AppLog.error(FacturaPDFController.class,
+                    "No se pudo generar o abrir el PDF de la factura.", e);
             throw new RuntimeException(
                     "No se pudo generar la factura PDF.",
                     e

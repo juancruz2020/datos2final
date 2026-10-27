@@ -40,6 +40,14 @@ public class CuentaCorrienteMongoDAO {
 
     public void agregar(CuentaCorriente cuentaCorriente) {
 
+        agregar(null, cuentaCorriente);
+    }
+
+    public void agregar(
+            ClientSession session,
+            CuentaCorriente cuentaCorriente
+    ) {
+
         Document documento = new Document()
                 .append(
                         "cliente_id",
@@ -54,7 +62,11 @@ public class CuentaCorrienteMongoDAO {
                         cuentaCorriente.getFechaActualizacion()
                 );
 
-        coleccion.insertOne(documento);
+        if (session == null) {
+            coleccion.insertOne(documento);
+        } else {
+            coleccion.insertOne(session, documento);
+        }
 
         cuentaCorriente.setId(
                 documento.getObjectId("_id").toHexString()

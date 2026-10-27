@@ -8,6 +8,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import org.example.logging.AppLog;
 
 public class CassandraSingleton {
 
@@ -27,7 +28,8 @@ public class CassandraSingleton {
             int port = Integer.parseInt(dotenv.get("CASSANDRA_PORT"));
             String datacenter = dotenv.get("CASSANDRA_DATACENTER");
 
-            session = new CqlSessionBuilder()
+            try {
+                session = new CqlSessionBuilder()
                     .addContactPoint(
                             new InetSocketAddress(host, port)
                     )
@@ -40,9 +42,16 @@ public class CassandraSingleton {
                                     )
                                     .build()
                     )
-                    .build();
+                        .build();
 
-            crearKeyspace();
+                crearKeyspace();
+                AppLog.info(CassandraSingleton.class,
+                        "Sesión Cassandra inicializada.");
+            } catch (RuntimeException e) {
+                AppLog.error(CassandraSingleton.class,
+                        "No se pudo inicializar la sesión Cassandra.", e);
+                throw e;
+            }
         }
 
         return session;
@@ -64,6 +73,7 @@ public class CassandraSingleton {
         if (session != null) {
             session.close();
             session = null;
+            AppLog.info(CassandraSingleton.class, "Sesión Cassandra cerrada.");
         }
     }
 }

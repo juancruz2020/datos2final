@@ -4,6 +4,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ReporteMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Reporte;
 
 import java.util.Date;
@@ -101,6 +102,7 @@ public class ReporteService {
         reporteDAO.agregar(
                 reporte
         );
+        AppLog.info(ReporteService.class, "Metadatos de reporte registrados.");
     }
 
 

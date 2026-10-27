@@ -3,6 +3,7 @@ package org.example.mongoDB.service;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.EventoLogisticoMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.EventoLogistico;
 import org.example.neo4j.controller.ControllerNeo4j;
 
@@ -110,6 +111,8 @@ public class EventoLogisticoService {
         eventoDAO.agregar(
                 evento
         );
+        AppLog.info(EventoLogisticoService.class,
+                "Evento logístico creado.");
     }
 
 

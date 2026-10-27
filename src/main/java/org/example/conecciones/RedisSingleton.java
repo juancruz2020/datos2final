@@ -2,6 +2,7 @@ package org.example.conecciones;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import redis.clients.jedis.Jedis;
+import org.example.logging.AppLog;
 
 public class RedisSingleton {
 
@@ -21,9 +22,19 @@ public class RedisSingleton {
             int port = Integer.parseInt(dotenv.get("REDIS_PORT"));
             String password = dotenv.get("REDIS_PASSWORD");
 
-            jedis = new Jedis(host, port);
-
-            jedis.auth(password);
+            try {
+                jedis = new Jedis(host, port);
+                jedis.auth(password);
+                AppLog.info(RedisSingleton.class, "Conexión Redis inicializada.");
+            } catch (RuntimeException e) {
+                if (jedis != null) {
+                    jedis.close();
+                    jedis = null;
+                }
+                AppLog.error(RedisSingleton.class,
+                        "No se pudo inicializar la conexión Redis.", e);
+                throw e;
+            }
         }
 
         return jedis;
@@ -34,6 +45,7 @@ public class RedisSingleton {
         if (jedis != null) {
             jedis.close();
             jedis = null;
+            AppLog.info(RedisSingleton.class, "Conexión Redis cerrada.");
         }
     }
 }

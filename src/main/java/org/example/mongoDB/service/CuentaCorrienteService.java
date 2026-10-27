@@ -13,6 +13,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import org.example.conecciones.MongoSingleton;
+import org.example.logging.AppLog;
 import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.MovimientoCuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.CierreMensualCuentaCorrienteMongoDAO;
@@ -94,15 +95,59 @@ public class CuentaCorrienteService {
                 new Date()
         );
 
-        cuentaDAO.agregar(cuenta);
+        try (ClientSession session = MongoSingleton
+                .getInstance()
+                .startSession()) {
 
-        // Apertura inicial automática.
-        registrarApertura(
-                cuenta.getId(),
-                BigDecimal.ZERO
-        );
+            session.startTransaction();
+
+            try {
+                crearCuenta(session, cuenta);
+
+                session.commitTransaction();
+                AppLog.info(CuentaCorrienteService.class,
+                        "Creación de cuenta corriente confirmada.");
+            } catch (RuntimeException e) {
+                if (session.hasActiveTransaction()) {
+                    session.abortTransaction();
+                    AppLog.warning(CuentaCorrienteService.class,
+                            "Creación de cuenta corriente revertida.");
+                }
+                throw e;
+            }
+        }
 
         return cuenta;
+    }
+
+    public CuentaCorriente crearCuenta(
+            ClientSession session,
+            String clienteId
+    ) {
+        validarId(clienteId, "cliente");
+
+        if (session == null || !session.hasActiveTransaction()) {
+            throw new IllegalArgumentException(
+                    "La creación de cuenta necesita una transacción activa."
+            );
+        }
+
+        CuentaCorriente cuenta = new CuentaCorriente(
+                null,
+                clienteId,
+                BigDecimal.ZERO,
+                new Date()
+        );
+
+        crearCuenta(session, cuenta);
+        return cuenta;
+    }
+
+    private void crearCuenta(ClientSession session, CuentaCorriente cuenta) {
+        cuentaDAO.agregar(session, cuenta);
+
+        // La apertura define el saldo histórico de la cuenta.
+        registrarApertura(session, cuenta.getId(), BigDecimal.ZERO);
     }
 
     // ==========================================
@@ -110,6 +155,7 @@ public class CuentaCorrienteService {
     // ==========================================
 
     private void registrarApertura(
+            ClientSession session,
             String cuentaId,
             BigDecimal saldoInicial
     ) {
@@ -138,6 +184,7 @@ public class CuentaCorrienteService {
                 );
 
         aperturas.updateOne(
+                session,
                 and(
                         eq("cuenta_corriente_id", idCuenta),
                         eq("anio", periodo.getYear()),
@@ -460,11 +507,15 @@ public class CuentaCorrienteService {
                 );
 
                 session.commitTransaction();
+                AppLog.info(CuentaCorrienteService.class,
+                        "Movimiento de cuenta corriente confirmado.");
 
             } catch (RuntimeException e) {
 
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
+                    AppLog.warning(CuentaCorrienteService.class,
+                            "Movimiento de cuenta corriente revertido.");
                 }
 
                 throw e;

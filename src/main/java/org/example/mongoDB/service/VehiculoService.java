@@ -3,6 +3,7 @@ package org.example.mongoDB.service;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.VehiculoMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Vehiculo;
 
 import java.util.List;
@@ -80,6 +81,7 @@ public class VehiculoService {
                 );
 
         vehiculoDAO.agregar(vehiculo);
+        AppLog.info(VehiculoService.class, "Vehículo creado.");
     }
 
 
@@ -186,6 +188,7 @@ public class VehiculoService {
         }
 
         vehiculoDAO.eliminar(id);
+        AppLog.info(VehiculoService.class, "Vehículo eliminado.");
     }
 
 

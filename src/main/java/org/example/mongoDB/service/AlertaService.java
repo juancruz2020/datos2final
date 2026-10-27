@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.AlertaMongoDAO;
 import org.example.mongoDB.dao.EventoLogisticoMongoDAO;
 import org.example.mongoDB.dao.SensorMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Alerta;
 
 import java.util.Date;
@@ -111,6 +112,7 @@ public class AlertaService {
         alertaDAO.agregar(
                 alerta
         );
+        AppLog.info(AlertaService.class, "Alerta logística creada.");
     }
 
 

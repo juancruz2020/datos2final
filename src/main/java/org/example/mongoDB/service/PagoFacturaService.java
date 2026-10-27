@@ -10,6 +10,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import org.example.conecciones.MongoSingleton;
+import org.example.logging.AppLog;
 import org.example.mongoDB.dao.PagoMongoDAO;
 import org.example.mongoDB.model.Pago;
 
@@ -212,11 +213,15 @@ public class PagoFacturaService {
                 // ==================================
 
                 session.commitTransaction();
+                AppLog.info(PagoFacturaService.class,
+                        "Pago de factura confirmado.");
 
             } catch (RuntimeException e) {
 
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
+                    AppLog.warning(PagoFacturaService.class,
+                            "Pago de factura revertido.");
                 }
 
                 throw e;

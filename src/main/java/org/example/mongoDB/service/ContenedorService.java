@@ -4,6 +4,7 @@ package org.example.mongoDB.service;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ContenedorMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Contenedor;
 
 import java.util.List;
@@ -48,6 +49,7 @@ public class ContenedorService {
         );
 
         contenedorDAO.agregar(contenedor);
+        AppLog.info(ContenedorService.class, "Contenedor creado.");
     }
 
     // =========================================================

@@ -3,6 +3,7 @@ package org.example.mongoDB.service;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.IncidenteMongoDAO;
+import org.example.logging.AppLog;
 import org.example.mongoDB.model.Incidente;
 import org.example.neo4j.controller.ControllerNeo4j;
 
@@ -112,6 +113,7 @@ public class IncidenteService {
         incidenteDAO.agregar(
                 incidente
         );
+        AppLog.info(IncidenteService.class, "Incidente logístico creado.");
     }
 
 

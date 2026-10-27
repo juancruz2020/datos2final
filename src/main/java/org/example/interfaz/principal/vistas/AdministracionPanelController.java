@@ -1,5 +1,7 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.logging.AppLog;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.controller.ClienteController;
@@ -592,7 +594,8 @@ public class AdministracionPanelController {
             mailsPorUsuario.putAll(mails);
         } catch (Exception e) {
             // La información visual no debe impedir administrar las sesiones.
-            System.err.println("No se pudieron cargar los mails de las sesiones: " + e.getMessage());
+            AppLog.warning(AdministracionPanelController.class,
+                    "No se pudieron cargar las sesiones activas.");
         }
     }
 

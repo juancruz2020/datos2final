@@ -1,6 +1,7 @@
 
 package org.example.mongoDB.dao;
 
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -42,15 +43,17 @@ public class ClienteMongoDAO {
     // GENERAR CODIGO AUTOMATICO
     // =========================
 
-    private String generarCodigo() {
+    private String generarCodigo(ClientSession session) {
 
-        Document contador = contadores.findOneAndUpdate(
-                eq("_id", "clientes"),
-                inc("secuencia", 1),
-                new FindOneAndUpdateOptions()
-                        .upsert(true)
-                        .returnDocument(ReturnDocument.AFTER)
-        );
+        FindOneAndUpdateOptions opciones = new FindOneAndUpdateOptions()
+                .upsert(true)
+                .returnDocument(ReturnDocument.AFTER);
+
+        Document contador = session == null
+                ? contadores.findOneAndUpdate(
+                        eq("_id", "clientes"), inc("secuencia", 1), opciones)
+                : contadores.findOneAndUpdate(
+                        session, eq("_id", "clientes"), inc("secuencia", 1), opciones);
 
         if (contador == null) {
             throw new IllegalStateException(
@@ -73,7 +76,12 @@ public class ClienteMongoDAO {
 
     public void agregar(Cliente cliente) {
 
-        String codigo = generarCodigo();
+        agregar(null, cliente);
+    }
+
+    public void agregar(ClientSession session, Cliente cliente) {
+
+        String codigo = generarCodigo(session);
 
         Document direccion = new Document()
                 .append("calle", cliente.getDireccion().getCalle())
@@ -94,7 +102,11 @@ public class ClienteMongoDAO {
                 .append("pais", cliente.getPais())
                 .append("estado", cliente.getEstado());
 
-        coleccion.insertOne(documento);
+        if (session == null) {
+            coleccion.insertOne(documento);
+        } else {
+            coleccion.insertOne(session, documento);
+        }
 
         cliente.setId(
                 documento.getObjectId("_id").toHexString()

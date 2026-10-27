@@ -1,5 +1,7 @@
 package org.example.neo4j.service;
 
+import org.example.logging.AppLog;
+
 import org.example.neo4j.dao.ClienteNeo4jDAO;
 
 import org.example.neo4j.dao.EnvioNeo4jDAO;
@@ -80,6 +82,8 @@ public class LogisticaNeo4jService {
         List<String> anteriores = existente == null ? List.of() : obtenerIdsContenedores(existente);
         disponibilidad.guardar(envio.getId(), anteriores, envio.getContenedoresIds(),
                 envio.getEstado(), () -> envioDAO.guardarCompleto(envio));
+        AppLog.info(LogisticaNeo4jService.class,
+                "Envío y relaciones guardados; reservas de contenedores sincronizadas.");
     }
 
     private void validarFechasEnvio(Envio envio) {
@@ -160,6 +164,8 @@ public class LogisticaNeo4jService {
         }
         envioDAO.eliminarEnvio(id);
         disponibilidad.liberar(id, obtenerIdsContenedores(existente));
+        AppLog.info(LogisticaNeo4jService.class,
+                "Envío eliminado y contenedores liberados.");
     }
 
     // =====================================================

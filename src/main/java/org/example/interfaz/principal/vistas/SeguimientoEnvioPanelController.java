@@ -1,6 +1,8 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.logging.AppLog;
+
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.bson.Document;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
@@ -249,7 +251,8 @@ public class SeguimientoEnvioPanelController {
 
         } catch (Exception e) {
 
-            e.printStackTrace();
+            AppLog.error(SeguimientoEnvioPanelController.class,
+                    "No se pudieron cargar posiciones del envío.", e);
 
             mostrarPosiciones(
                     new ArrayList<>()
@@ -304,10 +307,8 @@ public class SeguimientoEnvioPanelController {
 
             sensoresPorId.clear();
 
-            System.err.println(
-                    "No se pudo cargar la información de los sensores: "
-                            + e.getMessage()
-            );
+            AppLog.warning(SeguimientoEnvioPanelController.class,
+                    "No se pudo cargar la información de los sensores.");
         }
     }
 
@@ -861,9 +862,8 @@ public class SeguimientoEnvioPanelController {
 
                 if (fechaHora == null) {
 
-                    System.err.println(
-                            "Se omitió una posición GPS sin fecha_hora."
-                    );
+                    AppLog.debug(SeguimientoEnvioPanelController.class,
+                            "Se omitió una posición GPS sin fecha_hora.");
 
                     continue;
                 }
@@ -903,10 +903,8 @@ public class SeguimientoEnvioPanelController {
 
             } catch (Exception e) {
 
-                System.err.println(
-                        "No se pudo procesar una posición GPS: "
-                                + e.getMessage()
-                );
+                AppLog.warning(SeguimientoEnvioPanelController.class,
+                        "Se omitió una posición GPS que no pudo procesarse.");
             }
         }
 

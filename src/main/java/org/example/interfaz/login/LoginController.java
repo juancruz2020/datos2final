@@ -2,6 +2,7 @@ package org.example.interfaz.login;
 
 import org.bson.Document;
 import org.example.interfaz.principal.PrincipalFrame;
+import org.example.logging.AppLog;
 import org.example.usuarios.controller.AutenticacionController;
 import org.example.usuarios.controller.SesionController;
 
@@ -97,6 +98,9 @@ public class LoginController {
 
             if (usuario == null) {
 
+                AppLog.warning(LoginController.class,
+                        "Intento de inicio de sesión rechazado.");
+
                 mostrarError(
                         "Usuario o contraseña incorrectos."
                 );
@@ -150,6 +154,9 @@ public class LoginController {
 
             if (activa) {
 
+                AppLog.info(LoginController.class,
+                        "Inicio de sesión completado y sesión Redis activa.");
+
                 abrirPrincipal(
                         usuarioId,
                         nombreUsuario
@@ -164,17 +171,26 @@ public class LoginController {
 
         } catch (SecurityException e) {
 
+            AppLog.warning(LoginController.class,
+                    "Inicio de sesión rechazado por una regla de seguridad.");
+
             mostrarError(
                     e.getMessage()
             );
 
         } catch (IllegalArgumentException e) {
 
+            AppLog.warning(LoginController.class,
+                    "Inicio de sesión rechazado por datos inválidos.");
+
             mostrarError(
                     e.getMessage()
             );
 
         } catch (Exception e) {
+
+            AppLog.error(LoginController.class,
+                    "Fallo inesperado durante el inicio de sesión.", e);
 
             mostrarError(
                     "Error al iniciar sesión:\n"

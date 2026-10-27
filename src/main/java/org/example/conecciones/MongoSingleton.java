@@ -3,6 +3,7 @@ package org.example.conecciones;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.example.logging.AppLog;
 
 public class MongoSingleton {
 
@@ -20,7 +21,15 @@ public class MongoSingleton {
 
             String uri = dotenv.get("MONGO_URI");
 
-            client = MongoClients.create(uri);
+            try {
+                client = MongoClients.create(uri);
+                AppLog.info(MongoSingleton.class,
+                        "Cliente MongoDB creado; la conexión se establece bajo demanda.");
+            } catch (RuntimeException e) {
+                AppLog.error(MongoSingleton.class,
+                        "No se pudo inicializar el cliente MongoDB.", e);
+                throw e;
+            }
         }
 
         return client;
@@ -31,6 +40,7 @@ public class MongoSingleton {
         if (client != null) {
             client.close();
             client = null;
+            AppLog.info(MongoSingleton.class, "Cliente MongoDB cerrado.");
         }
     }
 }

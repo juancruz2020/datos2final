@@ -1,6 +1,7 @@
 package org.example.interfaz.principal;
 
 import org.example.interfaz.principal.menu.MenuItem;
+import org.example.logging.AppLog;
 import org.example.mongoDB.controller.PermisosController;
 
 import javax.swing.*;
@@ -95,6 +96,9 @@ public class PrincipalController {
 
         } catch (Exception e) {
 
+            AppLog.error(PrincipalController.class,
+                    "No se pudieron verificar los permisos de acceso.", e);
+
             JOptionPane.showMessageDialog(
                     view,
                     "No se pudieron verificar los permisos:\n"
@@ -138,6 +142,9 @@ public class PrincipalController {
                     .repaint();
 
         } catch (Exception e) {
+
+            AppLog.error(PrincipalController.class,
+                    "No se pudieron cargar los permisos del usuario.", e);
 
             JOptionPane.showMessageDialog(
                     view,
