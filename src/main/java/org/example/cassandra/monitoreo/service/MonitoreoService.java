@@ -1,5 +1,7 @@
 package org.example.cassandra.monitoreo.service;
 
+import org.example.consola.TablaConsola;
+
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.Row;
 
@@ -46,10 +48,10 @@ public class MonitoreoService {
             String sensorId,
             LocalDate fecha) {
 
-        return monitoreoDAO.obtenerLecturasSensor(
+        return TablaConsola.mostrar("MonitoreoService.obtenerHistorialSensor", monitoreoDAO.obtenerLecturasSensor(
                 sensorId,
                 fecha
-        );
+        ));
     }
 
 
@@ -70,12 +72,12 @@ public class MonitoreoService {
             );
         }
 
-        return monitoreoDAO.obtenerLecturasEntreFechas(
+        return TablaConsola.mostrar("MonitoreoService.obtenerLecturasEntreFechas", monitoreoDAO.obtenerLecturasEntreFechas(
                 sensorId,
                 fecha,
                 desde,
                 hasta
-        );
+        ));
     }
 
 
@@ -87,10 +89,10 @@ public class MonitoreoService {
             String sensorId,
             LocalDate fecha) {
 
-        return monitoreoDAO.obtenerTemperaturas(
+        return TablaConsola.mostrar("MonitoreoService.obtenerTemperaturas", monitoreoDAO.obtenerTemperaturas(
                 sensorId,
                 fecha
-        );
+        ));
     }
 
 
@@ -102,10 +104,10 @@ public class MonitoreoService {
             String sensorId,
             LocalDate fecha) {
 
-        return monitoreoDAO.obtenerBateria(
+        return TablaConsola.mostrar("MonitoreoService.obtenerBateria", monitoreoDAO.obtenerBateria(
                 sensorId,
                 fecha
-        );
+        ));
     }
 
 
@@ -117,10 +119,10 @@ public class MonitoreoService {
             String sensorId,
             LocalDate fecha) {
 
-        return monitoreoDAO.obtenerPosicionesGPS(
+        return TablaConsola.mostrar("MonitoreoService.obtenerGPS", monitoreoDAO.obtenerPosicionesGPS(
                 sensorId,
                 fecha
-        );
+        ));
     }
 
 
@@ -133,11 +135,11 @@ public class MonitoreoService {
             LocalDate desde,
             LocalDate hasta) {
 
-        return monitoreoDAO.obtenerMetricasRegion(
+        return TablaConsola.mostrar("MonitoreoService.obtenerMetricasRegion", monitoreoDAO.obtenerMetricasRegion(
                 region,
                 desde,
                 hasta
-        );
+        ));
     }
 
 
@@ -150,11 +152,11 @@ public class MonitoreoService {
             LocalDate desde,
             LocalDate hasta) {
 
-        return monitoreoDAO.obtenerMetricasPais(
+        return TablaConsola.mostrar("MonitoreoService.obtenerMetricasPais", monitoreoDAO.obtenerMetricasPais(
                 pais,
                 desde,
                 hasta
-        );
+        ));
     }
 
 
@@ -164,7 +166,7 @@ public class MonitoreoService {
 
     public List<Row> obtenerTodasLasLecturas() {
 
-        return monitoreoDAO.obtenerTodasLasLecturas();
+        return TablaConsola.mostrar("MonitoreoService.obtenerTodasLasLecturas", monitoreoDAO.obtenerTodasLasLecturas());
     }
 
 
@@ -174,7 +176,7 @@ public class MonitoreoService {
 
     public List<Row> obtenerTodasLasMetricasRegion() {
 
-        return monitoreoDAO.obtenerTodasLasMetricasRegion();
+        return TablaConsola.mostrar("MonitoreoService.obtenerTodasLasMetricasRegion", monitoreoDAO.obtenerTodasLasMetricasRegion());
     }
 
 
@@ -184,7 +186,7 @@ public class MonitoreoService {
 
     public List<Row> obtenerTodasLasMetricasPais() {
 
-        return monitoreoDAO.obtenerTodasLasMetricasPais();
+        return TablaConsola.mostrar("MonitoreoService.obtenerTodasLasMetricasPais", monitoreoDAO.obtenerTodasLasMetricasPais());
     }
 
     // ============================================================
@@ -193,6 +195,6 @@ public class MonitoreoService {
 
     public List<Row> obtenerTodasLasPosicionesGPS() {
 
-        return monitoreoDAO.obtenerTodasLasPosicionesGPS();
+        return TablaConsola.mostrar("MonitoreoService.obtenerTodasLasPosicionesGPS", monitoreoDAO.obtenerTodasLasPosicionesGPS());
     }
 }

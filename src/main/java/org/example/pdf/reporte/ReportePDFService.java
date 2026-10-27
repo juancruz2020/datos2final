@@ -1,6 +1,8 @@
 
 package org.example.pdf.reporte;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.controller.EnvioController;
@@ -531,7 +533,7 @@ public class ReportePDFService {
     // =========================================================
 
     public List<Document> obtenerRankingRutasIncidentes() {
-        return obtenerRankingRutasIncidentes(null);
+        return TablaConsola.mostrar("ReportePDFService.obtenerRankingRutasIncidentes", obtenerRankingRutasIncidentes(null));
     }
 
     public List<Document> obtenerRankingRutasIncidentes(
@@ -665,7 +667,7 @@ public class ReportePDFService {
                     );
         });
 
-        return ranking;
+        return TablaConsola.mostrar("ReportePDFService.obtenerRankingRutasIncidentes", ranking);
     }
 
     // =========================================================
@@ -836,7 +838,7 @@ public class ReportePDFService {
             );
         }
 
-        return resultados;
+        return TablaConsola.mostrar("ReportePDFService.obtenerTiemposEntregaPorCliente", resultados);
     }
 
     // =========================================================
@@ -865,7 +867,7 @@ public class ReportePDFService {
             }
         }
 
-        return new Document(
+        return TablaConsola.mostrar("ReportePDFService.obtenerTiempoPromedioEntrega", new Document(
                 "cliente_id",
                 clienteId
         )
@@ -878,7 +880,7 @@ public class ReportePDFService {
                         cantidad == 0
                                 ? null
                                 : (double) diasTotales / cantidad
-                );
+                ));
     }
 
     // =========================================================
@@ -1062,7 +1064,7 @@ public class ReportePDFService {
             );
         }
 
-        return resultados;
+        return TablaConsola.mostrar("ReportePDFService.obtenerCostosPorTipoTransporte", resultados);
     }
 
     // =========================================================

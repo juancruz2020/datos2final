@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.IncidenteMongoDAO;
@@ -303,7 +305,7 @@ public class IncidenteService {
 
     public List<Document> listarIncidentes() {
 
-        return incidenteDAO.listarTodos();
+        return TablaConsola.mostrar("IncidenteService.listarIncidentes", incidenteDAO.listarTodos());
     }
 
 
@@ -335,7 +337,7 @@ public class IncidenteService {
         }
 
 
-        return incidente;
+        return TablaConsola.mostrar("IncidenteService.buscarPorId", incidente);
     }
 
 
@@ -350,9 +352,9 @@ public class IncidenteService {
         validarEnvioEnNeo4j(envioId);
 
 
-        return incidenteDAO.buscarPorEnvio(
+        return TablaConsola.mostrar("IncidenteService.buscarPorEnvio", incidenteDAO.buscarPorEnvio(
                 envioId
-        );
+        ));
     }
 
 
@@ -362,7 +364,7 @@ public class IncidenteService {
 
     public List<Document> buscarAbiertos() {
 
-        return incidenteDAO.buscarAbiertos();
+        return TablaConsola.mostrar("IncidenteService.buscarAbiertos", incidenteDAO.buscarAbiertos());
     }
 
 
@@ -380,9 +382,9 @@ public class IncidenteService {
         );
 
 
-        return incidenteDAO.existePorId(
+        return TablaConsola.mostrar("IncidenteService.existePorId", incidenteDAO.existePorId(
                 id
-        );
+        ));
     }
 
 
@@ -392,7 +394,7 @@ public class IncidenteService {
 
     public List<String> obtenerTodosLosIds() {
 
-        return incidenteDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("IncidenteService.obtenerTodosLosIds", incidenteDAO.obtenerTodosLosIds());
     }
 
 

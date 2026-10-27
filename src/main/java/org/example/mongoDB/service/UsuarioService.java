@@ -1,6 +1,8 @@
 
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ClienteMongoDAO;
@@ -296,7 +298,7 @@ public class UsuarioService {
 
         validarUsuarioExistente(usuarioId);
 
-        return usuarioDAO.buscarPorId(usuarioId);
+        return TablaConsola.mostrar("UsuarioService.buscarPorId", usuarioDAO.buscarPorId(usuarioId));
     }
 
     // =========================
@@ -310,9 +312,9 @@ public class UsuarioService {
                 "El email es obligatorio."
         );
 
-        return usuarioDAO.buscarPorEmail(
+        return TablaConsola.mostrar("UsuarioService.buscarPorEmail", usuarioDAO.buscarPorEmail(
                 email.trim().toLowerCase()
-        );
+        ));
     }
 
     // =========================
@@ -320,7 +322,7 @@ public class UsuarioService {
     // =========================
 
     public List<Document> listarUsuarios() {
-        return usuarioDAO.listarTodos();
+        return TablaConsola.mostrar("UsuarioService.listarUsuarios", usuarioDAO.listarTodos());
     }
 
     // =========================
@@ -334,7 +336,7 @@ public class UsuarioService {
                 "El ID del cliente no es válido."
         );
 
-        return usuarioDAO.buscarPorCliente(clienteId);
+        return TablaConsola.mostrar("UsuarioService.listarPorCliente", usuarioDAO.buscarPorCliente(clienteId));
     }
 
     // =========================
@@ -348,7 +350,7 @@ public class UsuarioService {
                 "El ID del rol no es válido."
         );
 
-        return usuarioDAO.buscarPorRol(rolId);
+        return TablaConsola.mostrar("UsuarioService.listarPorRol", usuarioDAO.buscarPorRol(rolId));
     }
 
     // =========================

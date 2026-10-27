@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ReporteMongoDAO;
@@ -112,7 +114,7 @@ public class ReporteService {
 
     public List<Document> listarReportes() {
 
-        return reporteDAO.listarTodos();
+        return TablaConsola.mostrar("ReporteService.listarReportes", reporteDAO.listarTodos());
     }
 
 
@@ -144,7 +146,7 @@ public class ReporteService {
         }
 
 
-        return reporte;
+        return TablaConsola.mostrar("ReporteService.buscarPorId", reporte);
     }
 
 
@@ -162,9 +164,9 @@ public class ReporteService {
         );
 
 
-        return reporteDAO.buscarPorUsuario(
+        return TablaConsola.mostrar("ReporteService.buscarPorUsuario", reporteDAO.buscarPorUsuario(
                 usuarioId
-        );
+        ));
     }
 
 
@@ -185,9 +187,9 @@ public class ReporteService {
         }
 
 
-        return reporteDAO.buscarPorTipo(
+        return TablaConsola.mostrar("ReporteService.buscarPorTipo", reporteDAO.buscarPorTipo(
                 tipo.trim()
-        );
+        ));
     }
 
 
@@ -208,9 +210,9 @@ public class ReporteService {
         }
 
 
-        return reporteDAO.buscarPorEstado(
+        return TablaConsola.mostrar("ReporteService.buscarPorEstado", reporteDAO.buscarPorEstado(
                 estado.trim()
-        );
+        ));
     }
 
 
@@ -228,9 +230,9 @@ public class ReporteService {
         );
 
 
-        return reporteDAO.existePorId(
+        return TablaConsola.mostrar("ReporteService.existePorId", reporteDAO.existePorId(
                 id
-        );
+        ));
     }
 
 
@@ -240,7 +242,7 @@ public class ReporteService {
 
     public List<String> obtenerTodosLosIds() {
 
-        return reporteDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("ReporteService.obtenerTodosLosIds", reporteDAO.obtenerTodosLosIds());
     }
 
 

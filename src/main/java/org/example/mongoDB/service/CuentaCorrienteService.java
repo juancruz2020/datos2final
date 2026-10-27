@@ -1,6 +1,8 @@
 
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -203,7 +205,7 @@ public class CuentaCorrienteService {
 
         validarId(clienteId, "cliente");
 
-        return cuentaDAO.buscarPorCliente(clienteId);
+        return TablaConsola.mostrar("CuentaCorrienteService.buscarPorCliente", cuentaDAO.buscarPorCliente(clienteId));
     }
 
     // ==========================================
@@ -211,7 +213,7 @@ public class CuentaCorrienteService {
     // ==========================================
 
     public List<Document> listarCuentas() {
-        return cuentaDAO.listarTodos();
+        return TablaConsola.mostrar("CuentaCorrienteService.listarCuentas", cuentaDAO.listarTodos());
     }
 
     // ==========================================
@@ -228,7 +230,7 @@ public class CuentaCorrienteService {
             );
         }
 
-        return obtenerSaldo(cuenta);
+        return TablaConsola.mostrar("CuentaCorrienteService.consultarSaldo", obtenerSaldo(cuenta));
     }
 
     // ==========================================
@@ -633,7 +635,7 @@ public class CuentaCorrienteService {
         String cuentaId =
                 cuenta.getObjectId("_id").toHexString();
 
-        return movimientoDAO.buscarPorCuenta(cuentaId);
+        return TablaConsola.mostrar("CuentaCorrienteService.consultarHistorial", movimientoDAO.buscarPorCuenta(cuentaId));
     }
 
     // ==========================================

@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.EventoLogisticoMongoDAO;
@@ -287,7 +289,7 @@ public class EventoLogisticoService {
 
     public List<Document> listarEventos() {
 
-        return eventoDAO.listarTodos();
+        return TablaConsola.mostrar("EventoLogisticoService.listarEventos", eventoDAO.listarTodos());
     }
 
 
@@ -319,7 +321,7 @@ public class EventoLogisticoService {
         }
 
 
-        return evento;
+        return TablaConsola.mostrar("EventoLogisticoService.buscarPorId", evento);
     }
 
 
@@ -334,9 +336,9 @@ public class EventoLogisticoService {
         validarEnvioEnNeo4j(envioId);
 
 
-        return eventoDAO.buscarPorEnvio(
+        return TablaConsola.mostrar("EventoLogisticoService.buscarPorEnvio", eventoDAO.buscarPorEnvio(
                 envioId
-        );
+        ));
     }
 
 
@@ -357,9 +359,9 @@ public class EventoLogisticoService {
         }
 
 
-        return eventoDAO.buscarPorTipo(
+        return TablaConsola.mostrar("EventoLogisticoService.buscarPorTipo", eventoDAO.buscarPorTipo(
                 tipoEvento.trim()
-        );
+        ));
     }
 
 
@@ -377,9 +379,9 @@ public class EventoLogisticoService {
         );
 
 
-        return eventoDAO.existePorId(
+        return TablaConsola.mostrar("EventoLogisticoService.existePorId", eventoDAO.existePorId(
                 id
-        );
+        ));
     }
 
 
@@ -389,7 +391,7 @@ public class EventoLogisticoService {
 
     public List<String> obtenerTodosLosIds() {
 
-        return eventoDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("EventoLogisticoService.obtenerTodosLosIds", eventoDAO.obtenerTodosLosIds());
     }
 
 

@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ContenedorMongoDAO;
@@ -270,7 +272,7 @@ public class SensorService {
 
     public List<Document> listarSensores() {
 
-        return sensorDAO.listarTodos();
+        return TablaConsola.mostrar("SensorService.listarSensores", sensorDAO.listarTodos());
     }
 
 
@@ -302,7 +304,7 @@ public class SensorService {
         }
 
 
-        return sensor;
+        return TablaConsola.mostrar("SensorService.buscarPorId", sensor);
     }
 
 
@@ -320,9 +322,9 @@ public class SensorService {
         );
 
 
-        return sensorDAO.existePorId(
+        return TablaConsola.mostrar("SensorService.existePorId", sensorDAO.existePorId(
                 id
-        );
+        ));
     }
 
 
@@ -332,7 +334,7 @@ public class SensorService {
 
     public List<String> obtenerTodosLosIds() {
 
-        return sensorDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("SensorService.obtenerTodosLosIds", sensorDAO.obtenerTodosLosIds());
     }
 
 
@@ -350,9 +352,9 @@ public class SensorService {
         );
 
 
-        return sensorDAO.buscarPorContenedor(
+        return TablaConsola.mostrar("SensorService.buscarPorContenedor", sensorDAO.buscarPorContenedor(
                 contenedorId
-        );
+        ));
     }
 
 
@@ -373,9 +375,9 @@ public class SensorService {
         }
 
 
-        return sensorDAO.buscarPorEstado(
+        return TablaConsola.mostrar("SensorService.buscarPorEstado", sensorDAO.buscarPorEstado(
                 estado.trim()
-        );
+        ));
     }
 
 

@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.VehiculoMongoDAO;
@@ -197,7 +199,7 @@ public class VehiculoService {
     // =========================================================
 
     public List<Document> listarVehiculos() {
-        return vehiculoDAO.listarTodos();
+        return TablaConsola.mostrar("VehiculoService.listarVehiculos", vehiculoDAO.listarTodos());
     }
 
 
@@ -218,7 +220,7 @@ public class VehiculoService {
             );
         }
 
-        return vehiculo;
+        return TablaConsola.mostrar("VehiculoService.buscarPorId", vehiculo);
     }
 
 
@@ -230,7 +232,7 @@ public class VehiculoService {
 
         validarObjectId(id);
 
-        return vehiculoDAO.existePorId(id);
+        return TablaConsola.mostrar("VehiculoService.existePorId", vehiculoDAO.existePorId(id));
     }
 
 
@@ -239,7 +241,7 @@ public class VehiculoService {
     // =========================================================
 
     public List<String> obtenerTodosLosIds() {
-        return vehiculoDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("VehiculoService.obtenerTodosLosIds", vehiculoDAO.obtenerTodosLosIds());
     }
 
 
@@ -259,9 +261,9 @@ public class VehiculoService {
             );
         }
 
-        return vehiculoDAO.buscarPorIdentificacion(
+        return TablaConsola.mostrar("VehiculoService.buscarPorIdentificacion", vehiculoDAO.buscarPorIdentificacion(
                 identificacion.trim()
-        );
+        ));
     }
 
 
@@ -279,9 +281,9 @@ public class VehiculoService {
             );
         }
 
-        return vehiculoDAO.buscarPorEstado(
+        return TablaConsola.mostrar("VehiculoService.buscarPorEstado", vehiculoDAO.buscarPorEstado(
                 estado.trim()
-        );
+        ));
     }
 
 
@@ -299,9 +301,9 @@ public class VehiculoService {
             );
         }
 
-        return vehiculoDAO.buscarPorTipo(
+        return TablaConsola.mostrar("VehiculoService.buscarPorTipo", vehiculoDAO.buscarPorTipo(
                 tipo.trim()
-        );
+        ));
     }
 
 

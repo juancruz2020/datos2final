@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ConversacionMongoDAO;
@@ -134,10 +136,10 @@ public class MensajeService {
         }
 
 
-        return mensajeDAO
+        return TablaConsola.mostrar("MensajeService.obtenerHistorial", mensajeDAO
                 .buscarPorConversacion(
                         conversacionId
-                );
+                ));
     }
 
 
@@ -147,8 +149,8 @@ public class MensajeService {
 
     public List<Document> listarMensajes() {
 
-        return mensajeDAO
-                .listarTodos();
+        return TablaConsola.mostrar("MensajeService.listarMensajes", mensajeDAO
+                .listarTodos());
     }
 
 
@@ -165,10 +167,10 @@ public class MensajeService {
         );
 
 
-        return mensajeDAO
+        return TablaConsola.mostrar("MensajeService.obtenerMensajesPorRemitente", mensajeDAO
                 .buscarPorRemitente(
                         remitenteId
-                );
+                ));
     }
 
 

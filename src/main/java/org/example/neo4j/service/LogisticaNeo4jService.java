@@ -1,5 +1,7 @@
 package org.example.neo4j.service;
 
+import org.example.consola.TablaConsola;
+
 import org.example.logging.AppLog;
 
 import org.example.neo4j.dao.ClienteNeo4jDAO;
@@ -150,11 +152,11 @@ public class LogisticaNeo4jService {
 
 
     public List<Map<String, Object>> listarEnvios() {
-        return envioDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaNeo4jService.listarEnvios", envioDAO.listarTodos());
     }
 
     public Map<String, Object> buscarEnvioPorId(String id) {
-        return envioDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaNeo4jService.buscarEnvioPorId", envioDAO.buscarPorId(id));
     }
 
     public void eliminarEnvio(String id) {
@@ -210,15 +212,15 @@ public class LogisticaNeo4jService {
         grafoDAO.contenedorTieneSensor(contenedorId, sensorId);
     }
 
-    public List<String> obtenerRutaEnvio(String envioId) { return grafoDAO.obtenerRutaEnvio(envioId); }
-    public List<String> obtenerEnviosDeCliente(String clienteId) { return grafoDAO.obtenerEnviosDeCliente(clienteId); }
-    public List<String> obtenerVehiculosDeOperador(String operadorId) { return grafoDAO.obtenerVehiculosDeOperador(operadorId); }
-    public List<String> obtenerContenedoresDeEnvio(String envioId) { return grafoDAO.obtenerContenedoresDeEnvio(envioId); }
-    public List<String> obtenerEnviosPorUbicacion(String ubicacionId) { return grafoDAO.obtenerEnviosPorUbicacion(ubicacionId); }
-    public List<String> obtenerOperadorDeEnvio(String envioId) { return grafoDAO.obtenerOperadorDeEnvio(envioId); }
-    public List<String> obtenerProveedorDeEnvio(String envioId) { return grafoDAO.obtenerProveedorDeEnvio(envioId); }
-    public List<String> obtenerRecorridoContenedor(String contenedorId) { return grafoDAO.obtenerRecorridoContenedor(contenedorId); }
-    public List<String> obtenerRedDeEnvio(String envioId) { return grafoDAO.obtenerRedDeEnvio(envioId); }
+    public List<String> obtenerRutaEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerRutaEnvio", grafoDAO.obtenerRutaEnvio(envioId)); }
+    public List<String> obtenerEnviosDeCliente(String clienteId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerEnviosDeCliente", grafoDAO.obtenerEnviosDeCliente(clienteId)); }
+    public List<String> obtenerVehiculosDeOperador(String operadorId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerVehiculosDeOperador", grafoDAO.obtenerVehiculosDeOperador(operadorId)); }
+    public List<String> obtenerContenedoresDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerContenedoresDeEnvio", grafoDAO.obtenerContenedoresDeEnvio(envioId)); }
+    public List<String> obtenerEnviosPorUbicacion(String ubicacionId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerEnviosPorUbicacion", grafoDAO.obtenerEnviosPorUbicacion(ubicacionId)); }
+    public List<String> obtenerOperadorDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerOperadorDeEnvio", grafoDAO.obtenerOperadorDeEnvio(envioId)); }
+    public List<String> obtenerProveedorDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerProveedorDeEnvio", grafoDAO.obtenerProveedorDeEnvio(envioId)); }
+    public List<String> obtenerRecorridoContenedor(String contenedorId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerRecorridoContenedor", grafoDAO.obtenerRecorridoContenedor(contenedorId)); }
+    public List<String> obtenerRedDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerRedDeEnvio", grafoDAO.obtenerRedDeEnvio(envioId)); }
 
     public void modificarEnvio(Envio envio) {
         if (envio == null || envio.getId() == null) {

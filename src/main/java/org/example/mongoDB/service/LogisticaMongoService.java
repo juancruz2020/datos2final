@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.*;
@@ -61,23 +63,23 @@ public class LogisticaMongoService {
     }
 
     public Document buscarClientePorId(String id) {
-        return clienteDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarClientePorId", clienteDAO.buscarPorId(id));
     }
 
     public List<Document> listarClientes() {
-        return clienteDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarClientes", clienteDAO.listarTodos());
     }
 
     public List<String> obtenerIdsClientes() {
-        return clienteDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsClientes", clienteDAO.obtenerTodosLosIds());
     }
 
     public boolean existeClientePorId(String id) {
-        return clienteDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeClientePorId", clienteDAO.existePorId(id));
     }
 
     public Document buscarClientePorCuit(String cuit) {
-        return clienteDAO.buscarPorCuit(cuit);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarClientePorCuit", clienteDAO.buscarPorCuit(cuit));
     }
 
 
@@ -98,27 +100,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarUsuarioPorId(String id) {
-        return usuarioDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarUsuarioPorId", usuarioDAO.buscarPorId(id));
     }
 
     public List<Document> listarUsuarios() {
-        return usuarioDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarUsuarios", usuarioDAO.listarTodos());
     }
 
     public List<String> obtenerIdsUsuarios() {
-        return usuarioDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsUsuarios", usuarioDAO.obtenerTodosLosIds());
     }
 
     public boolean existeUsuarioPorId(String id) {
-        return usuarioDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeUsuarioPorId", usuarioDAO.existePorId(id));
     }
 
     public Document buscarUsuarioPorEmail(String email) {
-        return usuarioDAO.buscarPorEmail(email);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarUsuarioPorEmail", usuarioDAO.buscarPorEmail(email));
     }
 
     public List<Document> buscarUsuariosPorCliente(String clienteId) {
-        return usuarioDAO.buscarPorCliente(clienteId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarUsuariosPorCliente", usuarioDAO.buscarPorCliente(clienteId));
     }
 
 
@@ -136,7 +138,7 @@ public class LogisticaMongoService {
             throw new IllegalArgumentException("El rol no existe");
         }
 
-        return usuarioDAO.buscarPorRol(rolId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarUsuariosPorRol", usuarioDAO.buscarPorRol(rolId));
     }
 
 
@@ -197,12 +199,12 @@ public class LogisticaMongoService {
         ObjectId rolId = usuario.getObjectId("rol_id");
 
         if (rolId == null) {
-            return null;
+            return TablaConsola.mostrar("LogisticaMongoService.buscarRolDeUsuario", null);
         }
 
-        return rolDAO.buscarPorId(
+        return TablaConsola.mostrar("LogisticaMongoService.buscarRolDeUsuario", rolDAO.buscarPorId(
                 rolId.toHexString()
-        );
+        ));
     }
 
 
@@ -223,23 +225,23 @@ public class LogisticaMongoService {
     }
 
     public Document buscarRolPorId(String id) {
-        return rolDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarRolPorId", rolDAO.buscarPorId(id));
     }
 
     public List<Document> listarRoles() {
-        return rolDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarRoles", rolDAO.listarTodos());
     }
 
     public List<String> obtenerIdsRoles() {
-        return rolDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsRoles", rolDAO.obtenerTodosLosIds());
     }
 
     public boolean existeRolPorId(String id) {
-        return rolDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeRolPorId", rolDAO.existePorId(id));
     }
 
     public Document buscarRolPorDescripcion(String descripcion) {
-        return rolDAO.buscarPorDescripcion(descripcion);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarRolPorDescripcion", rolDAO.buscarPorDescripcion(descripcion));
     }
 
 
@@ -260,27 +262,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarContenedorPorId(String id) {
-        return contenedorDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarContenedorPorId", contenedorDAO.buscarPorId(id));
     }
 
     public List<Document> listarContenedores() {
-        return contenedorDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarContenedores", contenedorDAO.listarTodos());
     }
 
     public List<String> obtenerIdsContenedores() {
-        return contenedorDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsContenedores", contenedorDAO.obtenerTodosLosIds());
     }
 
     public boolean existeContenedorPorId(String id) {
-        return contenedorDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeContenedorPorId", contenedorDAO.existePorId(id));
     }
 
     public Document buscarContenedorPorCodigo(String codigo) {
-        return contenedorDAO.buscarPorCodigo(codigo);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarContenedorPorCodigo", contenedorDAO.buscarPorCodigo(codigo));
     }
 
     public List<Document> buscarContenedoresPorEstado(String estado) {
-        return contenedorDAO.buscarPorEstado(estado);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarContenedoresPorEstado", contenedorDAO.buscarPorEstado(estado));
     }
 
 
@@ -301,27 +303,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarSensorPorId(String id) {
-        return sensorDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarSensorPorId", sensorDAO.buscarPorId(id));
     }
 
     public List<Document> listarSensores() {
-        return sensorDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarSensores", sensorDAO.listarTodos());
     }
 
     public List<String> obtenerIdsSensores() {
-        return sensorDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsSensores", sensorDAO.obtenerTodosLosIds());
     }
 
     public boolean existeSensorPorId(String id) {
-        return sensorDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeSensorPorId", sensorDAO.existePorId(id));
     }
 
     public List<Document> buscarSensoresPorContenedor(String contenedorId) {
-        return sensorDAO.buscarPorContenedor(contenedorId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarSensoresPorContenedor", sensorDAO.buscarPorContenedor(contenedorId));
     }
 
     public List<Document> buscarSensoresPorEstado(String estado) {
-        return sensorDAO.buscarPorEstado(estado);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarSensoresPorEstado", sensorDAO.buscarPorEstado(estado));
     }
 
 
@@ -342,27 +344,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarEventoLogisticoPorId(String id) {
-        return eventoLogisticoDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarEventoLogisticoPorId", eventoLogisticoDAO.buscarPorId(id));
     }
 
     public List<Document> listarEventosLogisticos() {
-        return eventoLogisticoDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarEventosLogisticos", eventoLogisticoDAO.listarTodos());
     }
 
     public List<String> obtenerIdsEventosLogisticos() {
-        return eventoLogisticoDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsEventosLogisticos", eventoLogisticoDAO.obtenerTodosLosIds());
     }
 
     public boolean existeEventoLogisticoPorId(String id) {
-        return eventoLogisticoDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeEventoLogisticoPorId", eventoLogisticoDAO.existePorId(id));
     }
 
     public List<Document> buscarEventosLogisticosPorEnvio(String envioId) {
-        return eventoLogisticoDAO.buscarPorEnvio(envioId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarEventosLogisticosPorEnvio", eventoLogisticoDAO.buscarPorEnvio(envioId));
     }
 
     public List<Document> buscarEventosLogisticosPorTipo(String tipoEvento) {
-        return eventoLogisticoDAO.buscarPorTipo(tipoEvento);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarEventosLogisticosPorTipo", eventoLogisticoDAO.buscarPorTipo(tipoEvento));
     }
 
 
@@ -383,27 +385,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarIncidentePorId(String id) {
-        return incidenteDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarIncidentePorId", incidenteDAO.buscarPorId(id));
     }
 
     public List<Document> listarIncidentes() {
-        return incidenteDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarIncidentes", incidenteDAO.listarTodos());
     }
 
     public List<String> obtenerIdsIncidentes() {
-        return incidenteDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsIncidentes", incidenteDAO.obtenerTodosLosIds());
     }
 
     public boolean existeIncidentePorId(String id) {
-        return incidenteDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeIncidentePorId", incidenteDAO.existePorId(id));
     }
 
     public List<Document> buscarIncidentesPorEnvio(String envioId) {
-        return incidenteDAO.buscarPorEnvio(envioId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarIncidentesPorEnvio", incidenteDAO.buscarPorEnvio(envioId));
     }
 
     public List<Document> buscarIncidentesAbiertos() {
-        return incidenteDAO.buscarAbiertos();
+        return TablaConsola.mostrar("LogisticaMongoService.buscarIncidentesAbiertos", incidenteDAO.buscarAbiertos());
     }
 
 
@@ -424,31 +426,31 @@ public class LogisticaMongoService {
     }
 
     public Document buscarAlertaPorId(String id) {
-        return alertaDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarAlertaPorId", alertaDAO.buscarPorId(id));
     }
 
     public List<Document> listarAlertas() {
-        return alertaDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarAlertas", alertaDAO.listarTodos());
     }
 
     public List<String> obtenerIdsAlertas() {
-        return alertaDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsAlertas", alertaDAO.obtenerTodosLosIds());
     }
 
     public boolean existeAlertaPorId(String id) {
-        return alertaDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeAlertaPorId", alertaDAO.existePorId(id));
     }
 
     public List<Document> buscarAlertasPorSensor(String sensorId) {
-        return alertaDAO.buscarPorSensor(sensorId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarAlertasPorSensor", alertaDAO.buscarPorSensor(sensorId));
     }
 
     public List<Document> buscarAlertasPorEvento(String eventoId) {
-        return alertaDAO.buscarPorEvento(eventoId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarAlertasPorEvento", alertaDAO.buscarPorEvento(eventoId));
     }
 
     public List<Document> buscarAlertasPorEstado(String estado) {
-        return alertaDAO.buscarPorEstado(estado);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarAlertasPorEstado", alertaDAO.buscarPorEstado(estado));
     }
 
 
@@ -469,31 +471,31 @@ public class LogisticaMongoService {
     }
 
     public Document buscarReportePorId(String id) {
-        return reporteDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarReportePorId", reporteDAO.buscarPorId(id));
     }
 
     public List<Document> listarReportes() {
-        return reporteDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarReportes", reporteDAO.listarTodos());
     }
 
     public List<String> obtenerIdsReportes() {
-        return reporteDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsReportes", reporteDAO.obtenerTodosLosIds());
     }
 
     public boolean existeReportePorId(String id) {
-        return reporteDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeReportePorId", reporteDAO.existePorId(id));
     }
 
     public List<Document> buscarReportesPorUsuario(String usuarioId) {
-        return reporteDAO.buscarPorUsuario(usuarioId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarReportesPorUsuario", reporteDAO.buscarPorUsuario(usuarioId));
     }
 
     public List<Document> buscarReportesPorTipo(String tipo) {
-        return reporteDAO.buscarPorTipo(tipo);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarReportesPorTipo", reporteDAO.buscarPorTipo(tipo));
     }
 
     public List<Document> buscarReportesPorEstado(String estado) {
-        return reporteDAO.buscarPorEstado(estado);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarReportesPorEstado", reporteDAO.buscarPorEstado(estado));
     }
 
 
@@ -514,27 +516,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarFacturaPorId(String id) {
-        return facturaDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarFacturaPorId", facturaDAO.buscarPorId(id));
     }
 
     public List<Document> listarFacturas() {
-        return facturaDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarFacturas", facturaDAO.listarTodos());
     }
 
     public List<String> obtenerIdsFacturas() {
-        return facturaDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsFacturas", facturaDAO.obtenerTodosLosIds());
     }
 
     public boolean existeFacturaPorId(String id) {
-        return facturaDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeFacturaPorId", facturaDAO.existePorId(id));
     }
 
     public List<Document> buscarFacturasPorCliente(String clienteId) {
-        return facturaDAO.buscarPorCliente(clienteId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarFacturasPorCliente", facturaDAO.buscarPorCliente(clienteId));
     }
 
     public List<Document> buscarFacturasPorEstado(String estado) {
-        return facturaDAO.buscarPorEstado(estado);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarFacturasPorEstado", facturaDAO.buscarPorEstado(estado));
     }
 
 
@@ -555,27 +557,27 @@ public class LogisticaMongoService {
     }
 
     public Document buscarPagoPorId(String id) {
-        return pagoDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarPagoPorId", pagoDAO.buscarPorId(id));
     }
 
     public List<Document> listarPagos() {
-        return pagoDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarPagos", pagoDAO.listarTodos());
     }
 
     public List<String> obtenerIdsPagos() {
-        return pagoDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsPagos", pagoDAO.obtenerTodosLosIds());
     }
 
     public boolean existePagoPorId(String id) {
-        return pagoDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existePagoPorId", pagoDAO.existePorId(id));
     }
 
     public List<Document> buscarPagosPorFactura(String facturaId) {
-        return pagoDAO.buscarPorFactura(facturaId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarPagosPorFactura", pagoDAO.buscarPorFactura(facturaId));
     }
 
     public List<Document> buscarPagosPorMedioPago(String medioPago) {
-        return pagoDAO.buscarPorMedioPago(medioPago);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarPagosPorMedioPago", pagoDAO.buscarPorMedioPago(medioPago));
     }
 
 
@@ -596,22 +598,22 @@ public class LogisticaMongoService {
     }
 
     public Document buscarCuentaCorrientePorId(String id) {
-        return cuentaCorrienteDAO.buscarPorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarCuentaCorrientePorId", cuentaCorrienteDAO.buscarPorId(id));
     }
 
     public List<Document> listarCuentasCorrientes() {
-        return cuentaCorrienteDAO.listarTodos();
+        return TablaConsola.mostrar("LogisticaMongoService.listarCuentasCorrientes", cuentaCorrienteDAO.listarTodos());
     }
 
     public List<String> obtenerIdsCuentasCorrientes() {
-        return cuentaCorrienteDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("LogisticaMongoService.obtenerIdsCuentasCorrientes", cuentaCorrienteDAO.obtenerTodosLosIds());
     }
 
     public boolean existeCuentaCorrientePorId(String id) {
-        return cuentaCorrienteDAO.existePorId(id);
+        return TablaConsola.mostrar("LogisticaMongoService.existeCuentaCorrientePorId", cuentaCorrienteDAO.existePorId(id));
     }
 
     public Document buscarCuentaCorrientePorCliente(String clienteId) {
-        return cuentaCorrienteDAO.buscarPorCliente(clienteId);
+        return TablaConsola.mostrar("LogisticaMongoService.buscarCuentaCorrientePorCliente", cuentaCorrienteDAO.buscarPorCliente(clienteId));
     }
 }

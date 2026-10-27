@@ -1,6 +1,8 @@
 
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -361,7 +363,7 @@ public class CierreMensualCuentaCorrienteService {
     // =========================================
 
     public List<Document> consultarCierres(String cuentaId) {
-        return cierreDAO.buscarPorCuenta(cuentaId);
+        return TablaConsola.mostrar("CierreMensualCuentaCorrienteService.consultarCierres", cierreDAO.buscarPorCuenta(cuentaId));
     }
 
     // =========================================
@@ -369,6 +371,6 @@ public class CierreMensualCuentaCorrienteService {
     // =========================================
 
     public List<Document> listarCierres() {
-        return cierreDAO.listarTodos();
+        return TablaConsola.mostrar("CierreMensualCuentaCorrienteService.listarCierres", cierreDAO.listarTodos());
     }
 }

@@ -1,6 +1,8 @@
 
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ContenedorMongoDAO;
@@ -131,7 +133,7 @@ public class ContenedorService {
     // =========================================================
 
     public List<Document> listarContenedores() {
-        return contenedorDAO.listarTodos();
+        return TablaConsola.mostrar("ContenedorService.listarContenedores", contenedorDAO.listarTodos());
     }
 
     // =========================================================
@@ -150,7 +152,7 @@ public class ContenedorService {
             );
         }
 
-        return contenedor;
+        return TablaConsola.mostrar("ContenedorService.buscarPorId", contenedor);
     }
 
     // =========================================================
@@ -161,7 +163,7 @@ public class ContenedorService {
 
         validarObjectId(id);
 
-        return contenedorDAO.existePorId(id);
+        return TablaConsola.mostrar("ContenedorService.existePorId", contenedorDAO.existePorId(id));
     }
 
     // =========================================================
@@ -169,7 +171,7 @@ public class ContenedorService {
     // =========================================================
 
     public List<String> obtenerTodosLosIds() {
-        return contenedorDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("ContenedorService.obtenerTodosLosIds", contenedorDAO.obtenerTodosLosIds());
     }
 
     // =========================================================
@@ -184,7 +186,7 @@ public class ContenedorService {
             );
         }
 
-        return contenedorDAO.buscarPorCodigo(codigo.trim());
+        return TablaConsola.mostrar("ContenedorService.buscarPorCodigo", contenedorDAO.buscarPorCodigo(codigo.trim()));
     }
 
     // =========================================================
@@ -199,7 +201,7 @@ public class ContenedorService {
             );
         }
 
-        return contenedorDAO.buscarPorEstado(estado.trim());
+        return TablaConsola.mostrar("ContenedorService.buscarPorEstado", contenedorDAO.buscarPorEstado(estado.trim()));
     }
 
     // =========================================================

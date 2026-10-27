@@ -1,6 +1,8 @@
 
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ClienteMongoDAO;
@@ -178,7 +180,7 @@ public class FacturaService {
 
         actualizarEstados(facturas);
 
-        return facturas;
+        return TablaConsola.mostrar("FacturaService.listarFacturas", facturas);
     }
 
     // ==========================================
@@ -203,7 +205,7 @@ public class FacturaService {
 
         actualizarEstado(factura);
 
-        return factura;
+        return TablaConsola.mostrar("FacturaService.buscarPorId", factura);
     }
 
     // ==========================================
@@ -217,7 +219,7 @@ public class FacturaService {
                 "El ID de la factura no es válido."
         );
 
-        return facturaDAO.existePorId(id);
+        return TablaConsola.mostrar("FacturaService.existePorId", facturaDAO.existePorId(id));
     }
 
     // ==========================================
@@ -225,7 +227,7 @@ public class FacturaService {
     // ==========================================
 
     public List<String> obtenerTodosLosIds() {
-        return facturaDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("FacturaService.obtenerTodosLosIds", facturaDAO.obtenerTodosLosIds());
     }
 
     // ==========================================
@@ -246,7 +248,7 @@ public class FacturaService {
 
         actualizarEstados(facturas);
 
-        return facturas;
+        return TablaConsola.mostrar("FacturaService.buscarPorCliente", facturas);
     }
 
     // ==========================================
@@ -263,13 +265,13 @@ public class FacturaService {
         List<Document> facturas =
                 listarFacturas();
 
-        return facturas.stream()
+        return TablaConsola.mostrar("FacturaService.buscarPorEstado", facturas.stream()
                 .filter(factura ->
                         estadoBuscado.equals(
                                 factura.getString("estado")
                         )
                 )
-                .toList();
+                .toList());
     }
 
     // ==========================================

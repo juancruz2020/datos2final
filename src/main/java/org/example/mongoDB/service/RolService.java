@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.RolMongoDAO;
@@ -28,7 +30,7 @@ public class RolService {
 
     public List<Document> listarRoles() {
 
-        return rolDAO.listarTodos();
+        return TablaConsola.mostrar("RolService.listarRoles", rolDAO.listarTodos());
     }
 
 
@@ -57,7 +59,7 @@ public class RolService {
             );
         }
 
-        return rol;
+        return TablaConsola.mostrar("RolService.buscarPorId", rol);
     }
 
 
@@ -77,9 +79,9 @@ public class RolService {
             );
         }
 
-        return rolDAO.buscarPorDescripcion(
+        return TablaConsola.mostrar("RolService.buscarPorDescripcion", rolDAO.buscarPorDescripcion(
                 descripcion.trim()
-        );
+        ));
     }
 
 

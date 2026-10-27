@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ConversacionMongoDAO;
@@ -127,8 +129,8 @@ public class ConversacionService {
 
     public List<Document> listarConversaciones() {
 
-        return conversacionDAO
-                .listarTodos();
+        return TablaConsola.mostrar("ConversacionService.listarConversaciones", conversacionDAO
+                .listarTodos());
     }
 
 
@@ -144,10 +146,10 @@ public class ConversacionService {
                 usuarioId
         );
 
-        return conversacionDAO
+        return TablaConsola.mostrar("ConversacionService.obtenerConversacionesUsuario", conversacionDAO
                 .buscarPorUsuario(
                         usuarioId
-                );
+                ));
     }
 
 
@@ -157,10 +159,10 @@ public class ConversacionService {
 
     public List<Document> obtenerConversacionesPrivadas() {
 
-        return conversacionDAO
+        return TablaConsola.mostrar("ConversacionService.obtenerConversacionesPrivadas", conversacionDAO
                 .buscarPorTipo(
                         "PRIVADA"
-                );
+                ));
     }
 
 
@@ -170,10 +172,10 @@ public class ConversacionService {
 
     public List<Document> obtenerConversacionesGrupales() {
 
-        return conversacionDAO
+        return TablaConsola.mostrar("ConversacionService.obtenerConversacionesGrupales", conversacionDAO
                 .buscarPorTipo(
                         "GRUPAL"
-                );
+                ));
     }
 
 
@@ -199,7 +201,7 @@ public class ConversacionService {
             );
         }
 
-        return conversacion;
+        return TablaConsola.mostrar("ConversacionService.buscarPorId", conversacion);
     }
 
 

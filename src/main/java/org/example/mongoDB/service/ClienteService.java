@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import com.mongodb.client.ClientSession;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -309,7 +311,7 @@ public class ClienteService {
 
     public List<Document> listarClientes() {
 
-        return clienteDAO.listarTodos();
+        return TablaConsola.mostrar("ClienteService.listarClientes", clienteDAO.listarTodos());
     }
 
 
@@ -341,7 +343,7 @@ public class ClienteService {
         }
 
 
-        return cliente;
+        return TablaConsola.mostrar("ClienteService.buscarPorId", cliente);
     }
 
 
@@ -362,9 +364,9 @@ public class ClienteService {
         }
 
 
-        return clienteDAO.buscarPorCuit(
+        return TablaConsola.mostrar("ClienteService.buscarPorCuit", clienteDAO.buscarPorCuit(
                 cuit.trim()
-        );
+        ));
     }
 
 

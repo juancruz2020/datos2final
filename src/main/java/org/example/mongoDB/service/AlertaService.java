@@ -1,5 +1,7 @@
 package org.example.mongoDB.service;
 
+import org.example.consola.TablaConsola;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.AlertaMongoDAO;
@@ -122,7 +124,7 @@ public class AlertaService {
 
     public List<Document> listarAlertas() {
 
-        return alertaDAO.listarTodos();
+        return TablaConsola.mostrar("AlertaService.listarAlertas", alertaDAO.listarTodos());
     }
 
 
@@ -154,7 +156,7 @@ public class AlertaService {
         }
 
 
-        return alerta;
+        return TablaConsola.mostrar("AlertaService.buscarPorId", alerta);
     }
 
 
@@ -172,9 +174,9 @@ public class AlertaService {
         );
 
 
-        return alertaDAO.buscarPorSensor(
+        return TablaConsola.mostrar("AlertaService.buscarPorSensor", alertaDAO.buscarPorSensor(
                 sensorId
-        );
+        ));
     }
 
 
@@ -192,9 +194,9 @@ public class AlertaService {
         );
 
 
-        return alertaDAO.buscarPorEvento(
+        return TablaConsola.mostrar("AlertaService.buscarPorEvento", alertaDAO.buscarPorEvento(
                 eventoId
-        );
+        ));
     }
 
 
@@ -215,9 +217,9 @@ public class AlertaService {
         }
 
 
-        return alertaDAO.buscarPorEstado(
+        return TablaConsola.mostrar("AlertaService.buscarPorEstado", alertaDAO.buscarPorEstado(
                 estado.trim()
-        );
+        ));
     }
 
 
@@ -235,9 +237,9 @@ public class AlertaService {
         );
 
 
-        return alertaDAO.existePorId(
+        return TablaConsola.mostrar("AlertaService.existePorId", alertaDAO.existePorId(
                 id
-        );
+        ));
     }
 
 
@@ -247,7 +249,7 @@ public class AlertaService {
 
     public List<String> obtenerTodosLosIds() {
 
-        return alertaDAO.obtenerTodosLosIds();
+        return TablaConsola.mostrar("AlertaService.obtenerTodosLosIds", alertaDAO.obtenerTodosLosIds());
     }
 
 
