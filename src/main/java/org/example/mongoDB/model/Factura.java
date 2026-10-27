@@ -29,23 +29,7 @@ public class Factura {
         this.estado = estado;
     }
 
-    // Constructor compatible con llamadas anteriores
-    public Factura(
-            String id,
-            String clienteId,
-            Date fechaEmision,
-            BigDecimal importeTotal,
-            String estado
-    ) {
-        this(
-                id,
-                clienteId,
-                fechaEmision,
-                null,
-                importeTotal,
-                estado
-        );
-    }
+
 
     public String getId() {
         return id;

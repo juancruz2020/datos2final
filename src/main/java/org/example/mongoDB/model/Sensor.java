@@ -34,27 +34,7 @@ public class Sensor {
         this.estado = estado;
     }
 
-    // =========================
-    // CONSTRUCTOR CON CODIGO
-    // =========================
 
-    public Sensor(
-            String id,
-            String codigo,
-            String contenedorId,
-            String tipo,
-            String fabricante,
-            Date fechaInstalacion,
-            String estado
-    ) {
-        this.id = id;
-        this.codigo = codigo;
-        this.contenedorId = contenedorId;
-        this.tipo = tipo;
-        this.fabricante = fabricante;
-        this.fechaInstalacion = fechaInstalacion;
-        this.estado = estado;
-    }
 
     // =========================
     // GETTERS Y SETTERS

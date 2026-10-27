@@ -38,31 +38,6 @@ public class Cliente {
         this.estado = estado;
     }
 
-    // =========================
-    // CONSTRUCTOR CON CODIGO
-    // =========================
-
-    public Cliente(
-            String id,
-            String codigo,
-            String razonSocial,
-            String cuit,
-            String email,
-            String telefono,
-            Direccion direccion,
-            String pais,
-            String estado
-    ) {
-        this.id = id;
-        this.codigo = codigo;
-        this.razonSocial = razonSocial;
-        this.cuit = cuit;
-        this.email = email;
-        this.telefono = telefono;
-        this.direccion = direccion;
-        this.pais = pais;
-        this.estado = estado;
-    }
 
     // =========================
     // GETTERS Y SETTERS

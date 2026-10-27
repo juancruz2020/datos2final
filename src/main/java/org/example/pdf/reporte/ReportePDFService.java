@@ -726,7 +726,6 @@ public class ReportePDFService {
                             id == null
                                     ? null
                                     : id.toString(),
-                            documento.getString("codigo"),
                             contenedorId == null
                                     ? null
                                     : contenedorId.toString(),
