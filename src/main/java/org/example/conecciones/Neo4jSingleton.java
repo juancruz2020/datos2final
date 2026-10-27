@@ -7,7 +7,6 @@ import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.example.logging.AppLog;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 public class Neo4jSingleton {

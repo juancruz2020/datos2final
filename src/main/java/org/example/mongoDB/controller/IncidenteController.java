@@ -94,30 +94,6 @@ public class IncidenteController {
 
 
     // =========================================================
-    // EXISTE POR ID
-    // =========================================================
-
-    public boolean existePorId(
-            String id
-    ) {
-
-        return incidenteService
-                .existePorId(
-                        id
-                );
-    }
-
-
-    // =========================================================
-    // OBTENER TODOS LOS IDS
-    // =========================================================
-
-    public List<String> obtenerTodosLosIds() {
-
-        return incidenteService
-                .obtenerTodosLosIds();
-    }
-    // =========================================================
 // MODIFICAR INCIDENTE
 // =========================================================
 

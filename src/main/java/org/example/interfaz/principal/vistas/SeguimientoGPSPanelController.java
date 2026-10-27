@@ -672,9 +672,6 @@ public class SeguimientoGPSPanelController {
                 : posicionesPorSensor.entrySet()
         ) {
 
-            String sensorId =
-                    entry.getKey();
-
 
             List<PosicionGPS> ruta =
                     entry.getValue();
@@ -912,13 +909,11 @@ public class SeguimientoGPSPanelController {
 
     private static class PosicionGPS {
 
-        private final String sensorId;
 
         private final double latitud;
 
         private final double longitud;
 
-        private final LocalDate fechaDia;
 
         private final Instant fechaHora;
 
@@ -931,8 +926,6 @@ public class SeguimientoGPSPanelController {
                 Instant fechaHora
         ) {
 
-            this.sensorId =
-                    sensorId;
 
             this.latitud =
                     latitud;
@@ -940,17 +933,9 @@ public class SeguimientoGPSPanelController {
             this.longitud =
                     longitud;
 
-            this.fechaDia =
-                    fechaDia;
 
             this.fechaHora =
                     fechaHora;
-        }
-
-
-        public String getSensorId() {
-
-            return sensorId;
         }
 
 
@@ -963,12 +948,6 @@ public class SeguimientoGPSPanelController {
         public double getLongitud() {
 
             return longitud;
-        }
-
-
-        public LocalDate getFechaDia() {
-
-            return fechaDia;
         }
 
 

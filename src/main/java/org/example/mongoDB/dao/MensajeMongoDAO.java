@@ -95,25 +95,6 @@ public class MensajeMongoDAO {
 
 
     // =========================================================
-    // LISTAR TODOS
-    // =========================================================
-
-    public List<Document> listarTodos() {
-
-        return coleccion
-                .find()
-                .sort(
-                        ascending(
-                                "fecha_envio"
-                        )
-                )
-                .into(
-                        new ArrayList<>()
-                );
-    }
-
-
-    // =========================================================
     // HISTORIAL DE UNA CONVERSACION
     // =========================================================
 
@@ -126,32 +107,6 @@ public class MensajeMongoDAO {
                         eq(
                                 "conversacion_id",
                                 conversacionId
-                        )
-                )
-                .sort(
-                        ascending(
-                                "fecha_envio"
-                        )
-                )
-                .into(
-                        new ArrayList<>()
-                );
-    }
-
-
-    // =========================================================
-    // MENSAJES ENVIADOS POR UN USUARIO
-    // =========================================================
-
-    public List<Document> buscarPorRemitente(
-            String remitenteId
-    ) {
-
-        return coleccion
-                .find(
-                        eq(
-                                "remitente_id",
-                                remitenteId
                         )
                 )
                 .sort(
@@ -207,31 +162,4 @@ public class MensajeMongoDAO {
     }
 
 
-    // =========================================================
-    // ELIMINAR MENSAJES DE UNA CONVERSACION
-    // =========================================================
-
-    public void eliminarPorConversacion(
-            String conversacionId
-    ) {
-
-        coleccion.deleteMany(
-                eq(
-                        "conversacion_id",
-                        conversacionId
-                )
-        );
-    }
-
-
-    // =========================================================
-    // EXISTE POR ID
-    // =========================================================
-
-    public boolean existePorId(
-            String id
-    ) {
-
-        return buscarPorId(id) != null;
-    }
 }

@@ -13,7 +13,6 @@ import java.awt.*;
 public class PrincipalPanel extends JPanel {
 
     private final String usuarioId;
-    private final String nombreUsuario;
 
     private final CardLayout cardLayout;
     private final JPanel contenido;
@@ -33,7 +32,6 @@ public class PrincipalPanel extends JPanel {
     ) {
 
         this.usuarioId = usuarioId;
-        this.nombreUsuario = nombreUsuario;
 
         this.permisosController = new PermisosController();
 
@@ -495,7 +493,4 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
         return usuarioId;
     }
 
-    public String getNombreUsuario() {
-        return nombreUsuario;
-    }
 }

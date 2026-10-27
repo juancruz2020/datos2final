@@ -366,11 +366,5 @@ public class CierreMensualCuentaCorrienteService {
         return TablaConsola.mostrar("CierreMensualCuentaCorrienteService.consultarCierres", cierreDAO.buscarPorCuenta(cuentaId));
     }
 
-    // =========================================
-    // LISTAR TODOS LOS CIERRES
-    // =========================================
 
-    public List<Document> listarCierres() {
-        return TablaConsola.mostrar("CierreMensualCuentaCorrienteService.listarCierres", cierreDAO.listarTodos());
-    }
 }

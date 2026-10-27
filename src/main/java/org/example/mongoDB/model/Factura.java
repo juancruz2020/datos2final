@@ -30,7 +30,6 @@ public class Factura {
     }
 
 
-
     public String getId() {
         return id;
     }
@@ -43,39 +42,24 @@ public class Factura {
         return clienteId;
     }
 
-    public void setClienteId(String clienteId) {
-        this.clienteId = clienteId;
-    }
 
     public Date getFechaEmision() {
         return fechaEmision;
     }
 
-    public void setFechaEmision(Date fechaEmision) {
-        this.fechaEmision = fechaEmision;
-    }
 
     public Date getFechaVencimiento() {
         return fechaVencimiento;
     }
 
-    public void setFechaVencimiento(Date fechaVencimiento) {
-        this.fechaVencimiento = fechaVencimiento;
-    }
 
     public BigDecimal getImporteTotal() {
         return importeTotal;
     }
 
-    public void setImporteTotal(BigDecimal importeTotal) {
-        this.importeTotal = importeTotal;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

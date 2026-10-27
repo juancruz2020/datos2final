@@ -178,16 +178,6 @@ public class MonitoreoPanel extends JPanel {
                     "Insertar lectura"
             );
 
-    private final JButton crearTablas =
-            new BotonPrincipal(
-                    "Crear tablas"
-            );
-
-    private final JButton cargarPrueba =
-            new BotonPrincipal(
-                    "Cargar datos de prueba"
-            );
-
 
     // =========================================================
     // CONSTRUCTOR
@@ -316,7 +306,6 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-
     // =========================================================
     // CONSULTAS
     // =========================================================
@@ -423,7 +412,6 @@ public class MonitoreoPanel extends JPanel {
 
         return panel;
     }
-
 
 
     // =========================================================
@@ -696,7 +684,6 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-
     // =========================================================
     // CAMPO
     // =========================================================
@@ -732,7 +719,6 @@ public class MonitoreoPanel extends JPanel {
         panel.add(contenedorCampo, BorderLayout.CENTER);
         return panel;
     }
-
 
 
     // =========================================================
@@ -796,46 +782,6 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-
-    // =========================================================
-    // SCROLL FORMULARIO
-    // =========================================================
-
-    private JPanel scrollFormulario(JPanel formulario) {
-
-        JPanel contenedor = new JPanel(new BorderLayout());
-        contenedor.setOpaque(false);
-
-        JScrollPane scroll = new JScrollPane(formulario);
-        scroll.setBorder(null);
-        scroll.setHorizontalScrollBarPolicy(
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-        );
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-
-        contenedor.add(scroll, BorderLayout.CENTER);
-        return contenedor;
-    }
-
-
-
-    // =========================================================
-    // TARJETA
-    // =========================================================
-
-    private JPanel tarjeta() {
-
-        JPanel panel = new JPanel();
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(210, 210, 210)),
-                new EmptyBorder(18, 18, 18, 18)
-        ));
-        return panel;
-    }
-
-
-
     // =========================================================
     // LABEL
     // =========================================================
@@ -847,7 +793,6 @@ public class MonitoreoPanel extends JPanel {
         label.setForeground(Colores.TEXTO);
         return label;
     }
-
 
 
     // =========================================================
@@ -920,11 +865,6 @@ public class MonitoreoPanel extends JPanel {
 
     public JComboBox<String> getComboConsulta() {
         return comboConsulta;
-    }
-
-
-    public JPanel getParametros() {
-        return parametros;
     }
 
 
@@ -1119,12 +1059,4 @@ public class MonitoreoPanel extends JPanel {
     }
 
 
-    public JButton getCrearTablas() {
-        return crearTablas;
-    }
-
-
-    public JButton getCargarPrueba() {
-        return cargarPrueba;
-    }
 }

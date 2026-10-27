@@ -17,7 +17,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 public class FacturaService {
 
@@ -27,8 +26,6 @@ public class FacturaService {
     private static final ZoneId ZONA_HORARIA =
             ZoneId.of("America/Argentina/Buenos_Aires");
 
-    private static final Set<String> ESTADOS_CONSULTA =
-            Set.of("PENDIENTE", "PAGADA", "VENCIDA");
 
     // ==========================================
     // CONSTRUCTOR
@@ -92,41 +89,6 @@ public class FacturaService {
         AppLog.info(FacturaService.class, "Factura creada.");
     }
 
-    // ==========================================
-    // COMPATIBILIDAD CON CÓDIGO ANTERIOR
-    // ==========================================
-
-    @Deprecated
-    public void crearFactura(
-            String clienteId,
-            Date fechaEmision,
-            BigDecimal importeTotal,
-            String estado
-    ) {
-
-        validarCliente(clienteId);
-
-        if (fechaEmision == null) {
-            throw new IllegalArgumentException(
-                    "La fecha de emisión es obligatoria."
-            );
-        }
-
-        validarImporte(importeTotal);
-        validarEstadoInicial(estado);
-
-        Factura factura = new Factura(
-                null,
-                clienteId,
-                fechaEmision,
-                null,
-                importeTotal,
-                "PENDIENTE"
-        );
-
-        facturaDAO.agregar(factura);
-        AppLog.info(FacturaService.class, "Factura creada sin fecha de vencimiento.");
-    }
 
     // ==========================================
     // MODIFICAR FECHA DE VENCIMIENTO
@@ -208,27 +170,6 @@ public class FacturaService {
         return TablaConsola.mostrar("FacturaService.buscarPorId", factura);
     }
 
-    // ==========================================
-    // VERIFICAR EXISTENCIA
-    // ==========================================
-
-    public boolean existePorId(String id) {
-
-        validarObjectId(
-                id,
-                "El ID de la factura no es válido."
-        );
-
-        return TablaConsola.mostrar("FacturaService.existePorId", facturaDAO.existePorId(id));
-    }
-
-    // ==========================================
-    // OBTENER TODOS LOS IDS
-    // ==========================================
-
-    public List<String> obtenerTodosLosIds() {
-        return TablaConsola.mostrar("FacturaService.obtenerTodosLosIds", facturaDAO.obtenerTodosLosIds());
-    }
 
     // ==========================================
     // BUSCAR FACTURAS POR CLIENTE
@@ -251,28 +192,6 @@ public class FacturaService {
         return TablaConsola.mostrar("FacturaService.buscarPorCliente", facturas);
     }
 
-    // ==========================================
-    // BUSCAR FACTURAS POR ESTADO
-    // ==========================================
-
-    public List<Document> buscarPorEstado(
-            String estado
-    ) {
-
-        String estadoBuscado =
-                validarEstadoConsulta(estado);
-
-        List<Document> facturas =
-                listarFacturas();
-
-        return TablaConsola.mostrar("FacturaService.buscarPorEstado", facturas.stream()
-                .filter(factura ->
-                        estadoBuscado.equals(
-                                factura.getString("estado")
-                        )
-                )
-                .toList());
-    }
 
     // ==========================================
     // ACTUALIZAR ESTADOS AUTOMÁTICAMENTE
@@ -462,32 +381,6 @@ public class FacturaService {
         }
     }
 
-    // ==========================================
-    // VALIDAR ESTADO PARA CONSULTAS
-    // ==========================================
-
-    private String validarEstadoConsulta(
-            String estado
-    ) {
-
-        if (estado == null || estado.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El estado es obligatorio."
-            );
-        }
-
-        String valor = estado.trim()
-                .toUpperCase(Locale.ROOT);
-
-        if (!ESTADOS_CONSULTA.contains(valor)) {
-
-            throw new IllegalArgumentException(
-                    "El estado no es válido."
-            );
-        }
-
-        return valor;
-    }
 
     // ==========================================
     // VALIDAR OBJECT ID

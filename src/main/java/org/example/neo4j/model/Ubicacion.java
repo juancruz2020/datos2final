@@ -16,9 +16,6 @@ public class Ubicacion {
         this.pais = pais;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public String getCiudad() {
         return ciudad;

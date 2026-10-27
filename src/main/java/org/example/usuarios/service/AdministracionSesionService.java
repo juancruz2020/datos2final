@@ -44,16 +44,5 @@ public class AdministracionSesionService {
         );
     }
 
-    // =========================================================
-    // OBTENER TTL
-    // =========================================================
 
-    public long obtenerTiempoRestante(
-            String usuario
-    ) {
-
-        return sesionDAO.obtenerTiempoRestante(
-                usuario
-        );
-    }
 }

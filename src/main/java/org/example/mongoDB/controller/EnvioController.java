@@ -3,7 +3,6 @@ package org.example.mongoDB.controller;
 import org.bson.Document;
 import org.example.neo4j.controller.ControllerNeo4j;
 
-import java.util.Date;
 import java.util.List;
 
 public class EnvioController {
@@ -18,56 +17,6 @@ public class EnvioController {
     public EnvioController() {
 
         this.neo4j = new ControllerNeo4j();
-    }
-
-
-    // =========================================================
-    // CREAR ENVÍO
-    // =========================================================
-
-    public void crearEnvio(
-            String clienteId,
-            List<String> contenedoresIds,
-            String ciudadOrigen,
-            String paisOrigen,
-            String ciudadDestino,
-            String paisDestino,
-            String prioridad
-    ) {
-
-        throw new UnsupportedOperationException("Los envíos se gestionan en Neo4j.");
-    }
-
-
-    // =========================================================
-    // MODIFICAR ENVÍO
-    // =========================================================
-
-    public void modificarEnvio(
-            String id,
-            String clienteId,
-            List<String> contenedoresIds,
-            String ciudadOrigen,
-            String paisOrigen,
-            String ciudadDestino,
-            String paisDestino,
-            String estado,
-            String prioridad
-    ) {
-
-        throw new UnsupportedOperationException("Los envíos se gestionan en Neo4j.");
-    }
-
-
-    // =========================================================
-    // ELIMINAR ENVÍO
-    // =========================================================
-
-    public void eliminarEnvio(
-            String id
-    ) {
-
-        throw new UnsupportedOperationException("Los envíos se gestionan en Neo4j.");
     }
 
 
@@ -94,18 +43,6 @@ public class EnvioController {
 
         java.util.Map<String, Object> envio = neo4j.buscarEnvioPorId(id);
         return envio == null ? null : documentoNeo4j(envio);
-    }
-
-
-    // =========================================================
-    // EXISTE POR ID
-    // =========================================================
-
-    public boolean existePorId(
-            String id
-    ) {
-
-        return neo4j.buscarEnvioPorId(id) != null;
     }
 
 
@@ -187,18 +124,6 @@ public class EnvioController {
     // =========================================================
     // AGREGAR TRAMO
     // =========================================================
-
-    public void agregarTramo(
-            String envioId,
-            String medioTransporte,
-            String origen,
-            String destino,
-            Date fechaSalida,
-            Date fechaLlegadaEstimada
-    ) {
-
-        throw new UnsupportedOperationException("Los tramos de envíos se gestionan en Neo4j.");
-    }
 
 
     private Document documentoNeo4j(java.util.Map<String, Object> envio) {

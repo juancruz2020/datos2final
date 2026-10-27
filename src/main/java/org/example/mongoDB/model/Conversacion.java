@@ -37,35 +37,19 @@ public class Conversacion {
         return nombre;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
 
     public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public List<String> getParticipantesIds() {
         return participantesIds;
     }
 
-    public void setParticipantesIds(
-            List<String> participantesIds
-    ) {
-        this.participantesIds = participantesIds;
-    }
 
     public Date getFechaCreacion() {
         return fechaCreacion;
     }
 
-    public void setFechaCreacion(
-            Date fechaCreacion
-    ) {
-        this.fechaCreacion = fechaCreacion;
-    }
 }

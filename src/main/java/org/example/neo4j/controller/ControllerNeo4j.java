@@ -1,11 +1,8 @@
 package org.example.neo4j.controller;
 
-import org.example.DatosPorDefecto.GeneradorDatosPruebaNeo;
-import org.example.neo4j.model.Cliente;
 
 import org.example.neo4j.model.Envio;
 
-import org.example.neo4j.model.Vehiculo;
 import org.example.neo4j.service.LogisticaNeo4jService;
 import org.example.mongoDB.controller.VehiculoController;
 import org.bson.Document;
@@ -27,30 +24,11 @@ public class ControllerNeo4j {
     // NODOS
     // =====================================================
 
-    public void crearCliente(Cliente cliente) {
-        service.crearCliente(cliente);
-    }
 
     public void crearEnvio(Envio envio) {
         service.crearEnvio(envio);
     }
 
-    public void crearVehiculo(Vehiculo vehiculo) {
-        service.crearVehiculo(vehiculo);
-    }
-
-    /** Copia la referencia del vehículo de MongoDB a Neo4j conservando el mismo ID. */
-    public void sincronizarVehiculoDesdeMongo(String idVehiculoMongo) {
-        Document documento = vehiculoMongoController.buscarPorId(idVehiculoMongo);
-        ObjectId objectId = documento.getObjectId("_id");
-        if (objectId == null) {
-            throw new IllegalStateException("El vehículo de MongoDB no tiene un _id ObjectId válido.");
-        }
-        String id = objectId.toHexString();
-        String identificacion = documento.getString("identificacion");
-        String tipo = documento.getString("tipo");
-        service.sincronizarVehiculoMongo(id, identificacion, tipo);
-    }
 
     /** Sincroniza el vehículo desde MongoDB y lo vincula directamente al envío en Neo4j. */
     public void vincularVehiculoMongoAEnvio(String envioId, String idVehiculoMongo) {
@@ -68,18 +46,9 @@ public class ControllerNeo4j {
     }
 
 
-
     // =====================================================
     // DATOS DE PRUEBA
     // =====================================================
-
-    public void generarDatosPrueba() {
-        GeneradorDatosPruebaNeo.generar();
-    }
-
-
-
-
 
 
     public List<Map<String, Object>> listarEnvios() {

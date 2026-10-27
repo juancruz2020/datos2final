@@ -109,27 +109,6 @@ public class EventoLogisticoMongoDAO {
 
 
     // =========================
-    // OBTENER TODOS LOS IDS
-    // =========================
-
-    public List<String> obtenerTodosLosIds() {
-
-        List<String> ids = new ArrayList<>();
-
-        for (Document documento : coleccion.find()) {
-
-            ObjectId id = documento.getObjectId("_id");
-
-            if (id != null) {
-                ids.add(id.toHexString());
-            }
-        }
-
-        return ids;
-    }
-
-
-    // =========================
     // VERIFICAR SI EXISTE POR ID
     // =========================
 
@@ -143,29 +122,4 @@ public class EventoLogisticoMongoDAO {
     }
 
 
-    // =========================
-    // BUSCAR EVENTOS POR ENVIO
-    // =========================
-
-    public List<Document> buscarPorEnvio(String envioId) {
-
-        return coleccion.find(
-                eq(
-                        "envio_id",
-                        envioId
-                )
-        ).into(new ArrayList<>());
-    }
-
-
-    // =========================
-    // BUSCAR EVENTOS POR TIPO
-    // =========================
-
-    public List<Document> buscarPorTipo(String tipoEvento) {
-
-        return coleccion.find(
-                eq("tipo_evento", tipoEvento)
-        ).into(new ArrayList<>());
-    }
 }

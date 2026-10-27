@@ -155,54 +155,6 @@ public class ContenedorService {
         return TablaConsola.mostrar("ContenedorService.buscarPorId", contenedor);
     }
 
-    // =========================================================
-    // EXISTE POR ID
-    // =========================================================
-
-    public boolean existePorId(String id) {
-
-        validarObjectId(id);
-
-        return TablaConsola.mostrar("ContenedorService.existePorId", contenedorDAO.existePorId(id));
-    }
-
-    // =========================================================
-    // OBTENER TODOS LOS IDS
-    // =========================================================
-
-    public List<String> obtenerTodosLosIds() {
-        return TablaConsola.mostrar("ContenedorService.obtenerTodosLosIds", contenedorDAO.obtenerTodosLosIds());
-    }
-
-    // =========================================================
-    // BUSCAR POR CÓDIGO
-    // =========================================================
-
-    public Document buscarPorCodigo(String codigo) {
-
-        if (codigo == null || codigo.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El código internacional es obligatorio."
-            );
-        }
-
-        return TablaConsola.mostrar("ContenedorService.buscarPorCodigo", contenedorDAO.buscarPorCodigo(codigo.trim()));
-    }
-
-    // =========================================================
-    // BUSCAR POR ESTADO
-    // =========================================================
-
-    public List<Document> buscarPorEstado(String estado) {
-
-        if (estado == null || estado.isBlank()) {
-            throw new IllegalArgumentException(
-                    "El estado es obligatorio."
-            );
-        }
-
-        return TablaConsola.mostrar("ContenedorService.buscarPorEstado", contenedorDAO.buscarPorEstado(estado.trim()));
-    }
 
     // =========================================================
     // VALIDAR OBJECT ID

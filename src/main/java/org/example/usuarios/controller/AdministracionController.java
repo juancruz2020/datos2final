@@ -36,16 +36,5 @@ public class AdministracionController {
         );
     }
 
-    // =========================================================
-    // OBTENER TTL
-    // =========================================================
 
-    public long obtenerTiempoRestante(
-            String usuario
-    ) {
-
-        return service.obtenerTiempoRestante(
-                usuario
-        );
-    }
 }

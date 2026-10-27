@@ -18,16 +18,6 @@ public class Envio {
     private Double costoEnvio;
 
     // Constructor original: se conserva por compatibilidad.
-    public Envio(
-            String id,
-            String estado,
-            String prioridad
-    ) {
-        this.id = id;
-        this.estado = estado;
-        this.prioridad = prioridad;
-        this.contenedoresIds = new ArrayList<>();
-    }
 
     // Constructor completo.
     public Envio(
@@ -74,75 +64,46 @@ public class Envio {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getClienteId() {
         return clienteId;
     }
 
-    public void setClienteId(String clienteId) {
-        this.clienteId = clienteId;
-    }
 
     public List<String> getContenedoresIds() {
         return contenedoresIds;
     }
 
-    public void setContenedoresIds(List<String> contenedoresIds) {
-        this.contenedoresIds = contenedoresIds != null
-                ? new ArrayList<>(contenedoresIds)
-                : new ArrayList<>();
-    }
 
     public String getFechaCreacion() {
         return fechaCreacion;
     }
 
-    public void setFechaCreacion(String fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
 
     public String getFechaSalida() {
         return fechaSalida;
     }
 
-    public void setFechaSalida(String fechaSalida) {
-        this.fechaSalida = fechaSalida;
-    }
 
     public String getFechaEntrega() {
         return fechaEntrega;
     }
 
-    public void setFechaEntrega(String fechaEntrega) {
-        this.fechaEntrega = fechaEntrega;
-    }
 
     public Ubicacion getOrigen() {
         return origen;
     }
 
-    public void setOrigen(Ubicacion origen) {
-        this.origen = origen;
-    }
 
     public Ubicacion getDestino() {
         return destino;
     }
 
-    public void setDestino(Ubicacion destino) {
-        this.destino = destino;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 
     public String getPrioridad() {
         return prioridad;
@@ -152,7 +113,4 @@ public class Envio {
 
     public void setCostoEnvio(Double costoEnvio) { this.costoEnvio = costoEnvio; }
 
-    public void setPrioridad(String prioridad) {
-        this.prioridad = prioridad;
-    }
 }

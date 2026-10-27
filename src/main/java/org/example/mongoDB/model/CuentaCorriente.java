@@ -30,23 +30,14 @@ public class CuentaCorriente {
         return clienteId;
     }
 
-    public void setClienteId(String clienteId) {
-        this.clienteId = clienteId;
-    }
 
     public BigDecimal getSaldo() {
         return saldo;
     }
 
-    public void setSaldo(BigDecimal saldo) {
-        this.saldo = saldo;
-    }
 
     public Date getFechaActualizacion() {
         return fechaActualizacion;
     }
 
-    public void setFechaActualizacion(Date fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
 }

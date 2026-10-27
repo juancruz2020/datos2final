@@ -19,21 +19,6 @@ public class PermisosController {
 
 
     // =========================
-    // OBTENER ROL
-    // =========================
-
-    public String obtenerRolUsuario(
-            String usuarioId
-    ) {
-
-        return permisosService
-                .obtenerRolUsuario(
-                        usuarioId
-                );
-    }
-
-
-    // =========================
     // VERIFICAR ACCESO
     // A UNA VISTA
     // =========================
@@ -51,62 +36,4 @@ public class PermisosController {
     }
 
 
-    // =========================
-    // VERIFICAR ADMIN
-    // =========================
-
-    public boolean esAdmin(
-            String usuarioId
-    ) {
-
-        return permisosService
-                .esAdmin(
-                        usuarioId
-                );
-    }
-
-
-    // =========================
-    // VERIFICAR OPERADOR
-    // =========================
-
-    public boolean esOperador(
-            String usuarioId
-    ) {
-
-        return permisosService
-                .esOperador(
-                        usuarioId
-                );
-    }
-
-
-    // =========================
-    // VERIFICAR CLIENTE
-    // =========================
-
-    public boolean esCliente(
-            String usuarioId
-    ) {
-
-        return permisosService
-                .esCliente(
-                        usuarioId
-                );
-    }
-
-
-    // =========================
-    // OBTENER CLIENTE
-    // =========================
-
-    public String obtenerClienteId(
-            String usuarioId
-    ) {
-
-        return permisosService
-                .obtenerClienteId(
-                        usuarioId
-                );
-    }
 }

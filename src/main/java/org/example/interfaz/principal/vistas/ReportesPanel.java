@@ -357,9 +357,6 @@ public class ReportesPanel extends JPanel {
         return comboPais;
     }
 
-    public JComboBox<String> getComboFormato() {
-        return comboFormato;
-    }
 
     public JButton getBtnGenerar() {
         return btnGenerar;
@@ -369,36 +366,10 @@ public class ReportesPanel extends JPanel {
         return btnActualizar;
     }
 
-    public JTable getTablaReportes() {
-        return tablaReportes;
-    }
 
     public DefaultTableModel getModeloTabla() {
         return modeloTabla;
     }
 
-    // =========================================================
-    // LIMPIAR FORMULARIO
-    // =========================================================
 
-    public void limpiarFormulario() {
-
-        comboTipo.setSelectedIndex(0);
-
-        if (comboCliente.getItemCount() > 0) {
-            comboCliente.setSelectedIndex(0);
-        }
-
-        if (comboEstado.getItemCount() > 0) {
-            comboEstado.setSelectedIndex(0);
-        }
-
-        if (comboPais.getItemCount() > 0) {
-            comboPais.setSelectedIndex(0);
-        }
-
-        comboFormato.setSelectedIndex(0);
-
-        actualizarFiltros();
-    }
 }

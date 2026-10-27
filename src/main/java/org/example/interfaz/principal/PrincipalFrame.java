@@ -13,7 +13,6 @@ public class PrincipalFrame extends JFrame {
 
     private final String usuarioId;
 
-    private final String nombreUsuario;
 
     private final SesionController sesionController;
 
@@ -32,8 +31,6 @@ public class PrincipalFrame extends JFrame {
         this.usuarioId =
                 usuarioId;
 
-        this.nombreUsuario =
-                nombreUsuario;
 
         this.sesionController =
                 new SesionController();

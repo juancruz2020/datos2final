@@ -22,7 +22,6 @@ public class EventosLogisticosPanelController {
     private final EnvioController envioController;
     private final PermisosService permisosService;
 
-    private final String usuarioId;
     private final String rolActual;
     private final String clienteIdActual;
 
@@ -40,7 +39,6 @@ public class EventosLogisticosPanelController {
     ) {
 
         this.vista = vista;
-        this.usuarioId = usuarioId;
 
         this.eventoController =
                 new EventoLogisticoController();

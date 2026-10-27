@@ -24,9 +24,6 @@ public class Mensaje {
         this.fechaEnvio = fechaEnvio;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public void setId(String id) {
         this.id = id;
@@ -36,39 +33,19 @@ public class Mensaje {
         return conversacionId;
     }
 
-    public void setConversacionId(
-            String conversacionId
-    ) {
-        this.conversacionId = conversacionId;
-    }
 
     public String getRemitenteId() {
         return remitenteId;
     }
 
-    public void setRemitenteId(
-            String remitenteId
-    ) {
-        this.remitenteId = remitenteId;
-    }
 
     public String getContenido() {
         return contenido;
     }
 
-    public void setContenido(
-            String contenido
-    ) {
-        this.contenido = contenido;
-    }
 
     public Date getFechaEnvio() {
         return fechaEnvio;
     }
 
-    public void setFechaEnvio(
-            Date fechaEnvio
-    ) {
-        this.fechaEnvio = fechaEnvio;
-    }
 }

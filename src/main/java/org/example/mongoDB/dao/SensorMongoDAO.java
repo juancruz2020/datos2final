@@ -135,16 +135,6 @@ public class SensorMongoDAO {
         );
     }
 
-    // =========================
-    // BUSCAR SENSOR POR ID
-    // =========================
-
-    public Document buscarPorId(String id) {
-
-        return coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
-    }
 
     // =========================
     // LISTAR SENSORES
@@ -189,39 +179,5 @@ public class SensorMongoDAO {
         return documento != null;
     }
 
-    // =========================
-    // BUSCAR SENSOR POR CODIGO
-    // =========================
 
-    public Document buscarPorCodigo(String codigo) {
-
-        return coleccion.find(
-                eq("codigo", codigo)
-        ).first();
-    }
-
-    // =========================
-    // BUSCAR SENSORES POR CONTENEDOR
-    // =========================
-
-    public List<Document> buscarPorContenedor(String contenedorId) {
-
-        return coleccion.find(
-                eq(
-                        "contenedor_id",
-                        new ObjectId(contenedorId)
-                )
-        ).into(new ArrayList<>());
-    }
-
-    // =========================
-    // BUSCAR SENSORES POR ESTADO
-    // =========================
-
-    public List<Document> buscarPorEstado(String estado) {
-
-        return coleccion.find(
-                eq("estado", estado)
-        ).into(new ArrayList<>());
-    }
 }

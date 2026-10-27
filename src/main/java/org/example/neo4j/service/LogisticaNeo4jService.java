@@ -4,7 +4,6 @@ import org.example.consola.TablaConsola;
 
 import org.example.logging.AppLog;
 
-import org.example.neo4j.dao.ClienteNeo4jDAO;
 
 import org.example.neo4j.dao.EnvioNeo4jDAO;
 import org.example.neo4j.dao.GrafoNeo4jDAO;
@@ -12,7 +11,6 @@ import org.example.neo4j.dao.GrafoNeo4jDAO;
 
 import org.example.neo4j.dao.VehiculoNeo4jDAO;
 
-import org.example.neo4j.model.Cliente;
 
 import org.example.neo4j.model.Envio;
 
@@ -24,7 +22,6 @@ import java.time.LocalDate;
 
 public class LogisticaNeo4jService {
 
-    private final ClienteNeo4jDAO clienteDAO;
     private final EnvioNeo4jDAO envioDAO;
     private final VehiculoNeo4jDAO vehiculoDAO;
 
@@ -32,7 +29,6 @@ public class LogisticaNeo4jService {
     private final DisponibilidadContenedores disponibilidad;
 
     public LogisticaNeo4jService() {
-        clienteDAO = new ClienteNeo4jDAO();
         envioDAO = new EnvioNeo4jDAO();
         vehiculoDAO = new VehiculoNeo4jDAO();
 
@@ -59,13 +55,6 @@ public class LogisticaNeo4jService {
     // CREACIÓN DE NODOS
     // =====================================================
 
-    public void crearCliente(Cliente cliente) {
-        clienteDAO.crearCliente(
-                cliente.getId(),
-                cliente.getRazonSocial(),
-                cliente.getCuit()
-        );
-    }
 
     public void crearEnvio(Envio envio) {
         if (envio == null || envio.getId() == null || envio.getId().isBlank()
@@ -143,9 +132,6 @@ public class LogisticaNeo4jService {
     }
 
 
-
-
-
     // =====================================================
     // CONSULTAS PARA LA INTERFAZ
     // =====================================================
@@ -174,53 +160,11 @@ public class LogisticaNeo4jService {
     // RELACIONES
     // =====================================================
 
-    public void relacionarClienteEnvio(
-            String clienteId,
-            String envioId
-    ) {
-        grafoDAO.clienteRealizaEnvio(clienteId, envioId);
-    }
 
     public void relacionarEnvioVehiculo(String envioId, String vehiculoId) {
         grafoDAO.envioUsaVehiculo(envioId, vehiculoId);
     }
 
-    public void relacionarEnvioOrigen(String envioId, String ciudad, String pais) {
-        grafoDAO.envioSaleDe(envioId, ciudad, pais);
-    }
-
-    public void relacionarEnvioDestino(String envioId, String ciudad, String pais) {
-        grafoDAO.envioLlegaA(envioId, ciudad, pais);
-    }
-
-    public void relacionarOperadorVehiculo(String operadorId, String vehiculoId) {
-        grafoDAO.operadorOperaVehiculo(operadorId, vehiculoId);
-    }
-    public void relacionarProveedorVehiculo(String proveedorId, String vehiculoId) {
-        grafoDAO.proveedorProveeVehiculo(proveedorId, vehiculoId);
-    }
-
-
-    public void relacionarEnvioContenedor(
-            String envioId,
-            String contenedorId
-    ) {
-        grafoDAO.envioTransportaContenedor(envioId, contenedorId);
-    }
-
-    public void relacionarContenedorSensor(String contenedorId, String sensorId) {
-        grafoDAO.contenedorTieneSensor(contenedorId, sensorId);
-    }
-
-    public List<String> obtenerRutaEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerRutaEnvio", grafoDAO.obtenerRutaEnvio(envioId)); }
-    public List<String> obtenerEnviosDeCliente(String clienteId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerEnviosDeCliente", grafoDAO.obtenerEnviosDeCliente(clienteId)); }
-    public List<String> obtenerVehiculosDeOperador(String operadorId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerVehiculosDeOperador", grafoDAO.obtenerVehiculosDeOperador(operadorId)); }
-    public List<String> obtenerContenedoresDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerContenedoresDeEnvio", grafoDAO.obtenerContenedoresDeEnvio(envioId)); }
-    public List<String> obtenerEnviosPorUbicacion(String ubicacionId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerEnviosPorUbicacion", grafoDAO.obtenerEnviosPorUbicacion(ubicacionId)); }
-    public List<String> obtenerOperadorDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerOperadorDeEnvio", grafoDAO.obtenerOperadorDeEnvio(envioId)); }
-    public List<String> obtenerProveedorDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerProveedorDeEnvio", grafoDAO.obtenerProveedorDeEnvio(envioId)); }
-    public List<String> obtenerRecorridoContenedor(String contenedorId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerRecorridoContenedor", grafoDAO.obtenerRecorridoContenedor(contenedorId)); }
-    public List<String> obtenerRedDeEnvio(String envioId) { return TablaConsola.mostrar("LogisticaNeo4jService.obtenerRedDeEnvio", grafoDAO.obtenerRedDeEnvio(envioId)); }
 
     public void modificarEnvio(Envio envio) {
         if (envio == null || envio.getId() == null) {

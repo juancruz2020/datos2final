@@ -30,9 +30,6 @@ public class Contenedor {
         this.id = id;
     }
 
-    public String getCodigoInternacional() {
-        return codigoInternacional;
-    }
 
     public void setCodigoInternacional(String codigoInternacional) {
         this.codigoInternacional = codigoInternacional;
@@ -42,23 +39,14 @@ public class Contenedor {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public double getCapacidad() {
         return capacidad;
     }
 
-    public void setCapacidad(double capacidad) {
-        this.capacidad = capacidad;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

@@ -142,14 +142,6 @@ public class CampoPassword extends JPanel {
     }
 
 
-    public String getText() {
-
-        return new String(
-                campo.getPassword()
-        );
-    }
-
-
     public void setText(String texto) {
 
         campo.setText(texto);
@@ -216,9 +208,6 @@ public class CampoPassword extends JPanel {
 
             int ancho = 20;
             int alto = 12;
-
-            int centroX = x + 10;
-            int centroY = y + 10;
 
 
             // Parte exterior del ojo

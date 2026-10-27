@@ -36,7 +36,6 @@ public class EnviosPanelController {
 
     private final List<String> idsEnvios;
 
-    private final String usuarioId;
     private final String rolActual;
     private final String clienteIdActual;
 
@@ -52,7 +51,6 @@ public class EnviosPanelController {
     ) {
 
         this.view = view;
-        this.usuarioId = usuarioId;
 
         this.neo4j = new ControllerNeo4j();
         this.clienteController = new ClienteController();

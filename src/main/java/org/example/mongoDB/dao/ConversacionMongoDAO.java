@@ -11,9 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.set;
 
 public class ConversacionMongoDAO {
 
@@ -78,56 +75,6 @@ public class ConversacionMongoDAO {
 
 
     // =========================================================
-    // MODIFICAR
-    // =========================================================
-
-    public void modificar(
-            Conversacion conversacion
-    ) {
-
-        coleccion.updateOne(
-                eq(
-                        "_id",
-                        new ObjectId(
-                                conversacion.getId()
-                        )
-                ),
-                combine(
-                        set(
-                                "nombre",
-                                conversacion.getNombre()
-                        ),
-                        set(
-                                "tipo",
-                                conversacion.getTipo()
-                        ),
-                        set(
-                                "participantes_ids",
-                                conversacion.getParticipantesIds()
-                        )
-                )
-        );
-    }
-
-
-    // =========================================================
-    // ELIMINAR
-    // =========================================================
-
-    public void eliminar(
-            String id
-    ) {
-
-        coleccion.deleteOne(
-                eq(
-                        "_id",
-                        new ObjectId(id)
-                )
-        );
-    }
-
-
-    // =========================================================
     // BUSCAR POR ID
     // =========================================================
 
@@ -143,20 +90,6 @@ public class ConversacionMongoDAO {
                         )
                 )
                 .first();
-    }
-
-
-    // =========================================================
-    // LISTAR TODAS
-    // =========================================================
-
-    public List<Document> listarTodos() {
-
-        return coleccion
-                .find()
-                .into(
-                        new ArrayList<>()
-                );
     }
 
 
@@ -181,69 +114,4 @@ public class ConversacionMongoDAO {
     }
 
 
-    // =========================================================
-    // BUSCAR POR TIPO
-    // =========================================================
-
-    public List<Document> buscarPorTipo(
-            String tipo
-    ) {
-
-        return coleccion
-                .find(
-                        eq(
-                                "tipo",
-                                tipo
-                        )
-                )
-                .into(
-                        new ArrayList<>()
-                );
-    }
-
-
-    // =========================================================
-    // EXISTE POR ID
-    // =========================================================
-
-    public boolean existePorId(
-            String id
-    ) {
-
-        Document documento =
-                buscarPorId(id);
-
-        return documento != null;
-    }
-
-
-    // =========================================================
-    // OBTENER IDS
-    // =========================================================
-
-    public List<String> obtenerTodosLosIds() {
-
-        List<String> ids =
-                new ArrayList<>();
-
-        for (
-                Document documento :
-                coleccion.find()
-        ) {
-
-            ObjectId id =
-                    documento.getObjectId(
-                            "_id"
-                    );
-
-            if (id != null) {
-
-                ids.add(
-                        id.toHexString()
-                );
-            }
-        }
-
-        return ids;
-    }
 }

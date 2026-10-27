@@ -4,7 +4,6 @@ import org.example.conecciones.RedisSingleton;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.ScanParams;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -161,14 +160,5 @@ public class SesionDAO {
         return sesiones;
     }
 
-    // =========================================================
-    // OBTENER USUARIOS CON SESIÓN ACTIVA
-    // =========================================================
 
-    public List<String> obtenerUsuariosConSesionActiva() {
-
-        return new ArrayList<>(
-                obtenerSesionesActivas().keySet()
-        );
-    }
 }

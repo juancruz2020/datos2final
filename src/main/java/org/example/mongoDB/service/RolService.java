@@ -3,7 +3,6 @@ package org.example.mongoDB.service;
 import org.example.consola.TablaConsola;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.RolMongoDAO;
 
 import java.util.List;
@@ -35,35 +34,6 @@ public class RolService {
 
 
     // =========================================================
-    // BUSCAR ROL POR ID
-    // =========================================================
-
-    public Document buscarPorId(
-            String rolId
-    ) {
-
-        validarObjectId(
-                rolId,
-                "El ID del rol no es válido."
-        );
-
-        Document rol =
-                rolDAO.buscarPorId(
-                        rolId
-                );
-
-        if (rol == null) {
-
-            throw new IllegalArgumentException(
-                    "El rol no existe."
-            );
-        }
-
-        return TablaConsola.mostrar("RolService.buscarPorId", rol);
-    }
-
-
-    // =========================================================
     // BUSCAR ROL POR DESCRIPCIÓN
     // =========================================================
 
@@ -85,22 +55,4 @@ public class RolService {
     }
 
 
-    // =========================================================
-    // VALIDAR OBJECT ID
-    // =========================================================
-
-    private void validarObjectId(
-            String id,
-            String mensaje
-    ) {
-
-        if (id == null
-                || id.isBlank()
-                || !ObjectId.isValid(id)) {
-
-            throw new IllegalArgumentException(
-                    mensaje
-            );
-        }
-    }
 }

@@ -42,47 +42,29 @@ public class Incidente {
         return envioId;
     }
 
-    public void setEnvioId(String envioId) {
-        this.envioId = envioId;
-    }
 
     public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public Date getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
 
     public String getSeveridad() {
         return severidad;
     }
 
-    public void setSeveridad(String severidad) {
-        this.severidad = severidad;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 
     public String getDescripcion() {
         return descripcion;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
 }

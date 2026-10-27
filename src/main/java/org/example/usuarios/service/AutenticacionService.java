@@ -126,25 +126,4 @@ public class AutenticacionService {
     }
 
 
-    // =========================================================
-    // GUARDAR CONTRASEÑA
-    // =========================================================
-
-    public String encriptarContraseña(
-            String contraseña
-    ) {
-
-        if (contraseña == null
-                || contraseña.isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "La contraseña es obligatoria"
-            );
-        }
-
-
-        // Ya no se utiliza BCrypt.
-        // Se devuelve la contraseña directamente.
-        return contraseña;
-    }
 }

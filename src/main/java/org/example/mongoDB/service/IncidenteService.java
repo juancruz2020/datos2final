@@ -369,36 +369,6 @@ public class IncidenteService {
 
 
     // =========================================================
-    // EXISTE POR ID
-    // =========================================================
-
-    public boolean existePorId(
-            String id
-    ) {
-
-        validarObjectId(
-                id,
-                "El ID del incidente no es válido."
-        );
-
-
-        return TablaConsola.mostrar("IncidenteService.existePorId", incidenteDAO.existePorId(
-                id
-        ));
-    }
-
-
-    // =========================================================
-    // OBTENER TODOS LOS IDS
-    // =========================================================
-
-    public List<String> obtenerTodosLosIds() {
-
-        return TablaConsola.mostrar("IncidenteService.obtenerTodosLosIds", incidenteDAO.obtenerTodosLosIds());
-    }
-
-
-    // =========================================================
     // VALIDAR OBJECT ID
     // =========================================================
 

@@ -27,9 +27,6 @@ public class Alerta {
         this.estado = estado;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public void setId(String id) {
         this.id = id;
@@ -39,39 +36,24 @@ public class Alerta {
         return sensorId;
     }
 
-    public void setSensorId(String sensorId) {
-        this.sensorId = sensorId;
-    }
 
     public String getEventoId() {
         return eventoId;
     }
 
-    public void setEventoId(String eventoId) {
-        this.eventoId = eventoId;
-    }
 
     public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public Date getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

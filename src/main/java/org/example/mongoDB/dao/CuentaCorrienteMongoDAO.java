@@ -73,52 +73,6 @@ public class CuentaCorrienteMongoDAO {
         );
     }
 
-    // =========================
-    // MODIFICAR CUENTA CORRIENTE
-    // =========================
-
-    public void modificar(CuentaCorriente cuentaCorriente) {
-
-        coleccion.updateOne(
-                eq("_id", new ObjectId(cuentaCorriente.getId())),
-                combine(
-                        set(
-                                "cliente_id",
-                                new ObjectId(cuentaCorriente.getClienteId())
-                        ),
-                        set(
-                                "saldo",
-                                new Decimal128(cuentaCorriente.getSaldo())
-                        ),
-                        set(
-                                "fecha_actualizacion",
-                                cuentaCorriente.getFechaActualizacion()
-                        )
-                )
-        );
-    }
-
-    // =========================
-    // ELIMINAR CUENTA CORRIENTE
-    // =========================
-
-    public void eliminar(String id) {
-
-        coleccion.deleteOne(
-                eq("_id", new ObjectId(id))
-        );
-    }
-
-    // =========================
-    // BUSCAR CUENTA CORRIENTE POR ID
-    // =========================
-
-    public Document buscarPorId(String id) {
-
-        return coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
-    }
 
     // =========================
     // LISTAR CUENTAS CORRIENTES
@@ -130,38 +84,6 @@ public class CuentaCorrienteMongoDAO {
                 .into(new ArrayList<>());
     }
 
-    // =========================
-    // OBTENER TODOS LOS IDS
-    // =========================
-
-    public List<String> obtenerTodosLosIds() {
-
-        List<String> ids = new ArrayList<>();
-
-        for (Document documento : coleccion.find()) {
-
-            ObjectId id = documento.getObjectId("_id");
-
-            if (id != null) {
-                ids.add(id.toHexString());
-            }
-        }
-
-        return ids;
-    }
-
-    // =========================
-    // VERIFICAR SI EXISTE POR ID
-    // =========================
-
-    public boolean existePorId(String id) {
-
-        Document documento = coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
-
-        return documento != null;
-    }
 
     // =========================
     // BUSCAR CUENTA CORRIENTE POR CLIENTE

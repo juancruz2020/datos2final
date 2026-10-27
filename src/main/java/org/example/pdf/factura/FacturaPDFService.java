@@ -61,23 +61,5 @@ public class FacturaPDFService {
         opener.abrir(archivo);
     }
 
-    // ==========================================
-    // COMPATIBILIDAD CON EL MÉTODO ANTERIOR
-    // ==========================================
 
-    public void generarFactura(
-            String clienteId,
-            Date fechaEmision,
-            BigDecimal importeTotal,
-            String estado
-    ) throws IOException {
-
-        generarFactura(
-                clienteId,
-                fechaEmision,
-                null,
-                importeTotal,
-                estado
-        );
-    }
 }

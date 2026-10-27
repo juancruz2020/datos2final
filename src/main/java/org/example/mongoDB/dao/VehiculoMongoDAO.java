@@ -102,27 +102,6 @@ public class VehiculoMongoDAO {
 
 
     // =========================
-    // OBTENER TODOS LOS IDS
-    // =========================
-
-    public List<String> obtenerTodosLosIds() {
-
-        List<String> ids = new ArrayList<>();
-
-        for (Document documento : coleccion.find()) {
-
-            ObjectId id = documento.getObjectId("_id");
-
-            if (id != null) {
-                ids.add(id.toHexString());
-            }
-        }
-
-        return ids;
-    }
-
-
-    // =========================
     // VERIFICAR SI EXISTE POR ID
     // =========================
 
@@ -148,26 +127,4 @@ public class VehiculoMongoDAO {
     }
 
 
-    // =========================
-    // BUSCAR POR ESTADO
-    // =========================
-
-    public List<Document> buscarPorEstado(String estado) {
-
-        return coleccion.find(
-                eq("estado", estado)
-        ).into(new ArrayList<>());
-    }
-
-
-    // =========================
-    // BUSCAR POR TIPO
-    // =========================
-
-    public List<Document> buscarPorTipo(String tipo) {
-
-        return coleccion.find(
-                eq("tipo", tipo)
-        ).into(new ArrayList<>());
-    }
 }

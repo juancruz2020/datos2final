@@ -47,66 +47,6 @@ public class UsuarioController {
 
 
     // =========================================================
-    // CAMBIAR CONTRASEÑA
-    // =========================================================
-
-    public void cambiarContraseña(
-            String usuarioId,
-            String nuevaContraseña
-    ) {
-
-        usuarioService.cambiarContraseña(
-                usuarioId,
-                nuevaContraseña
-        );
-    }
-
-
-    // =========================================================
-    // CAMBIAR ROL
-    // =========================================================
-
-    public void cambiarRol(
-            String usuarioId,
-            String rolId
-    ) {
-
-        usuarioService.cambiarRol(
-                usuarioId,
-                rolId
-        );
-    }
-
-
-    // =========================================================
-    // ACTIVAR USUARIO
-    // =========================================================
-
-    public void activarUsuario(
-            String usuarioId
-    ) {
-
-        usuarioService.activarUsuario(
-                usuarioId
-        );
-    }
-
-
-    // =========================================================
-    // DESACTIVAR USUARIO
-    // =========================================================
-
-    public void desactivarUsuario(
-            String usuarioId
-    ) {
-
-        usuarioService.desactivarUsuario(
-                usuarioId
-        );
-    }
-
-
-    // =========================================================
     // ELIMINAR USUARIO
     // =========================================================
 
@@ -115,20 +55,6 @@ public class UsuarioController {
     ) {
 
         usuarioService.eliminarUsuario(
-                usuarioId
-        );
-    }
-
-
-    // =========================================================
-    // BUSCAR USUARIO POR ID
-    // =========================================================
-
-    public Document buscarPorId(
-            String usuarioId
-    ) {
-
-        return usuarioService.buscarPorId(
                 usuarioId
         );
     }
@@ -158,30 +84,4 @@ public class UsuarioController {
     }
 
 
-    // =========================================================
-    // LISTAR USUARIOS POR CLIENTE
-    // =========================================================
-
-    public List<Document> listarPorCliente(
-            String clienteId
-    ) {
-
-        return usuarioService.listarPorCliente(
-                clienteId
-        );
-    }
-
-
-    // =========================================================
-    // LISTAR USUARIOS POR ROL
-    // =========================================================
-
-    public List<Document> listarPorRol(
-            String rolId
-    ) {
-
-        return usuarioService.listarPorRol(
-                rolId
-        );
-    }
 }

@@ -255,25 +255,5 @@ public class ContenedorMongoDAO {
         return documento != null;
     }
 
-    // =========================
-    // BUSCAR POR CODIGO INTERNACIONAL
-    // =========================
 
-    public Document buscarPorCodigo(String codigo) {
-
-        return coleccion.find(
-                eq("codigo_internacional", codigo)
-        ).first();
-    }
-
-    // =========================
-    // BUSCAR POR ESTADO
-    // =========================
-
-    public List<Document> buscarPorEstado(String estado) {
-
-        return coleccion.find(
-                eq("estado", estado)
-        ).into(new ArrayList<>());
-    }
 }

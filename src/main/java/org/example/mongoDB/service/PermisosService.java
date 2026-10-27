@@ -88,16 +88,6 @@ public class PermisosService {
         );
     }
 
-    // =========================
-    // VERIFICAR OPERADOR
-    // =========================
-
-    public boolean esOperador(String usuarioId) {
-
-        return "Operador".equalsIgnoreCase(
-                obtenerRolUsuario(usuarioId)
-        );
-    }
 
     // =========================
     // VERIFICAR CLIENTE
@@ -147,19 +137,6 @@ public class PermisosService {
         }
     }
 
-    // =========================
-    // EXIGIR CLIENTE
-    // =========================
-
-    public void exigirCliente(String usuarioId) {
-
-        if (!esCliente(usuarioId)) {
-
-            throw new SecurityException(
-                    "Esta operación requiere rol Cliente"
-            );
-        }
-    }
 
     // =========================
     // OBTENER CLIENTE DEL USUARIO
@@ -197,51 +174,6 @@ public class PermisosService {
         return clienteId.toHexString();
     }
 
-    // =========================
-    // VERIFICAR PERTENENCIA
-    // A UN CLIENTE
-    // =========================
-
-    public boolean perteneceAlCliente(
-            String usuarioId,
-            String clienteId
-    ) {
-
-        if (clienteId == null
-                || !ObjectId.isValid(clienteId)) {
-
-            throw new IllegalArgumentException(
-                    "El ID del cliente no es válido"
-            );
-        }
-
-        String clienteUsuario =
-                obtenerClienteId(usuarioId);
-
-        if (clienteUsuario == null) {
-            return false;
-        }
-
-        return clienteUsuario.equals(clienteId);
-    }
-
-    // =========================
-    // EXIGIR MISMO CLIENTE
-    // =========================
-
-    public void exigirMismoCliente(
-            String usuarioId,
-            String clienteId
-    ) {
-
-        if (!perteneceAlCliente(usuarioId, clienteId)) {
-
-            throw new SecurityException(
-                    "El usuario no tiene permiso para acceder "
-                            + "a los datos de este cliente"
-            );
-        }
-    }
 
     // =========================
     // VERIFICAR ACCESO A UNA VISTA

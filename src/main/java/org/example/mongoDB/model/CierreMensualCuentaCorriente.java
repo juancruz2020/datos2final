@@ -38,9 +38,6 @@ public class CierreMensualCuentaCorriente {
         this.fechaCierre = fechaCierre;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public void setId(String id) {
         this.id = id;
@@ -50,63 +47,39 @@ public class CierreMensualCuentaCorriente {
         return cuentaCorrienteId;
     }
 
-    public void setCuentaCorrienteId(String cuentaCorrienteId) {
-        this.cuentaCorrienteId = cuentaCorrienteId;
-    }
 
     public int getAnio() {
         return anio;
     }
 
-    public void setAnio(int anio) {
-        this.anio = anio;
-    }
 
     public int getMes() {
         return mes;
     }
 
-    public void setMes(int mes) {
-        this.mes = mes;
-    }
 
     public BigDecimal getSaldoInicial() {
         return saldoInicial;
     }
 
-    public void setSaldoInicial(BigDecimal saldoInicial) {
-        this.saldoInicial = saldoInicial;
-    }
 
     public BigDecimal getTotalDebitos() {
         return totalDebitos;
     }
 
-    public void setTotalDebitos(BigDecimal totalDebitos) {
-        this.totalDebitos = totalDebitos;
-    }
 
     public BigDecimal getTotalCreditos() {
         return totalCreditos;
     }
 
-    public void setTotalCreditos(BigDecimal totalCreditos) {
-        this.totalCreditos = totalCreditos;
-    }
 
     public BigDecimal getSaldoFinal() {
         return saldoFinal;
     }
 
-    public void setSaldoFinal(BigDecimal saldoFinal) {
-        this.saldoFinal = saldoFinal;
-    }
 
     public Date getFechaCierre() {
         return fechaCierre;
     }
 
-    public void setFechaCierre(Date fechaCierre) {
-        this.fechaCierre = fechaCierre;
-    }
 }

@@ -32,20 +32,6 @@ public class RolController {
 
 
     // =========================================================
-    // BUSCAR ROL POR ID
-    // =========================================================
-
-    public Document buscarPorId(
-            String rolId
-    ) {
-
-        return rolService.buscarPorId(
-                rolId
-        );
-    }
-
-
-    // =========================================================
     // BUSCAR ROL POR DESCRIPCIÓN
     // =========================================================
 

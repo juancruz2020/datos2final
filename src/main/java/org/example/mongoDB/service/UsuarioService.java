@@ -134,149 +134,6 @@ public class UsuarioService {
         return usuario;
     }
 
-    // =========================
-    // CAMBIAR CONTRASEÑA
-    // =========================
-
-    public void cambiarContraseña(
-            String usuarioId,
-            String nuevaContraseña
-    ) {
-
-        validarUsuarioExistente(usuarioId);
-
-        validarTexto(
-                nuevaContraseña,
-                "La nueva contraseña es obligatoria."
-        );
-
-        usuarioDAO.cambiarContraseña(
-                usuarioId,
-                nuevaContraseña
-        );
-    }
-
-    // =========================
-    // CAMBIAR ROL
-    // =========================
-
-    public void cambiarRol(
-            String usuarioId,
-            String rolId
-    ) {
-
-        validarUsuarioExistente(usuarioId);
-
-        validarObjectId(
-                rolId,
-                "El ID del rol no es válido."
-        );
-
-        Document rol = rolDAO.buscarPorId(rolId);
-
-        if (rol == null) {
-            throw new IllegalArgumentException(
-                    "El rol indicado no existe."
-            );
-        }
-
-        String descripcionRol = rol.getString("descripcion");
-
-        validarTexto(
-                descripcionRol,
-                "El rol no tiene una descripción válida."
-        );
-
-        Document usuario = usuarioDAO.buscarPorId(usuarioId);
-
-        ObjectId clienteId = usuario.getObjectId("cliente_id");
-
-        // SI CAMBIA A CLIENTE
-
-        if ("Cliente".equalsIgnoreCase(descripcionRol)) {
-
-            if (clienteId == null) {
-                throw new IllegalArgumentException(
-                        "No se puede asignar el rol Cliente porque el usuario no tiene una empresa asociada."
-                );
-            }
-
-            String clienteIdString = clienteId.toHexString();
-
-            if (!clienteDAO.existePorId(clienteIdString)) {
-                throw new IllegalArgumentException(
-                        "La empresa asociada al usuario no existe."
-                );
-            }
-
-            List<Document> usuariosDelCliente =
-                    usuarioDAO.buscarPorCliente(clienteIdString);
-
-            for (Document otroUsuario : usuariosDelCliente) {
-
-                if (!otroUsuario.getObjectId("_id")
-                        .equals(new ObjectId(usuarioId))) {
-
-                    throw new IllegalArgumentException(
-                            "Este cliente ya tiene otra cuenta de usuario asociada."
-                    );
-                }
-            }
-        }
-
-        // SI CAMBIA A ADMIN U OPERADOR,
-        // SE QUITA LA EMPRESA ASOCIADA
-
-        if (esRolSinCliente(descripcionRol)) {
-
-            Usuario usuarioActualizado = new Usuario(
-                    usuarioId,
-                    null,
-                    rolId,
-                    usuario.getString("nombre"),
-                    usuario.getString("apellido"),
-                    usuario.getString("email"),
-                    usuario.getString("contraseña_encriptada"),
-                    usuario.getString("estado"),
-                    usuario.getDate("fecha_registro")
-            );
-
-            usuarioDAO.modificar(usuarioActualizado);
-
-            return;
-        }
-
-        usuarioDAO.cambiarRol(usuarioId, rolId);
-    }
-
-    // =========================
-    // ACTIVAR USUARIO
-    // =========================
-
-    public void activarUsuario(String usuarioId) {
-
-        validarUsuarioExistente(usuarioId);
-
-        usuarioDAO.cambiarEstado(
-                usuarioId,
-                "ACTIVO"
-        );
-    }
-
-    // =========================
-    // DESACTIVAR USUARIO
-    // =========================
-
-    public void desactivarUsuario(String usuarioId) {
-
-        validarUsuarioExistente(usuarioId);
-
-        usuarioDAO.cambiarEstado(
-                usuarioId,
-                "INACTIVO"
-        );
-        AppLog.info(UsuarioService.class, "Usuario desactivado.");
-    }
 
     // =========================
     // ELIMINAR USUARIO
@@ -290,16 +147,6 @@ public class UsuarioService {
         AppLog.info(UsuarioService.class, "Usuario eliminado.");
     }
 
-    // =========================
-    // BUSCAR POR ID
-    // =========================
-
-    public Document buscarPorId(String usuarioId) {
-
-        validarUsuarioExistente(usuarioId);
-
-        return TablaConsola.mostrar("UsuarioService.buscarPorId", usuarioDAO.buscarPorId(usuarioId));
-    }
 
     // =========================
     // BUSCAR POR EMAIL
@@ -325,33 +172,6 @@ public class UsuarioService {
         return TablaConsola.mostrar("UsuarioService.listarUsuarios", usuarioDAO.listarTodos());
     }
 
-    // =========================
-    // LISTAR POR CLIENTE
-    // =========================
-
-    public List<Document> listarPorCliente(String clienteId) {
-
-        validarObjectId(
-                clienteId,
-                "El ID del cliente no es válido."
-        );
-
-        return TablaConsola.mostrar("UsuarioService.listarPorCliente", usuarioDAO.buscarPorCliente(clienteId));
-    }
-
-    // =========================
-    // LISTAR POR ROL
-    // =========================
-
-    public List<Document> listarPorRol(String rolId) {
-
-        validarObjectId(
-                rolId,
-                "El ID del rol no es válido."
-        );
-
-        return TablaConsola.mostrar("UsuarioService.listarPorRol", usuarioDAO.buscarPorRol(rolId));
-    }
 
     // =========================
     // VALIDAR USUARIO EXISTENTE

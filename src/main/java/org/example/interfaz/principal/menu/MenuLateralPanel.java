@@ -1,7 +1,5 @@
 package org.example.interfaz.principal.menu;
 
-import org.example.interfaz.tema.Colores;
-import org.example.interfaz.tema.Fuentes;
 
 import javax.swing.*;
 import java.awt.*;

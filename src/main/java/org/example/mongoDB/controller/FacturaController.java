@@ -40,24 +40,6 @@ public class FacturaController {
         );
     }
 
-    // ==========================================
-    // CREAR FACTURA - COMPATIBILIDAD ANTERIOR
-    // ==========================================
-
-    @Deprecated
-    public void crearFactura(
-            String clienteId,
-            Date fechaEmision,
-            BigDecimal importeTotal,
-            String estado
-    ) {
-        facturaService.crearFactura(
-                clienteId,
-                fechaEmision,
-                importeTotal,
-                estado
-        );
-    }
 
     // ==========================================
     // MODIFICAR VENCIMIENTO Y ESTADO
@@ -91,21 +73,6 @@ public class FacturaController {
         return facturaService.buscarPorId(id);
     }
 
-    // ==========================================
-    // VERIFICAR EXISTENCIA
-    // ==========================================
-
-    public boolean existePorId(String id) {
-        return facturaService.existePorId(id);
-    }
-
-    // ==========================================
-    // OBTENER TODOS LOS IDS
-    // ==========================================
-
-    public List<String> obtenerTodosLosIds() {
-        return facturaService.obtenerTodosLosIds();
-    }
 
     // ==========================================
     // BUSCAR POR CLIENTE
@@ -117,13 +84,5 @@ public class FacturaController {
         return facturaService.buscarPorCliente(clienteId);
     }
 
-    // ==========================================
-    // BUSCAR POR ESTADO
-    // ==========================================
 
-    public List<Document> buscarPorEstado(
-            String estado
-    ) {
-        return facturaService.buscarPorEstado(estado);
-    }
 }

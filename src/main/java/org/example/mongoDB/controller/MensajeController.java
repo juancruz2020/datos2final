@@ -57,32 +57,6 @@ public class MensajeController {
 
 
     // =========================================================
-    // LISTAR MENSAJES
-    // =========================================================
-
-    public List<Document> listarMensajes() {
-
-        return mensajeService
-                .listarMensajes();
-    }
-
-
-    // =========================================================
-    // MENSAJES POR REMITENTE
-    // =========================================================
-
-    public List<Document> obtenerMensajesPorRemitente(
-            String remitenteId
-    ) {
-
-        return mensajeService
-                .obtenerMensajesPorRemitente(
-                        remitenteId
-                );
-    }
-
-
-    // =========================================================
     // MODIFICAR MENSAJE
     // =========================================================
 
@@ -118,17 +92,4 @@ public class MensajeController {
     }
 
 
-    // =========================================================
-    // ELIMINAR HISTORIAL
-    // =========================================================
-
-    public void eliminarHistorial(
-            String conversacionId
-    ) {
-
-        mensajeService
-                .eliminarHistorial(
-                        conversacionId
-                );
-    }
 }

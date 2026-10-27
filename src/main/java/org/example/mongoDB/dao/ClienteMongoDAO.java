@@ -186,25 +186,6 @@ public class ClienteMongoDAO {
                 .into(new ArrayList<>());
     }
 
-    // =========================
-    // OBTENER TODOS LOS IDS
-    // =========================
-
-    public List<String> obtenerTodosLosIds() {
-
-        List<String> ids = new ArrayList<>();
-
-        for (Document documento : coleccion.find()) {
-
-            ObjectId id = documento.getObjectId("_id");
-
-            if (id != null) {
-                ids.add(id.toHexString());
-            }
-        }
-
-        return ids;
-    }
 
     // =========================
     // VERIFICAR SI EXISTE POR ID
@@ -230,14 +211,5 @@ public class ClienteMongoDAO {
         ).first();
     }
 
-    // =========================
-    // BUSCAR CLIENTE POR CODIGO
-    // =========================
 
-    public Document buscarPorCodigo(String codigo) {
-
-        return coleccion.find(
-                eq("codigo", codigo)
-        ).first();
-    }
 }

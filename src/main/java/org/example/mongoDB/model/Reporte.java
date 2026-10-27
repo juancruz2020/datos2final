@@ -21,9 +21,6 @@ public class Reporte {
         this.estado = estado;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public void setId(String id) {
         this.id = id;
@@ -33,39 +30,24 @@ public class Reporte {
         return usuarioId;
     }
 
-    public void setUsuarioId(String usuarioId) {
-        this.usuarioId = usuarioId;
-    }
 
     public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public Date getFechaGeneracion() {
         return fechaGeneracion;
     }
 
-    public void setFechaGeneracion(Date fechaGeneracion) {
-        this.fechaGeneracion = fechaGeneracion;
-    }
 
     public String getFormato() {
         return formato;
     }
 
-    public void setFormato(String formato) {
-        this.formato = formato;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

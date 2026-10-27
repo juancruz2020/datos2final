@@ -145,30 +145,6 @@ public class CampoFecha extends JPanel {
 
 
     // =========================================================
-    // GET DATE
-    // =========================================================
-
-    public Date getDate() {
-
-        return dateChooser.getDate();
-    }
-
-
-    // =========================================================
-    // SET DATE
-    // =========================================================
-
-    public void setDate(
-            Date fecha
-    ) {
-
-        dateChooser.setDate(
-                fecha
-        );
-    }
-
-
-    // =========================================================
     // GET LOCAL DATE
     // =========================================================
 
@@ -191,60 +167,4 @@ public class CampoFecha extends JPanel {
     }
 
 
-    // =========================================================
-    // SET LOCAL DATE
-    // =========================================================
-
-    public void setLocalDate(
-            LocalDate fecha
-    ) {
-
-        if (fecha == null) {
-
-            dateChooser.setDate(
-                    null
-            );
-
-            return;
-        }
-
-        dateChooser.setDate(
-                Date.from(
-                        fecha
-                                .atStartOfDay(
-                                        ZoneId.systemDefault()
-                                )
-                                .toInstant()
-                )
-        );
-    }
-
-
-    // =========================================================
-    // GET TEXT
-    // =========================================================
-
-
-    public String getText() {
-
-        LocalDate fecha =
-                getLocalDate();
-
-        if (fecha == null) {
-
-            return "";
-        }
-
-        return fecha.toString();
-    }
-
-
-    // =========================================================
-    // GET DATE CHOOSER
-    // =========================================================
-
-    public JDateChooser getDateChooser() {
-
-        return dateChooser;
-    }
 }

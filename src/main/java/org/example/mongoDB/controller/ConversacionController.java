@@ -52,17 +52,6 @@ public class ConversacionController {
 
 
     // =========================================================
-    // LISTAR TODAS
-    // =========================================================
-
-    public List<Document> listarConversaciones() {
-
-        return conversacionService
-                .listarConversaciones();
-    }
-
-
-    // =========================================================
     // CONVERSACIONES DE UN USUARIO
     // =========================================================
 
@@ -77,71 +66,4 @@ public class ConversacionController {
     }
 
 
-    // =========================================================
-    // CONVERSACIONES PRIVADAS
-    // =========================================================
-
-    public List<Document> obtenerConversacionesPrivadas() {
-
-        return conversacionService
-                .obtenerConversacionesPrivadas();
-    }
-
-
-    // =========================================================
-    // CONVERSACIONES GRUPALES
-    // =========================================================
-
-    public List<Document> obtenerConversacionesGrupales() {
-
-        return conversacionService
-                .obtenerConversacionesGrupales();
-    }
-
-
-    // =========================================================
-    // BUSCAR POR ID
-    // =========================================================
-
-    public Document buscarPorId(
-            String id
-    ) {
-
-        return conversacionService
-                .buscarPorId(id);
-    }
-
-
-    // =========================================================
-    // MODIFICAR
-    // =========================================================
-
-    public void modificarConversacion(
-            String id,
-            String nombre,
-            String tipo,
-            List<String> participantesIds
-    ) {
-
-        conversacionService
-                .modificarConversacion(
-                        id,
-                        nombre,
-                        tipo,
-                        participantesIds
-                );
-    }
-
-
-    // =========================================================
-    // ELIMINAR
-    // =========================================================
-
-    public void eliminarConversacion(
-            String id
-    ) {
-
-        conversacionService
-                .eliminarConversacion(id);
-    }
 }

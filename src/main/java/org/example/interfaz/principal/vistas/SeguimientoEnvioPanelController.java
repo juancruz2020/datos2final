@@ -1099,10 +1099,8 @@ public class SeguimientoEnvioPanelController {
 
     private static class PosicionGPS {
 
-        private final String sensorId;
         private final double latitud;
         private final double longitud;
-        private final LocalDate fechaDia;
         private final Instant fechaHora;
 
         public PosicionGPS(
@@ -1113,16 +1111,11 @@ public class SeguimientoEnvioPanelController {
                 Instant fechaHora
         ) {
 
-            this.sensorId = sensorId;
             this.latitud = latitud;
             this.longitud = longitud;
-            this.fechaDia = fechaDia;
             this.fechaHora = fechaHora;
         }
 
-        public String getSensorId() {
-            return sensorId;
-        }
 
         public double getLatitud() {
             return latitud;
@@ -1132,9 +1125,6 @@ public class SeguimientoEnvioPanelController {
             return longitud;
         }
 
-        public LocalDate getFechaDia() {
-            return fechaDia;
-        }
 
         public Instant getFechaHora() {
             return fechaHora;

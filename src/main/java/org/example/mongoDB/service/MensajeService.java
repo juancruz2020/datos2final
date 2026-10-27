@@ -144,37 +144,6 @@ public class MensajeService {
 
 
     // =========================================================
-    // LISTAR TODOS LOS MENSAJES
-    // =========================================================
-
-    public List<Document> listarMensajes() {
-
-        return TablaConsola.mostrar("MensajeService.listarMensajes", mensajeDAO
-                .listarTodos());
-    }
-
-
-    // =========================================================
-    // MENSAJES POR REMITENTE
-    // =========================================================
-
-    public List<Document> obtenerMensajesPorRemitente(
-            String remitenteId
-    ) {
-
-        validarUsuarioId(
-                remitenteId
-        );
-
-
-        return TablaConsola.mostrar("MensajeService.obtenerMensajesPorRemitente", mensajeDAO
-                .buscarPorRemitente(
-                        remitenteId
-                ));
-    }
-
-
-    // =========================================================
     // MODIFICAR MENSAJE
     // =========================================================
 
@@ -289,26 +258,6 @@ public class MensajeService {
         mensajeDAO.eliminar(
                 mensajeId
         );
-    }
-
-
-    // =========================================================
-    // ELIMINAR HISTORIAL
-    // =========================================================
-
-    public void eliminarHistorial(
-            String conversacionId
-    ) {
-
-        validarConversacionId(
-                conversacionId
-        );
-
-
-        mensajeDAO
-                .eliminarPorConversacion(
-                        conversacionId
-                );
     }
 
 

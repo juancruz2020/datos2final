@@ -51,9 +51,6 @@ public class Cliente {
         this.id = id;
     }
 
-    public String getCodigo() {
-        return codigo;
-    }
 
     public void setCodigo(String codigo) {
         this.codigo = codigo;
@@ -63,55 +60,34 @@ public class Cliente {
         return razonSocial;
     }
 
-    public void setRazonSocial(String razonSocial) {
-        this.razonSocial = razonSocial;
-    }
 
     public String getCuit() {
         return cuit;
     }
 
-    public void setCuit(String cuit) {
-        this.cuit = cuit;
-    }
 
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public String getTelefono() {
         return telefono;
     }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
-    }
 
     public Direccion getDireccion() {
         return direccion;
     }
 
-    public void setDireccion(Direccion direccion) {
-        this.direccion = direccion;
-    }
 
     public String getPais() {
         return pais;
     }
 
-    public void setPais(String pais) {
-        this.pais = pais;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

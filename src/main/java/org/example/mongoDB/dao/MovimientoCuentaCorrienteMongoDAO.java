@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Sorts.ascending;
 
 public class MovimientoCuentaCorrienteMongoDAO {
@@ -118,27 +117,6 @@ public class MovimientoCuentaCorrienteMongoDAO {
         );
     }
 
-    // =========================================
-    // BUSCAR MOVIMIENTO POR ID
-    // =========================================
-
-    public Document buscarPorId(String id) {
-
-        return coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
-    }
-
-    // =========================================
-    // LISTAR TODOS LOS MOVIMIENTOS
-    // =========================================
-
-    public List<Document> listarTodos() {
-
-        return coleccion.find()
-                .sort(ascending("fecha"))
-                .into(new ArrayList<>());
-    }
 
     // =========================================
     // BUSCAR MOVIMIENTOS POR CUENTA
@@ -158,38 +136,5 @@ public class MovimientoCuentaCorrienteMongoDAO {
         .into(new ArrayList<>());
     }
 
-    // =========================================
-    // BUSCAR MOVIMIENTOS POR TIPO
-    // =========================================
 
-    public List<Document> buscarPorTipo(String tipo) {
-
-        return coleccion.find(
-                eq("tipo", tipo)
-        )
-        .sort(ascending("fecha"))
-        .into(new ArrayList<>());
-    }
-
-    // =========================================
-    // BUSCAR POR REFERENCIA
-    // =========================================
-
-    public Document buscarPorReferencia(
-            String cuentaCorrienteId,
-            String tipo,
-            String referenciaId
-    ) {
-
-        return coleccion.find(
-                and(
-                        eq(
-                                "cuenta_corriente_id",
-                                new ObjectId(cuentaCorrienteId)
-                        ),
-                        eq("tipo", tipo),
-                        eq("referencia_id", referenciaId)
-                )
-        ).first();
-    }
 }

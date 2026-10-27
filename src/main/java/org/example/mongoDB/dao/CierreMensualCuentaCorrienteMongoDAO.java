@@ -94,7 +94,6 @@ public class CierreMensualCuentaCorrienteMongoDAO {
     }
 
 
-
     // =========================================
     // AGREGAR CIERRE 
     // =========================================
@@ -111,17 +110,6 @@ public class CierreMensualCuentaCorrienteMongoDAO {
         cierre.setId(
                 documento.getObjectId("_id").toHexString()
         );
-    }
-
-    // =========================================
-    // BUSCAR CIERRE POR ID
-    // =========================================
-
-    public Document buscarPorId(String id) {
-
-        return coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
     }
 
 
@@ -169,16 +157,5 @@ public class CierreMensualCuentaCorrienteMongoDAO {
         .into(new ArrayList<>());
     }
 
-    // =========================================
-    // LISTAR TODOS LOS CIERRES
-    // =========================================
 
-    public List<Document> listarTodos() {
-
-        return coleccion.find()
-                .sort(
-                        descending("anio", "mes")
-                )
-                .into(new ArrayList<>());
-    }
 }

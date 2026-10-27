@@ -169,7 +169,4 @@ public class HeaderPanel extends JPanel {
         return lblTiempoSesion;
     }
 
-    public JLabel getLblTitulo() {
-        return lblTitulo;
-    }
 }

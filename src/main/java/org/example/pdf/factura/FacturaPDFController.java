@@ -49,22 +49,5 @@ public class FacturaPDFController {
         }
     }
 
-    // ==========================================
-    // COMPATIBILIDAD CON EL METODO ANTERIOR
-    // ==========================================
 
-    public void generarFactura(
-            String clienteId,
-            Date fechaEmision,
-            BigDecimal importeTotal,
-            String estado
-    ) {
-        generarFactura(
-                clienteId,
-                fechaEmision,
-                null,
-                importeTotal,
-                estado
-        );
-    }
 }

@@ -31,7 +31,6 @@ public class Sensor {
     }
 
 
-
     // =========================
     // GETTERS Y SETTERS
     // =========================
@@ -56,39 +55,24 @@ public class Sensor {
         return contenedorId;
     }
 
-    public void setContenedorId(String contenedorId) {
-        this.contenedorId = contenedorId;
-    }
 
     public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public String getFabricante() {
         return fabricante;
     }
 
-    public void setFabricante(String fabricante) {
-        this.fabricante = fabricante;
-    }
 
     public Date getFechaInstalacion() {
         return fechaInstalacion;
     }
 
-    public void setFechaInstalacion(Date fechaInstalacion) {
-        this.fechaInstalacion = fechaInstalacion;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

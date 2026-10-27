@@ -37,12 +37,10 @@ public class GeneradorDatosPruebaMongo {
 
     private final AlertaMongoDAO alertaDAO = new AlertaMongoDAO();
 
-    private final ReporteMongoDAO reporteDAO = new ReporteMongoDAO();
 
     private final FacturaMongoDAO facturaDAO = new FacturaMongoDAO();
 
     private final PagoMongoDAO pagoDAO = new PagoMongoDAO();
-
 
 
     private final CuentaCorrienteMongoDAO cuentaCorrienteDAO =
@@ -842,85 +840,6 @@ public class GeneradorDatosPruebaMongo {
 
         sensorDAO.agregar(sensor5);
 
-        // =====================================================
-
-        // TRAMOS
-
-        // Se embeben dentro de los envios.
-
-        // NO tienen DAO propio.
-
-        // =====================================================
-
-        Tramo tramo1 = new Tramo(
-
-                "CAMION",
-
-                "Buenos Aires",
-
-                "Mendoza",
-
-                new Date(),
-
-                new Date()
-
-        );
-
-        Tramo tramo2 = new Tramo(
-
-                "CAMION",
-
-                "Mendoza",
-
-                "Santiago de Chile",
-
-                new Date(),
-
-                new Date()
-
-        );
-
-        Tramo tramo3 = new Tramo(
-
-                "BARCO",
-
-                "Buenos Aires",
-
-                "Montevideo",
-
-                new Date(),
-
-                new Date()
-
-        );
-
-        Tramo tramo4 = new Tramo(
-
-                "CAMION",
-
-                "Rosario",
-
-                "Cordoba",
-
-                new Date(),
-
-                new Date()
-
-        );
-
-        Tramo tramo5 = new Tramo(
-
-                "CAMION",
-
-                "Neuquen",
-
-                "Buenos Aires",
-
-                new Date(),
-
-                new Date()
-
-        );
 
         // =====================================================
 
@@ -1261,7 +1180,6 @@ public class GeneradorDatosPruebaMongo {
         alertaDAO.agregar(alerta5);
 
 
-
         // =====================================================
         // FACTURAS
         // =====================================================
@@ -1512,13 +1430,6 @@ public class GeneradorDatosPruebaMongo {
 
     // =====================================================
 
-    public static void generar() {
-
-        GeneradorDatosPruebaMongo generador = new GeneradorDatosPruebaMongo();
-
-        generador.generarDatos();
-
-    }
 
     /** Crea una sesión desde el cliente compartido. Quien la utiliza debe cerrarla. */
     public static ClientSession obtenerSesion() {

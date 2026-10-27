@@ -32,31 +32,19 @@ public class Pago {
         return facturaId;
     }
 
-    public void setFacturaId(String facturaId) {
-        this.facturaId = facturaId;
-    }
 
     public Date getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
 
     public BigDecimal getMonto() {
         return monto;
     }
 
-    public void setMonto(BigDecimal monto) {
-        this.monto = monto;
-    }
 
     public String getMedioPago() {
         return medioPago;
     }
 
-    public void setMedioPago(String medioPago) {
-        this.medioPago = medioPago;
-    }
 }

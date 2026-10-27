@@ -34,31 +34,19 @@ public class Vehiculo {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public String getIdentificacion() {
         return identificacion;
     }
 
-    public void setIdentificacion(String identificacion) {
-        this.identificacion = identificacion;
-    }
 
     public String getEmpresaOperadora() {
         return empresaOperadora;
     }
 
-    public void setEmpresaOperadora(String empresaOperadora) {
-        this.empresaOperadora = empresaOperadora;
-    }
 
     public String getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
 }

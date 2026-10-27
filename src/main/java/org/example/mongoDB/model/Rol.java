@@ -24,15 +24,9 @@ public class Rol {
         return descripcion;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
 
     public int getNivelPermisos() {
         return nivelPermisos;
     }
 
-    public void setNivelPermisos(int nivelPermisos) {
-        this.nivelPermisos = nivelPermisos;
-    }
 }

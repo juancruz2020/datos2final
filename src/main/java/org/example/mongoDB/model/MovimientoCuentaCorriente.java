@@ -32,9 +32,6 @@ public class MovimientoCuentaCorriente {
         this.fecha = fecha;
     }
 
-    public String getId() {
-        return id;
-    }
 
     public void setId(String id) {
         this.id = id;
@@ -44,47 +41,29 @@ public class MovimientoCuentaCorriente {
         return cuentaCorrienteId;
     }
 
-    public void setCuentaCorrienteId(String cuentaCorrienteId) {
-        this.cuentaCorrienteId = cuentaCorrienteId;
-    }
 
     public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
 
     public String getReferenciaId() {
         return referenciaId;
     }
 
-    public void setReferenciaId(String referenciaId) {
-        this.referenciaId = referenciaId;
-    }
 
     public String getDescripcion() {
         return descripcion;
     }
 
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
 
     public BigDecimal getImporte() {
         return importe;
     }
 
-    public void setImporte(BigDecimal importe) {
-        this.importe = importe;
-    }
 
     public Date getFecha() {
         return fecha;
     }
 
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
 }

@@ -63,38 +63,6 @@ public class FacturaMongoDAO {
         );
     }
 
-    // =========================
-    // MODIFICAR FACTURA
-    // =========================
-
-    public void modificar(Factura factura) {
-
-        coleccion.updateOne(
-                eq("_id", new ObjectId(factura.getId())),
-                combine(
-                        set(
-                                "cliente_id",
-                                new ObjectId(factura.getClienteId())
-                        ),
-                        set(
-                                "fecha_emision",
-                                factura.getFechaEmision()
-                        ),
-                        set(
-                                "fecha_vencimiento",
-                                factura.getFechaVencimiento()
-                        ),
-                        set(
-                                "importe_total",
-                                new Decimal128(factura.getImporteTotal())
-                        ),
-                        set(
-                                "estado",
-                                factura.getEstado()
-                        )
-                )
-        );
-    }
 
     // =========================
     // ACTUALIZAR VENCIMIENTO Y ESTADO
@@ -114,16 +82,6 @@ public class FacturaMongoDAO {
         );
     }
 
-    // =========================
-    // ELIMINAR FACTURA
-    // =========================
-
-    public void eliminar(String id) {
-
-        coleccion.deleteOne(
-                eq("_id", new ObjectId(id))
-        );
-    }
 
     // =========================
     // BUSCAR FACTURA POR ID
@@ -146,38 +104,6 @@ public class FacturaMongoDAO {
                 .into(new ArrayList<>());
     }
 
-    // =========================
-    // OBTENER TODOS LOS IDS
-    // =========================
-
-    public List<String> obtenerTodosLosIds() {
-
-        List<String> ids = new ArrayList<>();
-
-        for (Document documento : coleccion.find()) {
-
-            ObjectId id = documento.getObjectId("_id");
-
-            if (id != null) {
-                ids.add(id.toHexString());
-            }
-        }
-
-        return ids;
-    }
-
-    // =========================
-    // VERIFICAR SI EXISTE POR ID
-    // =========================
-
-    public boolean existePorId(String id) {
-
-        Document documento = coleccion.find(
-                eq("_id", new ObjectId(id))
-        ).first();
-
-        return documento != null;
-    }
 
     // =========================
     // BUSCAR FACTURAS POR CLIENTE
@@ -193,14 +119,5 @@ public class FacturaMongoDAO {
         ).into(new ArrayList<>());
     }
 
-    // =========================
-    // BUSCAR FACTURAS POR ESTADO
-    // =========================
 
-    public List<Document> buscarPorEstado(String estado) {
-
-        return coleccion.find(
-                eq("estado", estado)
-        ).into(new ArrayList<>());
-    }
 }

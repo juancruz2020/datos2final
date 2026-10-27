@@ -529,36 +529,6 @@ public class MonitoreoPanelController {
 
 
     // =========================================================
-    // ACCIONES ADMINISTRATIVAS
-    // =========================================================
-
-    private void ejecutarAccion(
-            String nombre,
-            Runnable accion
-    ) {
-
-        try {
-
-            accion.run();
-
-            exito(
-                    nombre +
-                            " realizado correctamente."
-            );
-
-
-        } catch (Exception ex) {
-
-            mostrarError(
-                    "No se pudo ejecutar: " +
-                            nombre,
-                    ex
-            );
-        }
-    }
-
-
-    // =========================================================
     // CAMPO FECHA
     // =========================================================
 

@@ -23,7 +23,6 @@ import org.example.mongoDB.model.CuentaCorriente;
 import org.example.mongoDB.model.MovimientoCuentaCorriente;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
@@ -80,47 +79,6 @@ public class CuentaCorrienteService {
     // CREAR CUENTA CORRIENTE
     // ==========================================
 
-    public CuentaCorriente crearCuenta(String clienteId) {
-
-        validarId(clienteId, "cliente");
-
-        if (cuentaDAO.buscarPorCliente(clienteId) != null) {
-            throw new IllegalArgumentException(
-                    "El cliente ya tiene una cuenta corriente."
-            );
-        }
-
-        CuentaCorriente cuenta = new CuentaCorriente(
-                null,
-                clienteId,
-                BigDecimal.ZERO,
-                new Date()
-        );
-
-        try (ClientSession session = MongoSingleton
-                .getInstance()
-                .startSession()) {
-
-            session.startTransaction();
-
-            try {
-                crearCuenta(session, cuenta);
-
-                session.commitTransaction();
-                AppLog.info(CuentaCorrienteService.class,
-                        "Creación de cuenta corriente confirmada.");
-            } catch (RuntimeException e) {
-                if (session.hasActiveTransaction()) {
-                    session.abortTransaction();
-                    AppLog.warning(CuentaCorrienteService.class,
-                            "Creación de cuenta corriente revertida.");
-                }
-                throw e;
-            }
-        }
-
-        return cuenta;
-    }
 
     public CuentaCorriente crearCuenta(
             ClientSession session,
@@ -216,22 +174,6 @@ public class CuentaCorrienteService {
         return TablaConsola.mostrar("CuentaCorrienteService.listarCuentas", cuentaDAO.listarTodos());
     }
 
-    // ==========================================
-    // CONSULTAR SALDO
-    // ==========================================
-
-    public BigDecimal consultarSaldo(String clienteId) {
-
-        Document cuenta = buscarPorCliente(clienteId);
-
-        if (cuenta == null) {
-            throw new IllegalArgumentException(
-                    "El cliente no tiene una cuenta corriente."
-            );
-        }
-
-        return TablaConsola.mostrar("CuentaCorrienteService.consultarSaldo", obtenerSaldo(cuenta));
-    }
 
     // ==========================================
     // REGISTRAR DÉBITO
