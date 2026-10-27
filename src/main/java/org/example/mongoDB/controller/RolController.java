@@ -5,7 +5,7 @@ import org.example.mongoDB.service.RolService;
 
 import java.util.List;
 
-public class RolController {
+class RolController {
 
     private final RolService rolService;
 
@@ -14,7 +14,7 @@ public class RolController {
     // CONSTRUCTOR
     // =========================================================
 
-    public RolController() {
+    RolController() {
 
         this.rolService =
                 new RolService();

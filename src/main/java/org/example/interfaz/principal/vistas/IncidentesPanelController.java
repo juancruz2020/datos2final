@@ -1,9 +1,9 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.EnvioController;
-import org.example.mongoDB.controller.IncidenteController;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 import org.example.mongoDB.dao.RolMongoDAO;
 
@@ -18,6 +18,8 @@ import java.util.Locale;
 
 public class IncidentesPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final IncidentesPanel vista;
     private final String usuarioId;
     private final UsuarioMongoDAO usuarioDAO;
@@ -26,8 +28,6 @@ public class IncidentesPanelController {
     private String clienteIdActual;
     private final Set<String> idsEnviosCliente = new HashSet<>();
 
-    private final IncidenteController incidenteController;
-    private final EnvioController envioController;
 
     private String incidenteIdEdicion;
 
@@ -48,11 +48,7 @@ public class IncidentesPanelController {
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
 
-        this.incidenteController =
-                new IncidenteController();
 
-        this.envioController =
-                new EnvioController();
 
         this.incidenteIdEdicion =
                 null;
@@ -166,7 +162,7 @@ public class IncidentesPanelController {
             boolean pertenece = false;
 
             // Comprobar nuevamente el vínculo desde el origen de datos.
-            for (Document envio : envioController.buscarPorCliente(clienteIdActual)) {
+            for (Document envio : mongo.buscarEnviosPorCliente(clienteIdActual)) {
                 Object id = envio.get("_id");
                 if (id != null && envioId.equals(id.toString())) {
                     pertenece = true;
@@ -289,7 +285,7 @@ public class IncidentesPanelController {
                             .getText();
 
 
-            incidenteController.crearIncidente(
+            mongo.crearIncidente(
                     envioId,
                     tipo,
                     severidad,
@@ -362,7 +358,7 @@ public class IncidentesPanelController {
 
 
             Document incidente =
-                    incidenteController.buscarPorId(
+                    mongo.buscarIncidentePorId(
                             id
                     );
 
@@ -477,7 +473,7 @@ public class IncidentesPanelController {
                             .getText();
 
 
-            incidenteController.modificarIncidente(
+            mongo.modificarIncidente(
                     incidenteIdEdicion,
                     envioId,
                     tipo,
@@ -567,7 +563,7 @@ public class IncidentesPanelController {
 
         try {
 
-            incidenteController.eliminarIncidente(
+            mongo.eliminarIncidente(
                     id
             );
 
@@ -660,7 +656,7 @@ public class IncidentesPanelController {
         if ("CLIENTE".equals(rolActual)) {
             ids = new ArrayList<>();
 
-            for (Document envio : envioController.buscarPorCliente(clienteIdActual)) {
+            for (Document envio : mongo.buscarEnviosPorCliente(clienteIdActual)) {
                 Object id = envio.get("_id");
 
                 if (id != null) {
@@ -671,7 +667,7 @@ public class IncidentesPanelController {
             }
 
         } else {
-            ids = envioController.obtenerTodosLosIds();
+            ids = mongo.obtenerIdsEnvios();
         }
 
 
@@ -703,11 +699,11 @@ public class IncidentesPanelController {
             incidentes = new ArrayList<>();
 
             for (String envioId : idsEnviosCliente) {
-                incidentes.addAll(incidenteController.buscarPorEnvio(envioId));
+                incidentes.addAll(mongo.buscarIncidentesPorEnvio(envioId));
             }
 
         } else {
-            incidentes = incidenteController.listarIncidentes();
+            incidentes = mongo.listarIncidentes();
         }
 
 

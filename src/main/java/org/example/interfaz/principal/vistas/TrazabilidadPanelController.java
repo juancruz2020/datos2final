@@ -1,10 +1,11 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.bson.Document;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
-import org.example.mongoDB.controller.IncidenteController;
 import org.example.mongoDB.service.PermisosService;
 import org.example.neo4j.controller.ControllerNeo4j;
 
@@ -16,14 +17,14 @@ import java.util.Map;
 
 public class TrazabilidadPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final TrazabilidadPanel view;
     private final String usuarioId;
 
     private final PermisosService permisosService =
             new PermisosService();
 
-    private final IncidenteController incidenteController =
-            new IncidenteController();
 
     private final ControllerMonitoreo monitoreoController =
             new ControllerMonitoreo();
@@ -111,7 +112,7 @@ public class TrazabilidadPanelController {
 
             // Buscar envíos que tienen incidentes.
             for (Document incidente :
-                    incidenteController.listarIncidentes()) {
+                    mongo.listarIncidentes()) {
 
                 Object idValor = incidente.get("envio_id");
 

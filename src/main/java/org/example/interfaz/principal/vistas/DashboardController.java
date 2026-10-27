@@ -1,8 +1,9 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
-import org.example.mongoDB.controller.IncidenteController;
 import org.example.neo4j.controller.ControllerNeo4j;
 import org.bson.Document;
 
@@ -20,10 +21,11 @@ import java.util.stream.Collectors;
 
 public class DashboardController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final DashboardPanel view;
 
     private final ControllerMonitoreo monitoreo;
-    private final IncidenteController incidentes;
     private final ControllerNeo4j neo4j;
 
 
@@ -41,7 +43,6 @@ public class DashboardController {
         this.monitoreo =
                 new ControllerMonitoreo();
 
-        this.incidentes = new IncidenteController();
         this.neo4j = new ControllerNeo4j();
         view.getBtnActualizar().addActionListener(e -> cargarDashboard());
 
@@ -98,9 +99,9 @@ public class DashboardController {
     private void calcularIndicadoresLogisticos(List<Row> lecturas) {
         try {
             List<Map<String, Object>> envios = neo4j.listarEnvios();
-            List<Document> todosIncidentes = incidentes.listarIncidentes();
+            List<Document> todosIncidentes = mongo.listarIncidentes();
             view.actualizarEnvios(envios.size());
-            view.actualizarIncidentesAbiertos(incidentes.buscarAbiertos().size());
+            view.actualizarIncidentesAbiertos(mongo.buscarIncidentesAbiertos().size());
             actualizarEstadosEnvios(envios);
             actualizarSeveridadIncidentes(todosIncidentes);
         } catch (Exception e) {
@@ -130,9 +131,9 @@ public class DashboardController {
         cantidades.forEach((estado, cantidad) -> modelo.addRow(new Object[]{estado, cantidad}));
     }
 
-    private void actualizarSeveridadIncidentes(List<Document> incidentes) {
+    private void actualizarSeveridadIncidentes(List<Document> mongo) {
         Map<String, Integer> cantidades = new TreeMap<>();
-        for (Document incidente : incidentes) {
+        for (Document incidente : mongo) {
             String severidad = incidente.getString("severidad");
             if (severidad != null && !severidad.isBlank()) cantidades.merge(severidad, 1, Integer::sum);
         }

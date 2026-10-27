@@ -6,11 +6,11 @@ import org.example.mongoDB.service.ConversacionService;
 
 import java.util.List;
 
-public class ConversacionController {
+class ConversacionController {
 
     private final ConversacionService conversacionService;
 
-    public ConversacionController() {
+    ConversacionController() {
         this.conversacionService = new ConversacionService();
     }
 

@@ -1,9 +1,10 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.VehiculoController;
 import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
@@ -13,8 +14,9 @@ import java.util.List;
 
 public class VehiculosPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final VehiculosPanel view;
-    private final VehiculoController controller;
     private final PermisosService permisosService;
     private final String usuarioId;
 
@@ -35,7 +37,6 @@ public class VehiculosPanelController {
         this.view = view;
         this.usuarioId = usuarioId;
 
-        this.controller = new VehiculoController();
         this.permisosService = new PermisosService();
 
         this.vehiculosActuales = new ArrayList<>();
@@ -120,7 +121,7 @@ public class VehiculosPanelController {
         try {
 
             List<Document> vehiculos =
-                    controller.listarVehiculos();
+                    mongo.listarVehiculos();
 
             vehiculosActuales =
                     new ArrayList<>(vehiculos);
@@ -323,7 +324,7 @@ public class VehiculosPanelController {
 
         try {
 
-            controller.crearVehiculo(
+            mongo.crearVehiculo(
                     tipo,
                     identificacion,
                     empresaOperadora
@@ -388,7 +389,7 @@ public class VehiculosPanelController {
 
         try {
 
-            controller.modificarVehiculo(
+            mongo.modificarVehiculo(
                     vehiculoIdEditando,
                     tipo,
                     identificacion,
@@ -476,7 +477,7 @@ public class VehiculosPanelController {
             // Validar nuevamente antes de eliminar.
             exigirAdministrador();
 
-            controller.eliminarVehiculo(
+            mongo.eliminarVehiculo(
                     id.toHexString()
             );
 

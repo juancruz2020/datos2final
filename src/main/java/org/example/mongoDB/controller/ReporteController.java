@@ -5,7 +5,7 @@ import org.example.mongoDB.service.ReporteService;
 
 import java.util.List;
 
-public class ReporteController {
+class ReporteController {
 
     private final ReporteService reporteService;
 
@@ -14,7 +14,7 @@ public class ReporteController {
     // CONSTRUCTOR
     // =========================================================
 
-    public ReporteController() {
+    ReporteController() {
 
         this.reporteService =
                 new ReporteService();

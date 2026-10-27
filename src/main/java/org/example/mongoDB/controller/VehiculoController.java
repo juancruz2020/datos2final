@@ -5,7 +5,7 @@ import org.example.mongoDB.service.VehiculoService;
 
 import java.util.List;
 
-public class VehiculoController {
+class VehiculoController {
 
     private final VehiculoService vehiculoService;
 
@@ -14,7 +14,7 @@ public class VehiculoController {
     // CONSTRUCTOR
     // =========================================================
 
-    public VehiculoController() {
+    VehiculoController() {
         this.vehiculoService = new VehiculoService();
     }
 

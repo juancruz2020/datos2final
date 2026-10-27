@@ -1,10 +1,10 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.EnvioController;
-import org.example.mongoDB.controller.EventoLogisticoController;
 import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
@@ -16,10 +16,10 @@ import java.util.Set;
 
 public class EventosLogisticosPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final EventosLogisticosPanel vista;
 
-    private final EventoLogisticoController eventoController;
-    private final EnvioController envioController;
     private final PermisosService permisosService;
 
     private final String rolActual;
@@ -40,11 +40,7 @@ public class EventosLogisticosPanelController {
 
         this.vista = vista;
 
-        this.eventoController =
-                new EventoLogisticoController();
 
-        this.envioController =
-                new EnvioController();
 
         this.permisosService =
                 new PermisosService();
@@ -212,7 +208,7 @@ public class EventosLogisticosPanelController {
             String descripcion =
                     vista.getTxtDescripcion().getText();
 
-            eventoController.crearEvento(
+            mongo.crearEventoLogistico(
                     envioId,
                     tipoEvento,
                     ubicacion,
@@ -268,7 +264,7 @@ public class EventosLogisticosPanelController {
                             .toString();
 
             Document evento =
-                    eventoController.buscarPorId(id);
+                    mongo.buscarEventoLogisticoPorId(id);
 
             if (evento == null) {
 
@@ -333,7 +329,7 @@ public class EventosLogisticosPanelController {
             String descripcion =
                     vista.getTxtDescripcion().getText();
 
-            eventoController.modificarEvento(
+            mongo.modificarEventoLogistico(
                     eventoIdEdicion,
                     envioId,
                     tipoEvento,
@@ -402,7 +398,7 @@ public class EventosLogisticosPanelController {
 
         try {
 
-            eventoController.eliminarEvento(id);
+            mongo.eliminarEventoLogistico(id);
 
             JOptionPane.showMessageDialog(
                     vista,
@@ -470,7 +466,7 @@ public class EventosLogisticosPanelController {
         if (esCliente()) {
 
             List<Document> envios =
-                    envioController.buscarPorCliente(clienteIdActual);
+                    mongo.buscarEnviosPorCliente(clienteIdActual);
 
             for (Document envio : envios) {
 
@@ -489,7 +485,7 @@ public class EventosLogisticosPanelController {
         } else {
 
             List<String> ids =
-                    envioController.obtenerTodosLosIds();
+                    mongo.obtenerIdsEnvios();
 
             for (String id : ids) {
 
@@ -508,7 +504,7 @@ public class EventosLogisticosPanelController {
         vista.getModeloTabla().setRowCount(0);
 
         List<Document> eventos =
-                eventoController.listarEventos();
+                mongo.listarEventosLogisticos();
 
         SimpleDateFormat formatoFecha =
                 new SimpleDateFormat("dd/MM/yyyy HH:mm");

@@ -6,7 +6,7 @@ import org.example.mongoDB.service.UsuarioService;
 
 import java.util.List;
 
-public class UsuarioController {
+class UsuarioController {
 
     private final UsuarioService usuarioService;
 
@@ -15,7 +15,7 @@ public class UsuarioController {
     // CONSTRUCTOR
     // =========================================================
 
-    public UsuarioController() {
+    UsuarioController() {
 
         this.usuarioService =
                 new UsuarioService();

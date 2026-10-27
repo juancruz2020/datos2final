@@ -1,12 +1,11 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.logging.AppLog;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ClienteController;
-import org.example.mongoDB.controller.RolController;
-import org.example.mongoDB.controller.UsuarioController;
 import org.example.usuarios.controller.AdministracionController;
 import org.example.usuarios.controller.SesionController;
 
@@ -17,15 +16,14 @@ import java.util.Map;
 
 public class AdministracionPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final AdministracionPanel view;
 
     private final AdministracionController administracionController;
 
-    private final UsuarioController usuarioController;
 
-    private final RolController rolController;
 
-    private final ClienteController clienteController;
 
     private final SesionController sesionController;
 
@@ -46,14 +44,8 @@ public class AdministracionPanelController {
         this.administracionController =
                 new AdministracionController();
 
-        this.usuarioController =
-                new UsuarioController();
 
-        this.rolController =
-                new RolController();
 
-        this.clienteController =
-                new ClienteController();
 
         this.sesionController =
                 new SesionController();
@@ -136,7 +128,7 @@ public class AdministracionPanelController {
         try {
 
             List<Document> roles =
-                    rolController.listarRoles();
+                    mongo.listarRoles();
 
 
             view.getCmbRol()
@@ -267,7 +259,7 @@ public class AdministracionPanelController {
             // =================================================
 
             Document rol =
-                    rolController.buscarPorDescripcion(
+                    mongo.buscarRolPorDescripcion(
                             descripcionRol
                     );
 
@@ -321,7 +313,7 @@ public class AdministracionPanelController {
             // CREAR USUARIO
             // =================================================
 
-            usuarioController.crearUsuario(
+            mongo.crearUsuario(
                     clienteId,
                     rolId,
                     nombre,
@@ -418,7 +410,7 @@ public class AdministracionPanelController {
         // CREAR CLIENTE
         // =====================================================
 
-        clienteController.crearCliente(
+        mongo.crearCliente(
                 razonSocial,
                 cuit,
                 email,
@@ -436,7 +428,7 @@ public class AdministracionPanelController {
         // =====================================================
 
         Document cliente =
-                clienteController.buscarPorCuit(
+                mongo.buscarClientePorCuit(
                         cuit
                 );
 
@@ -500,7 +492,7 @@ public class AdministracionPanelController {
         try {
 
             Document usuario =
-                    usuarioController.buscarPorEmail(
+                    mongo.buscarUsuarioPorEmail(
                             email
                     );
 
@@ -546,7 +538,7 @@ public class AdministracionPanelController {
             }
 
 
-            usuarioController.eliminarUsuario(
+            mongo.eliminarUsuario(
                     usuarioId.toHexString()
             );
 
@@ -583,7 +575,7 @@ public class AdministracionPanelController {
     private void actualizarMailsDeUsuarios() {
         try {
             Map<String, String> mails = new java.util.HashMap<>();
-            for (Document usuario : usuarioController.listarUsuarios()) {
+            for (Document usuario : mongo.listarUsuarios()) {
                 ObjectId id = usuario.getObjectId("_id");
                 String email = usuario.getString("email");
                 if (id != null && email != null && !email.isBlank()) {

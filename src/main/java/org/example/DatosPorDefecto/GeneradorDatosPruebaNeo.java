@@ -1,5 +1,7 @@
 package org.example.DatosPorDefecto;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.conecciones.Neo4jSingleton;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
@@ -7,9 +9,6 @@ import org.neo4j.driver.Session;
 import java.util.Map;
 import java.util.List;
 import org.bson.Document;
-import org.example.mongoDB.controller.ClienteController;
-import org.example.mongoDB.controller.ContenedorController;
-import org.example.mongoDB.controller.VehiculoController;
 import org.example.logging.AppLog;
 
 public class GeneradorDatosPruebaNeo {
@@ -62,16 +61,16 @@ public class GeneradorDatosPruebaNeo {
                 return;
             }
             sincronizarReferencias(session, "Cliente",
-                    new ClienteController().listarClientes(), "cuit",
+                    new ControllerMongoDB().listarClientes(), "cuit",
                     List.of("30-71111111-1", "30-72222222-2", "30-73333333-3"), "CLI-",
                     "SET n.razonSocial = $nombre, n.cuit = $clave", "razon_social");
             sincronizarReferencias(session, "Contenedor",
-                    new ContenedorController().listarContenedores(), "codigo_internacional",
+                    new ControllerMongoDB().listarContenedores(), "codigo_internacional",
                     List.of("CONT-001", "CONT-002", "CONT-003", "CONT-004",
                             "CONT-005", "CONT-006", "CONT-007", "CONT-008"), "CONT-",
                     "SET n.codigo = $clave", "codigo_internacional");
             sincronizarReferencias(session, "Vehiculo",
-                    new VehiculoController().listarVehiculos(), "identificacion",
+                    new ControllerMongoDB().listarVehiculos(), "identificacion",
                     List.of("AA123BB", "AB456CD", "AC789EF"), "VEH-",
                     "SET n.identificacion = $clave, n.patente = $clave, n.tipo = $nombre", "tipo");
         }

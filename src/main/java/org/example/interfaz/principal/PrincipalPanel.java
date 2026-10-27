@@ -1,16 +1,19 @@
 
 package org.example.interfaz.principal;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.interfaz.principal.header.HeaderPanel;
 import org.example.interfaz.principal.menu.MenuLateralPanel;
 import org.example.interfaz.principal.vistas.*;
 import org.example.interfaz.tema.Colores;
-import org.example.mongoDB.controller.PermisosController;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class PrincipalPanel extends JPanel {
+
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
 
     private final String usuarioId;
 
@@ -20,7 +23,6 @@ public class PrincipalPanel extends JPanel {
     private final MenuLateralPanel menuLateral;
     private final HeaderPanel header;
 
-    private final PermisosController permisosController;
 
     // =========================================================
     // CONSTRUCTOR
@@ -33,7 +35,6 @@ public class PrincipalPanel extends JPanel {
 
         this.usuarioId = usuarioId;
 
-        this.permisosController = new PermisosController();
 
         cardLayout = new CardLayout();
         contenido = new JPanel(cardLayout);
@@ -67,7 +68,7 @@ public class PrincipalPanel extends JPanel {
 
     private boolean tienePermiso(String vista) {
 
-        return permisosController.puedeAccederVista(
+        return mongo.puedeAccederVista(
                 usuarioId,
                 vista
         );
@@ -115,6 +116,12 @@ public class PrincipalPanel extends JPanel {
             new ClientesPanelController(
                     clientesPanel
             );
+        }
+
+        if (tienePermiso("PROVEEDOR")) {
+            JPanel proveedorPanel = new JPanel();
+            proveedorPanel.setBackground(Colores.FONDO);
+            contenido.add(proveedorPanel, "PROVEEDOR");
         }
 
         // =====================================================
@@ -309,6 +316,12 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
                 );
         }
 
+        if (tienePermiso("PAGOS")) {
+            JPanel pagosPanel = new JPanel();
+            pagosPanel.setBackground(Colores.FONDO);
+            contenido.add(pagosPanel, "PAGOS");
+        }
+
         // =====================================================
         // CUENTAS CORRIENTES
         // =====================================================
@@ -442,6 +455,8 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
 
             case "CLIENTES" -> "Clientes";
 
+            case "PROVEEDOR" -> "Proveedor";
+
             case "ENVIOS" -> "Envíos";
 
             case "EVENTOS_LOGISTICOS" -> "Eventos Logísticos";
@@ -464,6 +479,8 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
             case "COMUNICACIONES" -> "Comunicaciones";
 
             case "FACTURACION" -> "Facturación";
+
+            case "PAGOS" -> "Pagos";
 
             case "CUENTAS_CORRIENTES" -> "Cuentas Corrientes";
 

@@ -1,10 +1,11 @@
 package org.example.neo4j.controller;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 
 import org.example.neo4j.model.Envio;
 
 import org.example.neo4j.service.LogisticaNeo4jService;
-import org.example.mongoDB.controller.VehiculoController;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -12,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 public class ControllerNeo4j {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final LogisticaNeo4jService service;
-    private final VehiculoController vehiculoMongoController;
 
     public ControllerNeo4j() {
         this.service = new LogisticaNeo4jService();
-        this.vehiculoMongoController = new VehiculoController();
     }
 
     // =====================================================
@@ -32,7 +33,7 @@ public class ControllerNeo4j {
 
     /** Sincroniza el vehículo desde MongoDB y lo vincula directamente al envío en Neo4j. */
     public void vincularVehiculoMongoAEnvio(String envioId, String idVehiculoMongo) {
-        Document documento = vehiculoMongoController.buscarPorId(idVehiculoMongo);
+        Document documento = mongo.buscarVehiculoPorId(idVehiculoMongo);
         ObjectId objectId = documento.getObjectId("_id");
         if (objectId == null) {
             throw new IllegalStateException("El vehículo de MongoDB no tiene un _id ObjectId válido.");

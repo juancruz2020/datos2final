@@ -211,6 +211,7 @@ public class PermisosService {
 
                 case "ENVIOS",
                      "CLIENTES",
+                     "PROVEEDOR",
                      "CONTENEDORES",
                      "SENSORES",
                      "MONITOREO",
@@ -221,6 +222,7 @@ public class PermisosService {
                      "COMUNICACIONES",
                      "RIESGOS",
                      "FACTURACION",
+                     "PAGOS",
                      "CUENTAS_CORRIENTES",
                      "VEHICULOS",
                      "EVENTOS_LOGISTICOS" -> true;
@@ -242,6 +244,7 @@ public class PermisosService {
                     "REPORTES",
                     "COMUNICACIONES",
                     "FACTURACION",
+                    "PAGOS",
                     "SEGUIMIENTO_ENVIO",
                     "RIESGOS",
                     "EVENTOS_LOGISTICOS" -> true;

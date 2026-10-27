@@ -1,13 +1,11 @@
 
 package org.example.pdf.reporte;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.consola.TablaConsola;
 
 import org.bson.Document;
-import org.example.mongoDB.controller.ClienteController;
-import org.example.mongoDB.controller.EnvioController;
-import org.example.mongoDB.controller.IncidenteController;
-import org.example.mongoDB.controller.SensorController;
 import org.example.mongoDB.model.Sensor;
 
 import java.io.File;
@@ -26,10 +24,8 @@ import java.util.TreeMap;
 
 public class ReportePDFService {
 
-    private final ClienteController clienteController;
-    private final EnvioController envioController;
-    private final IncidenteController incidenteController;
-    private final SensorController sensorController;
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final ReportePDFGenerator pdfGenerator;
 
     // =========================================================
@@ -38,10 +34,6 @@ public class ReportePDFService {
 
     public ReportePDFService() {
 
-        this.clienteController = new ClienteController();
-        this.envioController = new EnvioController();
-        this.incidenteController = new IncidenteController();
-        this.sensorController = new SensorController();
         this.pdfGenerator = new ReportePDFGenerator();
     }
 
@@ -57,7 +49,7 @@ public class ReportePDFService {
         validarCliente(clienteId);
 
         List<Document> envios =
-                envioController.buscarPorCliente(clienteId);
+                mongo.buscarEnviosPorCliente(clienteId);
 
         return pdfGenerator.generarEnviosPorCliente(
                 nombreCliente,
@@ -76,7 +68,7 @@ public class ReportePDFService {
         validarEstado(estado);
 
         List<Document> envios =
-                envioController.buscarPorEstado(estado);
+                mongo.buscarEnviosPorEstado(estado);
 
         return pdfGenerator.generarEnviosPorEstado(
                 estado,
@@ -99,7 +91,7 @@ public class ReportePDFService {
         validarCliente(clienteId);
 
         List<Document> enviosCliente =
-                envioController.buscarPorCliente(clienteId);
+                mongo.buscarEnviosPorCliente(clienteId);
 
         List<Document> enviosFiltrados =
                 new ArrayList<>();
@@ -134,7 +126,7 @@ public class ReportePDFService {
         validarPais(pais);
 
         List<Document> envios =
-                envioController.buscarPorPais(pais);
+                mongo.buscarEnviosPorPais(pais);
 
         return pdfGenerator.generarEnviosPorPais(
                 pais,
@@ -157,7 +149,7 @@ public class ReportePDFService {
         validarCliente(clienteId);
 
         List<Document> enviosCliente =
-                envioController.buscarPorCliente(clienteId);
+                mongo.buscarEnviosPorCliente(clienteId);
 
         List<Document> enviosFiltrados =
                 new ArrayList<>();
@@ -202,7 +194,7 @@ public class ReportePDFService {
             throws IOException {
 
         List<Document> envios =
-                envioController.buscarDemorados();
+                mongo.buscarEnviosDemorados();
 
         return pdfGenerator.generarEnviosDemorados(
                 null,
@@ -222,7 +214,7 @@ public class ReportePDFService {
         validarCliente(clienteId);
 
         List<Document> enviosCliente =
-                envioController.buscarPorCliente(clienteId);
+                mongo.buscarEnviosPorCliente(clienteId);
 
         List<Document> enviosDemorados =
                 new ArrayList<>();
@@ -251,7 +243,7 @@ public class ReportePDFService {
             throws IOException {
 
         List<Document> incidentes =
-                incidenteController.buscarAbiertos();
+                mongo.buscarIncidentesAbiertos();
 
         return pdfGenerator.generarIncidentesAbiertos(
                 null,
@@ -271,7 +263,7 @@ public class ReportePDFService {
         validarCliente(clienteId);
 
         List<Document> enviosCliente =
-                envioController.buscarPorCliente(clienteId);
+                mongo.buscarEnviosPorCliente(clienteId);
 
         Set<String> idsEnvios =
                 new HashSet<>();
@@ -286,7 +278,7 @@ public class ReportePDFService {
         }
 
         List<Document> incidentesAbiertos =
-                incidenteController.buscarAbiertos();
+                mongo.buscarIncidentesAbiertos();
 
         List<Document> incidentesFiltrados =
                 new ArrayList<>();
@@ -345,18 +337,18 @@ public class ReportePDFService {
 
         if (clienteId == null) {
 
-            envios = envioController.listarEnvios();
+            envios = mongo.listarEnvios();
 
         } else {
 
             validarCliente(clienteId);
 
             envios =
-                    envioController.buscarPorCliente(clienteId);
+                    mongo.buscarEnviosPorCliente(clienteId);
         }
 
         List<Document> incidentes =
-                incidenteController.listarIncidentes();
+                mongo.listarIncidentes();
 
         Map<String, Integer> incidentesPorEnvio =
                 new HashMap<>();
@@ -413,7 +405,7 @@ public class ReportePDFService {
                             cliente.toString();
 
                     Document datosCliente =
-                            clienteController.buscarPorId(
+                            mongo.consultarClientePorId(
                                     idCliente
                             );
 
@@ -544,21 +536,21 @@ public class ReportePDFService {
 
         if (clienteId == null) {
 
-            envios = envioController.listarEnvios();
+            envios = mongo.listarEnvios();
 
         } else {
 
             validarCliente(clienteId);
 
             envios =
-                    envioController.buscarPorCliente(clienteId);
+                    mongo.buscarEnviosPorCliente(clienteId);
         }
 
         Map<String, Integer> incidentesPorEnvio =
                 new HashMap<>();
 
         for (Document incidente :
-                incidenteController.listarIncidentes()) {
+                mongo.listarIncidentes()) {
 
             Object envioId =
                     incidente.get("envio_id");
@@ -708,7 +700,7 @@ public class ReportePDFService {
             throws IOException {
 
         List<Document> documentos =
-                sensorController.listarSensores();
+                mongo.listarSensores();
 
         List<Sensor> sensores =
                 new ArrayList<>();
@@ -752,8 +744,8 @@ public class ReportePDFService {
 
         List<Document> envios =
                 clienteId == null
-                        ? envioController.listarEnvios()
-                        : envioController.buscarPorCliente(clienteId);
+                        ? mongo.listarEnvios()
+                        : mongo.buscarEnviosPorCliente(clienteId);
 
         Map<String, List<Long>> duraciones =
                 new TreeMap<>();
@@ -808,7 +800,7 @@ public class ReportePDFService {
                             .orElse(0);
 
             Document datosCliente =
-                    clienteController.buscarPorId(
+                    mongo.consultarClientePorId(
                             entry.getKey()
                     );
 
@@ -850,8 +842,8 @@ public class ReportePDFService {
 
         List<Document> envios =
                 clienteId == null
-                        ? envioController.listarEnvios()
-                        : envioController.buscarPorCliente(clienteId);
+                        ? mongo.listarEnvios()
+                        : mongo.buscarEnviosPorCliente(clienteId);
 
         long cantidad = 0;
         long diasTotales = 0;
@@ -984,14 +976,14 @@ public class ReportePDFService {
 
         if (clienteId == null) {
 
-            envios = envioController.listarEnvios();
+            envios = mongo.listarEnvios();
 
         } else {
 
             validarCliente(clienteId);
 
             envios =
-                    envioController.buscarPorCliente(clienteId);
+                    mongo.buscarEnviosPorCliente(clienteId);
         }
 
         Map<String, EstadisticaCostos> estadisticas =

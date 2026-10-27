@@ -1,16 +1,18 @@
 package org.example.interfaz.principal;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.interfaz.principal.menu.MenuItem;
 import org.example.logging.AppLog;
-import org.example.mongoDB.controller.PermisosController;
 
 import javax.swing.*;
 
 public class PrincipalController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final PrincipalPanel view;
 
-    private final PermisosController permisosController;
 
 
     // =========================================================
@@ -23,8 +25,6 @@ public class PrincipalController {
 
         this.view = view;
 
-        this.permisosController =
-                new PermisosController();
 
         configurarMenu();
 
@@ -72,7 +72,7 @@ public class PrincipalController {
         try {
 
             boolean permitido =
-                    permisosController
+                    mongo
                             .puedeAccederVista(
                                     view.getUsuarioId(),
                                     vista
@@ -124,7 +124,7 @@ public class PrincipalController {
             ) {
 
                 boolean permitido =
-                        permisosController
+                        mongo
                                 .puedeAccederVista(
                                         view.getUsuarioId(),
                                         item.getVista()

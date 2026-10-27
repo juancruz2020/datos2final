@@ -1,13 +1,13 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.logging.AppLog;
 
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.bson.Document;
 import org.example.cassandra.monitoreo.controller.ControllerMonitoreo;
-import org.example.mongoDB.controller.EnvioController;
-import org.example.mongoDB.controller.SensorController;
 import org.example.mongoDB.service.PermisosService;
 
 import org.jxmapviewer.JXMapViewer;
@@ -34,14 +34,12 @@ import java.util.List;
 
 public class SeguimientoEnvioPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final SeguimientoEnvioPanel view;
     private final String usuarioId;
 
     private final ControllerMonitoreo monitoreoController;
-    private final SensorController sensorController =
-            new SensorController();
-    private final EnvioController envioController =
-            new EnvioController();
     private final PermisosService permisosService =
             new PermisosService();
 
@@ -288,7 +286,7 @@ public class SeguimientoEnvioPanelController {
                     new HashMap<>();
 
             for (Document sensor :
-                    sensorController.listarSensores()) {
+                    mongo.listarSensores()) {
 
                 Object id = sensor.get("_id");
 
@@ -342,7 +340,7 @@ public class SeguimientoEnvioPanelController {
             }
 
             listaEnvios =
-                    envioController.buscarPorCliente(
+                    mongo.buscarEnviosPorCliente(
                             clienteId
                     );
 
@@ -354,7 +352,7 @@ public class SeguimientoEnvioPanelController {
             );
 
             listaEnvios =
-                    envioController.listarEnvios();
+                    mongo.listarEnvios();
         }
 
         for (Document envio : listaEnvios) {
@@ -423,7 +421,7 @@ public class SeguimientoEnvioPanelController {
         }
 
         Document envio =
-                envioController.buscarPorId(envioId);
+                mongo.buscarEnvioPorId(envioId);
 
         if (envio == null) {
             throw new IllegalArgumentException(

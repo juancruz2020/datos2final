@@ -1,11 +1,10 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ClienteController;
-import org.example.mongoDB.controller.EnvioController;
-import org.example.mongoDB.controller.ReporteController;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 import org.example.pdf.PDFOpener;
@@ -24,12 +23,11 @@ import java.util.TreeSet;
 
 public class ReportesPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final ReportesPanel vista;
     private final String usuarioId;
 
-    private final ReporteController reporteController;
-    private final ClienteController clienteController;
-    private final EnvioController envioController;
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
     private final ReportePDFService pdfService;
@@ -51,9 +49,6 @@ public class ReportesPanelController {
         this.vista = vista;
         this.usuarioId = usuarioId;
 
-        this.reporteController = new ReporteController();
-        this.clienteController = new ClienteController();
-        this.envioController = new EnvioController();
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
         this.pdfService = new ReportePDFService();
@@ -200,7 +195,7 @@ public class ReportesPanelController {
         clientesIds.clear();
 
         List<Document> clientes =
-                clienteController.listarClientes();
+                mongo.listarClientes();
 
         for (Document cliente : clientes) {
 
@@ -254,11 +249,11 @@ public class ReportesPanelController {
         List<Document> envios;
 
         if (rolActual.equals("CLIENTE")) {
-            envios = envioController.buscarPorCliente(
+            envios = mongo.buscarEnviosPorCliente(
                     clienteIdActual
             );
         } else {
-            envios = envioController.listarEnvios();
+            envios = mongo.listarEnvios();
         }
 
         TreeSet<String> paises = new TreeSet<>();
@@ -618,7 +613,7 @@ public class ReportesPanelController {
             // REGISTRAR REPORTE EN MONGODB
             // =================================================
 
-            reporteController.crearReporte(
+            mongo.crearReporte(
                     usuarioId,
                     tipo,
                     "PDF"
@@ -668,7 +663,7 @@ public class ReportesPanelController {
         nombresUsuarios.clear();
 
         List<Document> reportes =
-                reporteController.listarReportes();
+                mongo.listarReportes();
 
         SimpleDateFormat formato =
                 new SimpleDateFormat("dd/MM/yyyy HH:mm");

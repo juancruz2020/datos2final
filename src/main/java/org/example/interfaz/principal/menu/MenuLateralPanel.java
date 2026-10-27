@@ -139,6 +139,13 @@ public class MenuLateralPanel extends JPanel {
 
         agregarItem(
                 opciones,
+                "♙",
+                "Proveedor",
+                "PROVEEDOR"
+        );
+
+        agregarItem(
+                opciones,
                 "➤",
                 "Envíos",
                 "ENVIOS"
@@ -216,6 +223,13 @@ public class MenuLateralPanel extends JPanel {
                 "$",
                 "Facturación",
                 "FACTURACION"
+        );
+
+        agregarItem(
+                opciones,
+                "$",
+                "Pagos",
+                "PAGOS"
         );
 
         // =========================================

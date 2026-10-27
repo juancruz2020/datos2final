@@ -6,7 +6,7 @@ import org.example.mongoDB.service.SensorService;
 import java.util.Date;
 import java.util.List;
 
-public class SensorController {
+class SensorController {
 
     private final SensorService sensorService;
 
@@ -15,7 +15,7 @@ public class SensorController {
     // CONSTRUCTOR
     // =========================================================
 
-    public SensorController() {
+    SensorController() {
 
         this.sensorService =
                 new SensorService();

@@ -5,7 +5,7 @@ import org.example.neo4j.controller.ControllerNeo4j;
 
 import java.util.List;
 
-public class EnvioController {
+class EnvioController {
 
     private final ControllerNeo4j neo4j;
 
@@ -14,7 +14,7 @@ public class EnvioController {
     // CONSTRUCTOR
     // =========================================================
 
-    public EnvioController() {
+    EnvioController() {
 
         this.neo4j = new ControllerNeo4j();
     }

@@ -1,10 +1,10 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ContenedorController;
-import org.example.mongoDB.controller.SensorController;
 import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
@@ -19,9 +19,9 @@ import java.util.Map;
 
 public class SensoresPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final SensoresPanel view;
-    private final SensorController sensorController;
-    private final ContenedorController contenedorController;
     private final PermisosService permisosService;
 
     private final String usuarioId;
@@ -43,8 +43,6 @@ public class SensoresPanelController {
         this.view = view;
         this.usuarioId = usuarioId;
 
-        this.sensorController = new SensorController();
-        this.contenedorController = new ContenedorController();
         this.permisosService = new PermisosService();
 
         this.contenedoresPorCodigo = new HashMap<>();
@@ -156,7 +154,7 @@ public class SensoresPanelController {
         try {
 
             List<Document> contenedores =
-                    contenedorController.listarContenedores();
+                    mongo.listarContenedores();
 
             view.getCmbContenedor().removeAllItems();
             contenedoresPorCodigo.clear();
@@ -198,7 +196,7 @@ public class SensoresPanelController {
         try {
 
             List<Document> sensores =
-                    sensorController.listarSensores();
+                    mongo.listarSensores();
 
             sensoresCargados.clear();
             sensoresCargados.addAll(sensores);
@@ -274,7 +272,7 @@ public class SensoresPanelController {
         try {
 
             Document contenedor =
-                    contenedorController.buscarPorId(
+                    mongo.buscarContenedorPorId(
                             contenedorId.toHexString()
                     );
 
@@ -485,7 +483,7 @@ public class SensoresPanelController {
             // Validación antes de modificar MongoDB.
             exigirAdministrador();
 
-            sensorController.eliminarSensor(
+            mongo.eliminarSensor(
                     sensorId.toHexString()
             );
 
@@ -604,7 +602,7 @@ public class SensoresPanelController {
 
         try {
 
-            sensorController.crearSensor(
+            mongo.crearSensor(
                     contenedorId,
                     tipo,
                     fabricante,
@@ -679,7 +677,7 @@ public class SensoresPanelController {
 
         try {
 
-            sensorController.modificarSensor(
+            mongo.modificarSensor(
                     sensorIdEditando,
                     contenedorId,
                     tipo,

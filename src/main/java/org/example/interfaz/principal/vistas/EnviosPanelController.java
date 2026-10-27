@@ -1,10 +1,9 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.neo4j.controller.ControllerNeo4j;
-import org.example.mongoDB.controller.ClienteController;
-import org.example.mongoDB.controller.ContenedorController;
-import org.example.mongoDB.controller.VehiculoController;
 import org.example.mongoDB.service.PermisosService;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -23,11 +22,10 @@ import java.util.Map;
 
 public class EnviosPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final EnviosPanel view;
     private final ControllerNeo4j neo4j;
-    private final ClienteController clienteController;
-    private final ContenedorController contenedorController;
-    private final VehiculoController vehiculoController;
     private final PermisosService permisosService;
 
     private final Map<String, String> clientesPorNombre;
@@ -53,9 +51,6 @@ public class EnviosPanelController {
         this.view = view;
 
         this.neo4j = new ControllerNeo4j();
-        this.clienteController = new ClienteController();
-        this.contenedorController = new ContenedorController();
-        this.vehiculoController = new VehiculoController();
         this.permisosService = new PermisosService();
 
         this.clientesPorNombre = new LinkedHashMap<>();
@@ -201,7 +196,7 @@ public class EnviosPanelController {
         try {
 
             List<Document> clientes =
-                    clienteController.listarClientes();
+                    mongo.listarClientes();
 
             view.getCmbCliente().removeAllItems();
             clientesPorNombre.clear();
@@ -291,7 +286,7 @@ public class EnviosPanelController {
         try {
 
             List<Document> contenedores =
-                    contenedorController.listarContenedores();
+                    mongo.listarContenedores();
 
             contenedoresPorCodigo.clear();
 
@@ -362,7 +357,7 @@ public class EnviosPanelController {
         try {
 
             List<Document> vehiculos =
-                    vehiculoController.listarVehiculos();
+                    mongo.listarVehiculos();
 
             JComboBox<String> combo = view.getCmbVehiculo();
 

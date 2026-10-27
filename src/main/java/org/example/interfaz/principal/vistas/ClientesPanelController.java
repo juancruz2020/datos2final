@@ -1,8 +1,9 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ClienteController;
 import org.example.neo4j.controller.ControllerNeo4j;
 
 import javax.swing.*;
@@ -14,8 +15,9 @@ import java.util.ArrayList;
 
 public class ClientesPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final ClientesPanel view;
-    private final ClienteController controller;
     private final ControllerNeo4j neo4j;
     private final List<String> clientesIds;
     private String clienteEditandoId;
@@ -26,7 +28,6 @@ public class ClientesPanelController {
 
     public ClientesPanelController(ClientesPanel view) {
         this.view = view;
-        this.controller = new ClienteController();
         this.neo4j = new ControllerNeo4j();
         this.clientesIds = new ArrayList<>();
         this.clienteEditandoId = null;
@@ -58,7 +59,7 @@ public class ClientesPanelController {
 
     private void cargarClientes() {
         try {
-            List<Document> clientes = controller.listarClientes();
+            List<Document> clientes = mongo.listarClientes();
             DefaultTableModel modelo =
                     (DefaultTableModel) view.getTablaClientes().getModel();
 
@@ -113,7 +114,7 @@ public class ClientesPanelController {
                 }
             }
 
-            List<Document> clientes = controller.listarClientes();
+            List<Document> clientes = mongo.listarClientes();
             Map<String, String> nombres = new HashMap<>();
             for (Document cliente : clientes) {
                 Object id = cliente.get("_id");
@@ -174,7 +175,7 @@ public class ClientesPanelController {
         try {
             int filaModelo = view.getTablaClientes().convertRowIndexToModel(fila);
             clienteEditandoId = clientesIds.get(filaModelo);
-            Document cliente = controller.buscarPorId(clienteEditandoId);
+            Document cliente = mongo.consultarClientePorId(clienteEditandoId);
             if (cliente == null) {
                 throw new IllegalStateException("No se encontró el cliente seleccionado.");
             }
@@ -222,7 +223,7 @@ public class ClientesPanelController {
 
         try {
             if (clienteEditandoId == null) {
-                controller.crearCliente(
+                mongo.crearCliente(
                         razonSocial, cuit, email, telefono,
                         calle, numero, ciudad, codigoPostal, pais
                 );
@@ -231,7 +232,7 @@ public class ClientesPanelController {
                         "Clientes", JOptionPane.INFORMATION_MESSAGE
                 );
             } else {
-                Document actual = controller.buscarPorId(clienteEditandoId);
+                Document actual = mongo.consultarClientePorId(clienteEditandoId);
                 if (actual == null) {
                     throw new IllegalStateException("No se encontró el cliente para modificar.");
                 }
@@ -240,7 +241,7 @@ public class ClientesPanelController {
                     estado = "ACTIVO";
                 }
 
-                controller.modificarCliente(
+                mongo.modificarCliente(
                         clienteEditandoId, razonSocial, cuit, email, telefono,
                         calle, numero, ciudad, codigoPostal, pais, estado
                 );
@@ -298,7 +299,7 @@ public class ClientesPanelController {
         }
 
         try {
-            controller.eliminarCliente(clienteId);
+            mongo.eliminarCliente(clienteId);
             JOptionPane.showMessageDialog(
                     view, "Cliente eliminado correctamente.",
                     "Clientes", JOptionPane.INFORMATION_MESSAGE

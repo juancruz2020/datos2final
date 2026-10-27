@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
-public class FacturaController {
+class FacturaController {
 
     private final FacturaService facturaService;
 
@@ -16,7 +16,7 @@ public class FacturaController {
     // CONSTRUCTOR
     // ==========================================
 
-    public FacturaController() {
+    FacturaController() {
         this.facturaService = new FacturaService();
     }
 

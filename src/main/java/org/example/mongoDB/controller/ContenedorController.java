@@ -5,7 +5,7 @@ import org.example.mongoDB.service.ContenedorService;
 
 import java.util.List;
 
-public class ContenedorController {
+class ContenedorController {
 
     private final ContenedorService contenedorService;
 
@@ -14,7 +14,7 @@ public class ContenedorController {
     // CONSTRUCTOR
     // =========================================================
 
-    public ContenedorController() {
+    ContenedorController() {
 
         this.contenedorService =
                 new ContenedorService();

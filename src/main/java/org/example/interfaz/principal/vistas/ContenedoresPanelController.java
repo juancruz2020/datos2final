@@ -1,9 +1,10 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ContenedorController;
 import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
@@ -13,8 +14,9 @@ import java.util.List;
 
 public class ContenedoresPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final ContenedoresPanel view;
-    private final ContenedorController controller;
     private final PermisosService permisosService;
     private final String usuarioId;
 
@@ -35,7 +37,6 @@ public class ContenedoresPanelController {
         this.view = view;
         this.usuarioId = usuarioId;
 
-        this.controller = new ContenedorController();
         this.permisosService = new PermisosService();
 
         this.contenedoresActuales = new ArrayList<>();
@@ -130,7 +131,7 @@ public class ContenedoresPanelController {
         try {
 
             List<Document> contenedores =
-                    controller.listarContenedores();
+                    mongo.listarContenedores();
 
             contenedoresActuales =
                     new ArrayList<>(contenedores);
@@ -335,7 +336,7 @@ public class ContenedoresPanelController {
 
         try {
 
-            controller.crearContenedor(
+            mongo.crearContenedor(
                     codigo,
                     tipo,
                     capacidad
@@ -403,7 +404,7 @@ public class ContenedoresPanelController {
 
         try {
 
-            controller.modificarContenedor(
+            mongo.modificarContenedor(
                     contenedorIdEditando,
                     codigo,
                     tipo,
@@ -492,7 +493,7 @@ public class ContenedoresPanelController {
             // Validar nuevamente antes de eliminar.
             exigirAdministrador();
 
-            controller.eliminarContenedor(
+            mongo.eliminarContenedor(
                     id.toHexString()
             );
 

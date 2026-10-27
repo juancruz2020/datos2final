@@ -5,7 +5,7 @@ import org.example.mongoDB.service.IncidenteService;
 
 import java.util.List;
 
-public class IncidenteController {
+class IncidenteController {
 
     private final IncidenteService incidenteService;
 
@@ -14,7 +14,7 @@ public class IncidenteController {
     // CONSTRUCTOR
     // =========================================================
 
-    public IncidenteController() {
+    IncidenteController() {
 
         this.incidenteService =
                 new IncidenteService();

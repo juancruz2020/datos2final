@@ -1,5 +1,7 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.example.logging.AppLog;
 
 import com.datastax.oss.driver.api.core.cql.Row;
@@ -48,11 +50,11 @@ import java.util.Set;
 
 public class SeguimientoGPSPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final SeguimientoGPSPanel view;
 
     private final ControllerMonitoreo monitoreoController;
-    private final org.example.mongoDB.controller.SensorController sensorController =
-            new org.example.mongoDB.controller.SensorController();
     private final Map<String, org.bson.Document> sensoresPorId = new HashMap<>();
     private final List<GPSWaypoint> puntosVisibles = new ArrayList<>();
     private boolean actualizandoCombo;
@@ -314,7 +316,7 @@ public class SeguimientoGPSPanelController {
     private void cargarInformacionSensores() {
         try {
             Map<String, org.bson.Document> sensores = new HashMap<>();
-            for (org.bson.Document sensor : sensorController.listarSensores()) {
+            for (org.bson.Document sensor : mongo.listarSensores()) {
                 Object id = sensor.get("_id");
                 if (id != null) sensores.put(id.toString(), sensor);
             }

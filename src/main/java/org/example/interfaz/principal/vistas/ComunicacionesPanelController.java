@@ -1,9 +1,9 @@
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ConversacionController;
-import org.example.mongoDB.controller.MensajeController;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 
 import javax.swing.*;
@@ -14,12 +14,12 @@ import java.util.List;
 
 public class ComunicacionesPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final ComunicacionesPanel view;
 
     private final String usuarioActualId;
 
-    private final ConversacionController conversacionController;
-    private final MensajeController mensajeController;
     private final UsuarioMongoDAO usuarioDAO;
 
     private final List<Document> conversacionesActuales;
@@ -41,11 +41,7 @@ public class ComunicacionesPanelController {
         this.usuarioActualId =
                 usuarioActualId;
 
-        this.conversacionController =
-                new ConversacionController();
 
-        this.mensajeController =
-                new MensajeController();
 
         this.usuarioDAO =
                 new UsuarioMongoDAO();
@@ -131,7 +127,7 @@ public class ComunicacionesPanelController {
 
 
             List<Document> conversaciones =
-                    conversacionController
+                    mongo
                             .obtenerConversacionesUsuario(
                                     usuarioActualId
                             );
@@ -264,8 +260,8 @@ public class ComunicacionesPanelController {
 
 
             List<Document> mensajes =
-                    mensajeController
-                            .obtenerHistorial(
+                    mongo
+                            .obtenerHistorialConversacion(
                                     conversacionId
                             );
 
@@ -469,7 +465,7 @@ public class ComunicacionesPanelController {
                             + nombreDestino;
 
 
-            conversacionController
+            mongo
                     .crearConversacionPrivada(
                             nombreConversacion,
                             usuarioActualId,
@@ -654,7 +650,7 @@ public class ComunicacionesPanelController {
             }
 
 
-            conversacionController
+            mongo
                     .crearConversacionGrupal(
                             nombreGrupo,
                             participantesIds
@@ -719,7 +715,7 @@ public class ComunicacionesPanelController {
             }
 
 
-            mensajeController
+            mongo
                     .enviarMensaje(
                             conversacionId,
                             usuarioActualId,
@@ -851,7 +847,7 @@ public class ComunicacionesPanelController {
                             .toHexString();
 
 
-            mensajeController
+            mongo
                     .modificarMensaje(
                             mensajeId,
                             usuarioActualId,
@@ -968,7 +964,7 @@ public class ComunicacionesPanelController {
                     );
 
 
-            mensajeController
+            mongo
                     .eliminarMensaje(
                             mensajeId,
                             usuarioActualId

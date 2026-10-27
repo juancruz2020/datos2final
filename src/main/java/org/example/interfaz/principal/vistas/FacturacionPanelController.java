@@ -1,11 +1,11 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-import org.example.mongoDB.controller.ClienteController;
-import org.example.mongoDB.controller.FacturaController;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
 import org.example.mongoDB.service.PagoFacturaService;
@@ -29,6 +29,8 @@ import java.util.TimeZone;
 
 public class FacturacionPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private static final ZoneId ZONA_HORARIA =
             ZoneId.of("America/Argentina/Buenos_Aires");
 
@@ -38,8 +40,6 @@ public class FacturacionPanelController {
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
 
-    private final FacturaController facturaController;
-    private final ClienteController clienteController;
     private final FacturaPDFController facturaPDFController;
     private final PagoFacturaService pagoFacturaService;
 
@@ -66,8 +66,6 @@ public class FacturacionPanelController {
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
 
-        this.facturaController = new FacturaController();
-        this.clienteController = new ClienteController();
         this.facturaPDFController = new FacturaPDFController();
         this.pagoFacturaService = new PagoFacturaService();
 
@@ -283,7 +281,7 @@ public class FacturacionPanelController {
 
         try {
             List<Document> clientes =
-                    clienteController.listarClientes();
+                    mongo.listarClientes();
 
             view.getCmbCliente().removeAllItems();
             clientesPorNombre.clear();
@@ -323,11 +321,11 @@ public class FacturacionPanelController {
             List<Document> facturas;
 
             if ("CLIENTE".equals(rolActual)) {
-                facturas = facturaController.buscarPorCliente(
+                facturas = mongo.buscarFacturasPorCliente(
                         clienteIdActual
                 );
             } else {
-                facturas = facturaController.listarFacturas();
+                facturas = mongo.listarFacturas();
             }
 
             DefaultTableModel modelo =
@@ -407,7 +405,7 @@ public class FacturacionPanelController {
         }
 
         try {
-            Document cliente = clienteController.buscarPorId(
+            Document cliente = mongo.consultarClientePorId(
                     clienteId.toHexString()
             );
 
@@ -588,7 +586,7 @@ public class FacturacionPanelController {
             }
 
             // Una factura nueva comienza sin pagar.
-            facturaController.crearFactura(
+            mongo.crearFactura(
                     clienteId,
                     fechaEmision,
                     fechaVencimiento,
@@ -735,7 +733,7 @@ public class FacturacionPanelController {
             }
 
             Document factura =
-                    facturaController.buscarPorId(facturaId);
+                    mongo.buscarFacturaPorId(facturaId);
 
             if ("PAGADA".equalsIgnoreCase(
                     factura.getString("estado"))) {
@@ -884,7 +882,7 @@ public class FacturacionPanelController {
             }
 
             Document factura =
-                    facturaController.buscarPorId(facturaId);
+                    mongo.buscarFacturaPorId(facturaId);
 
             Date vencimientoActual =
                     factura.getDate("fecha_vencimiento");
@@ -948,7 +946,7 @@ public class FacturacionPanelController {
                             ? "PAGADA"
                             : "PENDIENTE";
 
-            facturaController.modificarVencimientoYEstado(
+            mongo.modificarVencimientoYEstadoFactura(
                     facturaId,
                     fechaVencimiento,
                     estado

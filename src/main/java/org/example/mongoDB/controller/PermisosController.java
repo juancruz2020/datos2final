@@ -2,7 +2,7 @@ package org.example.mongoDB.controller;
 
 import org.example.mongoDB.service.PermisosService;
 
-public class PermisosController {
+class PermisosController {
 
     private final PermisosService permisosService;
 
@@ -11,7 +11,7 @@ public class PermisosController {
     // CONSTRUCTOR
     // =========================
 
-    public PermisosController() {
+    PermisosController() {
 
         this.permisosService =
                 new PermisosService();

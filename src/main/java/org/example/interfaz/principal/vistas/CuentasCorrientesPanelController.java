@@ -1,11 +1,12 @@
 
 package org.example.interfaz.principal.vistas;
 
+import org.example.mongoDB.controller.ControllerMongoDB;
+
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
-import org.example.mongoDB.controller.ClienteController;
 import org.example.mongoDB.service.CuentaCorrienteService;
 import org.example.mongoDB.service.CierreMensualCuentaCorrienteService;
 
@@ -23,11 +24,12 @@ import java.util.List;
 
 public class CuentasCorrientesPanelController {
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final CuentasCorrientesPanel view;
 
     private final CuentaCorrienteService cuentaService;
     private final CierreMensualCuentaCorrienteService cierreService;
-    private final ClienteController clienteController;
 
     private final List<String> cuentasIds;
 
@@ -43,7 +45,6 @@ public class CuentasCorrientesPanelController {
 
         cuentaService = new CuentaCorrienteService();
         cierreService = new CierreMensualCuentaCorrienteService();
-        clienteController = new ClienteController();
 
         cuentasIds = new ArrayList<>();
 
@@ -649,7 +650,7 @@ public class CuentasCorrientesPanelController {
 
         try {
 
-            Document cliente = clienteController.buscarPorId(
+            Document cliente = mongo.consultarClientePorId(
                     clienteId.toHexString()
             );
 
