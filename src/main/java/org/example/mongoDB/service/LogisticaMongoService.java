@@ -1,12 +1,13 @@
 package org.example.mongoDB.service;
 
+import com.mongodb.client.ClientSession;
+import org.example.conecciones.MongoSingleton;
 import org.example.consola.TablaConsola;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.*;
 import org.example.mongoDB.model.*;
-
 import java.util.List;
 
 public class LogisticaMongoService {
@@ -545,7 +546,12 @@ public class LogisticaMongoService {
     // =========================
 
     public void agregarPago(Pago pago) {
-        pagoDAO.agregar(pago);
+        try (ClientSession session = obtenerSesion()) {
+            session.withTransaction(() -> {
+                pagoDAO.agregar(session, pago);
+                return null;
+            });
+        }
     }
 
     public void modificarPago(Pago pago) {
@@ -615,5 +621,10 @@ public class LogisticaMongoService {
 
     public Document buscarCuentaCorrientePorCliente(String clienteId) {
         return TablaConsola.mostrar("LogisticaMongoService.buscarCuentaCorrientePorCliente", cuentaCorrienteDAO.buscarPorCliente(clienteId));
+    }
+
+    /** Crea una sesión desde el cliente compartido. Quien la utiliza debe cerrarla. */
+    public static ClientSession obtenerSesion() {
+        return MongoSingleton.getInstance().startSession();
     }
 }

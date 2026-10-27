@@ -1,9 +1,12 @@
 package org.example.DatosPorDefecto;
 
+import com.mongodb.client.ClientSession;
 import org.example.mongoDB.dao.*;
 
 import org.example.mongoDB.model.*;
+import org.example.conecciones.MongoSingleton;
 import org.example.logging.AppLog;
+
 
 import java.math.BigDecimal;
 
@@ -39,6 +42,8 @@ public class GeneradorDatosPruebaMongo {
     private final FacturaMongoDAO facturaDAO = new FacturaMongoDAO();
 
     private final PagoMongoDAO pagoDAO = new PagoMongoDAO();
+
+
 
     private final CuentaCorrienteMongoDAO cuentaCorrienteDAO =
 
@@ -1399,15 +1404,18 @@ public class GeneradorDatosPruebaMongo {
 
         );
 
-        pagoDAO.agregar(pago1);
-
-        pagoDAO.agregar(pago2);
-
-        pagoDAO.agregar(pago3);
-
-        pagoDAO.agregar(pago4);
-
-        pagoDAO.agregar(pago5);
+        // Una sesión no inicia una transacción por sí sola.
+        // withTransaction confirma los cinco pagos juntos o revierte sus inserciones.
+        try (ClientSession session = obtenerSesion()) {
+            session.withTransaction(() -> {
+                pagoDAO.agregar(session, pago1);
+                pagoDAO.agregar(session, pago2);
+                pagoDAO.agregar(session, pago3);
+                pagoDAO.agregar(session, pago4);
+                pagoDAO.agregar(session, pago5);
+                return null;
+            });
+        }
 
         // =====================================================
 
@@ -1510,5 +1518,10 @@ public class GeneradorDatosPruebaMongo {
 
         generador.generarDatos();
 
+    }
+
+    /** Crea una sesión desde el cliente compartido. Quien la utiliza debe cerrarla. */
+    public static ClientSession obtenerSesion() {
+        return MongoSingleton.getInstance().startSession();
     }
 }

@@ -29,37 +29,6 @@ public class PagoMongoDAO {
     }
 
 
-    // =========================
-    // AGREGAR PAGO
-    // =========================
-
-    public void agregar(Pago pago) {
-
-        Document documento = new Document()
-                .append(
-                        "factura_id",
-                        new ObjectId(pago.getFacturaId())
-                )
-                .append(
-                        "fecha",
-                        pago.getFecha()
-                )
-                .append(
-                        "monto",
-                        new Decimal128(pago.getMonto())
-                )
-                .append(
-                        "medio_pago",
-                        pago.getMedioPago()
-                );
-
-        coleccion.insertOne(documento);
-
-        pago.setId(
-                documento.getObjectId("_id").toHexString()
-        );
-    }
-
 
     // =========================
     // AGREGAR PAGO EN UNA TRANSACCION EXISTENTE

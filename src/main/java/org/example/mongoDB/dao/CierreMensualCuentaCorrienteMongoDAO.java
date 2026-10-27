@@ -93,25 +93,10 @@ public class CierreMensualCuentaCorrienteMongoDAO {
                 );
     }
 
-    // =========================================
-    // AGREGAR CIERRE MENSUAL
-    // =========================================
 
-    public void agregar(
-            CierreMensualCuentaCorriente cierre
-    ) {
-
-        Document documento = crearDocumento(cierre);
-
-        coleccion.insertOne(documento);
-
-        cierre.setId(
-                documento.getObjectId("_id").toHexString()
-        );
-    }
 
     // =========================================
-    // AGREGAR CIERRE CON TRANSACCIÓN
+    // AGREGAR CIERRE 
     // =========================================
 
     public void agregar(
@@ -139,27 +124,6 @@ public class CierreMensualCuentaCorrienteMongoDAO {
         ).first();
     }
 
-    // =========================================
-    // BUSCAR CIERRE POR CUENTA Y PERÍODO
-    // =========================================
-
-    public Document buscarPorPeriodo(
-            String cuentaCorrienteId,
-            int anio,
-            int mes
-    ) {
-
-        return coleccion.find(
-                and(
-                        eq(
-                                "cuenta_corriente_id",
-                                new ObjectId(cuentaCorrienteId)
-                        ),
-                        eq("anio", anio),
-                        eq("mes", mes)
-                )
-        ).first();
-    }
 
     // =========================================
     // BUSCAR CIERRE POR PERÍODO CON SESIÓN

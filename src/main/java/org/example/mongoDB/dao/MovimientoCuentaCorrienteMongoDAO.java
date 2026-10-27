@@ -99,22 +99,6 @@ public class MovimientoCuentaCorrienteMongoDAO {
                 );
     }
 
-    // =========================================
-    // AGREGAR MOVIMIENTO
-    // =========================================
-
-    public void agregar(
-            MovimientoCuentaCorriente movimiento
-    ) {
-
-        Document documento = crearDocumento(movimiento);
-
-        coleccion.insertOne(documento);
-
-        movimiento.setId(
-                documento.getObjectId("_id").toHexString()
-        );
-    }
 
     // =========================================
     // AGREGAR MOVIMIENTO CON TRANSACCIÓN

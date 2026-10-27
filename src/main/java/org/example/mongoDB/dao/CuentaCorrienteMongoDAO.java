@@ -177,23 +177,6 @@ public class CuentaCorrienteMongoDAO {
         ).first();
     }
 
-    // =========================
-    // ACTUALIZAR SALDO
-    // =========================
-
-    public void actualizarSaldo(
-            String cuentaId,
-            BigDecimal nuevoSaldo
-    ) {
-
-        coleccion.updateOne(
-                eq("_id", new ObjectId(cuentaId)),
-                combine(
-                        set("saldo", new Decimal128(nuevoSaldo)),
-                        set("fecha_actualizacion", new Date())
-                )
-        );
-    }
 
     // =========================================
     // BUSCAR POR ID CON TRANSACCIÓN

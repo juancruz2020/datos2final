@@ -13,10 +13,6 @@ public class Sensor {
     private Date fechaInstalacion;
     private String estado;
 
-    // =========================
-    // CONSTRUCTOR ORIGINAL
-    // =========================
-
     public Sensor(
             String id,
             String contenedorId,
