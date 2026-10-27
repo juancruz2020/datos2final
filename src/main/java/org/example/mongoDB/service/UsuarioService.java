@@ -52,6 +52,15 @@ public class UsuarioService {
 
         String emailNormalizado = email.trim().toLowerCase();
 
+        if (!emailNormalizado.matches(
+                "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"
+        )) {
+            throw new IllegalArgumentException(
+                    "Ingresá un email válido. Ejemplo: usuario@gmail.com"
+            );
+        }
+
+
         // VALIDAR EMAIL REPETIDO
 
         if (usuarioDAO.buscarPorEmail(emailNormalizado) != null) {
