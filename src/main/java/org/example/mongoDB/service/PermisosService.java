@@ -88,7 +88,6 @@ public class PermisosService {
         );
     }
 
-
     // =========================
     // VERIFICAR CLIENTE
     // =========================
@@ -100,7 +99,6 @@ public class PermisosService {
         );
     }
 
-
     // =========================
     // VERIFICAR PROVEEDOR
     // =========================
@@ -111,7 +109,6 @@ public class PermisosService {
                 obtenerRolUsuario(usuarioId)
         );
     }
-
 
     // =========================
     // EXIGIR ADMINISTRADOR
@@ -127,7 +124,6 @@ public class PermisosService {
         }
     }
 
-
     // =========================
     // EXIGIR PROVEEDOR
     // =========================
@@ -142,15 +138,11 @@ public class PermisosService {
         }
     }
 
-
     // =========================
-    // EXIGIR ADMINISTRADOR
-    // U OPERADOR
+    // EXIGIR ADMINISTRADOR U OPERADOR
     // =========================
 
-    public void exigirAdminUOperador(
-            String usuarioId
-    ) {
+    public void exigirAdminUOperador(String usuarioId) {
 
         String rol = obtenerRolUsuario(usuarioId);
 
@@ -166,14 +158,11 @@ public class PermisosService {
         }
     }
 
-
     // =========================
     // OBTENER CLIENTE DEL USUARIO
     // =========================
 
-    public String obtenerClienteId(
-            String usuarioId
-    ) {
+    public String obtenerClienteId(String usuarioId) {
 
         if (usuarioId == null
                 || !ObjectId.isValid(usuarioId)) {
@@ -240,7 +229,6 @@ public class PermisosService {
         return proveedorId.toHexString();
     }
 
-
     // =========================
     // VERIFICAR ACCESO A UNA VISTA
     // =========================
@@ -277,7 +265,6 @@ public class PermisosService {
 
                 case "ENVIOS",
                      "CLIENTES",
-                     "PROVEEDOR",
                      "CONTENEDORES",
                      "SENSORES",
                      "MONITOREO",
@@ -297,7 +284,6 @@ public class PermisosService {
             };
         }
 
-
         // =========================
         // CLIENTE
         // =========================
@@ -306,14 +292,13 @@ public class PermisosService {
 
             return switch (vistaNormalizada) {
 
-                case "ENVIOS",
-                     "REPORTES",
-                     "COMUNICACIONES",
-                     "FACTURACION",
-                     "PAGOS",
-                     "SEGUIMIENTO_ENVIO",
-                     "RIESGOS",
-                     "EVENTOS_LOGISTICOS" -> true;
+            case "ENVIOS",
+                "REPORTES",
+                "COMUNICACIONES",
+                "FACTURACION",
+                "SEGUIMIENTO_ENVIO",
+                "RIESGOS",
+                "EVENTOS_LOGISTICOS" -> true;
 
                 default -> false;
             };
