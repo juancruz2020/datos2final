@@ -2,22 +2,25 @@
 package org.example.interfaz.principal.vistas;
 
 import org.example.mongoDB.controller.ControllerMongoDB;
-
+import org.example.mongoDB.service.ValidacionesRegistro;
 import org.example.logging.AppLog;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
+
 import org.example.usuarios.controller.AdministracionController;
 import org.example.usuarios.controller.SesionController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+
 import java.util.List;
 import java.util.Map;
 
 public class AdministracionPanelController {
 
-    private final ControllerMongoDB mongo = new ControllerMongoDB();
+    private final ControllerMongoDB mongo =
+            new ControllerMongoDB();
 
     private String usuarioIdEnEdicion = null;
     private String clienteIdEnEdicion = null;
@@ -27,19 +30,16 @@ public class AdministracionPanelController {
     private final AdministracionPanel view;
 
     private final AdministracionController administracionController;
-
-
-
-
     private final SesionController sesionController;
 
     private Timer timer;
-    private final Map<String, String> mailsPorUsuario = new java.util.HashMap<>();
 
+    private final Map<String, String> mailsPorUsuario =
+            new java.util.HashMap<>();
 
-    // =========================================================
+    // ==========================================
     // CONSTRUCTOR
-    // =========================================================
+    // ==========================================
 
     public AdministracionPanelController(
             AdministracionPanel view
@@ -50,87 +50,68 @@ public class AdministracionPanelController {
         this.administracionController =
                 new AdministracionController();
 
-
-
-
         this.sesionController =
                 new SesionController();
 
-
         configurarEventos();
-
         cargarRoles();
-
         actualizarFormularioPorRol();
-
         actualizarBotonesUsuario();
 
-        view.getTablaSesiones().getColumnModel().getColumn(0)
-                .setCellRenderer(new javax.swing.table.DefaultTableCellRenderer() {
-                    @Override
-                    protected void setValue(Object value) {
-                        super.setValue(mailDeUsuario(String.valueOf(value)));
-                    }
-                });
-        cargarSesiones();
+        view.getTablaSesiones()
+                .getColumnModel()
+                .getColumn(0)
+                .setCellRenderer(
+                        new javax.swing.table.DefaultTableCellRenderer() {
 
+                            @Override
+                            protected void setValue(Object value) {
+                                super.setValue(
+                                        mailDeUsuario(String.valueOf(value))
+                                );
+                            }
+                        }
+                );
+
+        cargarSesiones();
         iniciarActualizacionAutomatica();
     }
 
-
-    // =========================================================
-    // EVENTOS
-    // =========================================================
+    // ==========================================
+    // CONFIGURAR EVENTOS
+    // ==========================================
 
     private void configurarEventos() {
-
-        // -----------------------------------------------------
-        // SESIONES
-        // -----------------------------------------------------
 
         view.getBtnActualizarSesiones()
                 .addActionListener(
                         e -> actualizarSesionesManualmente()
                 );
 
-
         view.getBtnCerrarSesion()
                 .addActionListener(
                         e -> cerrarSesionSeleccionada()
                 );
-
-
-        // -----------------------------------------------------
-        // ROL
-        // -----------------------------------------------------
 
         view.getCmbRol()
                 .addActionListener(
                         e -> actualizarFormularioPorRol()
                 );
 
-
-        // -----------------------------------------------------
-        // USUARIOS
-        // -----------------------------------------------------
-
         view.getBtnBuscar()
                 .addActionListener(
                         e -> buscarUsuarioParaModificar()
                 );
-
 
         view.getBtnRegistrar()
                 .addActionListener(
                         e -> registrarUsuario()
                 );
 
-
         view.getBtnModificar()
                 .addActionListener(
                         e -> modificarUsuario()
                 );
-
 
         view.getBtnEliminar()
                 .addActionListener(
@@ -138,31 +119,34 @@ public class AdministracionPanelController {
                 );
     }
 
-
-    // =========================================================
-    // ACTUALIZAR BOTONES DE USUARIO
-    // =========================================================
+    // ==========================================
+    // ACTUALIZAR BOTONES
+    // ==========================================
 
     private void actualizarBotonesUsuario() {
 
-        boolean usuarioSeleccionado = usuarioIdEnEdicion != null;
+        boolean usuarioSeleccionado =
+                usuarioIdEnEdicion != null;
 
-        view.getBtnRegistrar().setVisible(!usuarioSeleccionado);
+        view.getBtnRegistrar()
+                .setVisible(!usuarioSeleccionado);
 
-        view.getBtnBuscar().setVisible(true);
+        view.getBtnBuscar()
+                .setVisible(true);
 
-        view.getBtnModificar().setVisible(usuarioSeleccionado);
+        view.getBtnModificar()
+                .setVisible(usuarioSeleccionado);
 
-        view.getBtnEliminar().setVisible(usuarioSeleccionado);
+        view.getBtnEliminar()
+                .setVisible(usuarioSeleccionado);
 
         view.revalidate();
         view.repaint();
     }
 
-
-    // =========================================================
+    // ==========================================
     // CARGAR ROLES
-    // =========================================================
+    // ==========================================
 
     private void cargarRoles() {
 
@@ -171,28 +155,17 @@ public class AdministracionPanelController {
             List<Document> roles =
                     mongo.listarRoles();
 
-
-            view.getCmbRol()
-                    .removeAllItems();
-
+            view.getCmbRol().removeAllItems();
 
             for (Document rol : roles) {
 
                 String descripcion =
-                        rol.getString(
-                                "descripcion"
-                        );
-
+                        rol.getString("descripcion");
 
                 if (descripcion != null) {
-
-                    view.getCmbRol()
-                            .addItem(
-                                    descripcion
-                            );
+                    view.getCmbRol().addItem(descripcion);
                 }
             }
-
 
         } catch (Exception e) {
 
@@ -203,46 +176,75 @@ public class AdministracionPanelController {
         }
     }
 
-
-    // =========================================================
-    // MOSTRAR FORMULARIO SEGÚN ROL
-    // =========================================================
+    // ==========================================
+    // FORMULARIO SEGÚN ROL
+    // ==========================================
 
     private void actualizarFormularioPorRol() {
-        Object seleccionado = view.getCmbRol().getSelectedItem();
-        String rol = seleccionado == null ? "" : seleccionado.toString().trim();
-        boolean esCliente = "Cliente".equalsIgnoreCase(rol);
-        boolean esProveedor = "Proveedor".equalsIgnoreCase(rol);
 
-        // Para Cliente y Proveedor el correo de acceso se carga
-        // en la ficha de su empresa. Admin/Operador utilizan
-        // el campo de correo del usuario.
+        Object seleccionado =
+                view.getCmbRol().getSelectedItem();
+
+        String rol = seleccionado == null
+                ? ""
+                : seleccionado.toString().trim();
+
+        boolean esCliente =
+                "Cliente".equalsIgnoreCase(rol);
+
+        boolean esProveedor =
+                "Proveedor".equalsIgnoreCase(rol);
+
         if (usuarioIdEnEdicion != null) {
-            String correoActual = view.getTxtEmail().getText();
+
+            String correoActual =
+                    view.getTxtEmail().getText();
+
             if (!correoActual.isBlank()) {
-                if (esCliente) view.getTxtEmailCliente().setText(correoActual);
-                if (esProveedor) view.getTxtEmailProveedor().setText(correoActual);
+
+                if (esCliente) {
+                    view.getTxtEmailCliente()
+                            .setText(correoActual);
+                }
+
+                if (esProveedor) {
+                    view.getTxtEmailProveedor()
+                            .setText(correoActual);
+                }
             }
         }
 
-        view.mostrarEmailUsuario(!esCliente && !esProveedor);
+        view.mostrarEmailUsuario(
+                !esCliente && !esProveedor
+        );
 
-        if (esCliente) view.mostrarDatosCliente();
-        else view.ocultarDatosCliente();
+        if (esCliente) {
+            view.mostrarDatosCliente();
+        } else {
+            view.ocultarDatosCliente();
+        }
 
-        if (esProveedor) view.mostrarDatosProveedor();
-        else view.ocultarDatosProveedor();
+        if (esProveedor) {
+            view.mostrarDatosProveedor();
+        } else {
+            view.ocultarDatosProveedor();
+        }
 
         if (usuarioIdEnEdicion == null) {
-            if (!esCliente) view.limpiarDatosCliente();
-            if (!esProveedor) view.limpiarDatosProveedor();
+
+            if (!esCliente) {
+                view.limpiarDatosCliente();
+            }
+
+            if (!esProveedor) {
+                view.limpiarDatosProveedor();
+            }
         }
     }
 
-
-    // =========================================================
-    // BUSCAR USUARIO PARA MODIFICAR O ELIMINAR
-    // =========================================================
+    // ==========================================
+    // BUSCAR USUARIO PARA EDITAR
+    // ==========================================
 
     private void buscarUsuarioParaModificar() {
 
@@ -271,24 +273,30 @@ public class AdministracionPanelController {
 
         try {
 
-            Document usuario = mongo.buscarUsuarioPorEmail(
-                    email.trim().toLowerCase()
-            );
+            Document usuario =
+                    mongo.buscarUsuarioPorEmail(
+                            email.trim().toLowerCase()
+                    );
 
             if (usuario == null) {
-
                 throw new IllegalArgumentException(
                         "No se encontró un usuario con ese email."
                 );
             }
 
-            ObjectId id = usuario.getObjectId("_id");
-            ObjectId clienteId = usuario.getObjectId("cliente_id");
-            ObjectId proveedorId = usuario.getObjectId("proveedor_id");
-            ObjectId rolId = usuario.getObjectId("rol_id");
+            ObjectId id =
+                    usuario.getObjectId("_id");
+
+            ObjectId clienteId =
+                    usuario.getObjectId("cliente_id");
+
+            ObjectId proveedorId =
+                    usuario.getObjectId("proveedor_id");
+
+            ObjectId rolId =
+                    usuario.getObjectId("rol_id");
 
             if (id == null || rolId == null) {
-
                 throw new IllegalArgumentException(
                         "El usuario tiene datos incompletos."
                 );
@@ -299,20 +307,17 @@ public class AdministracionPanelController {
             for (Document r : mongo.listarRoles()) {
 
                 if (rolId.equals(r.getObjectId("_id"))) {
-
                     rol = r;
                     break;
                 }
             }
 
             if (rol == null) {
-
                 throw new IllegalArgumentException(
                         "No se encontró el rol del usuario."
                 );
             }
 
-            // Limpiamos los datos anteriores de búsqueda.
             usuarioIdEnEdicion = null;
             clienteIdEnEdicion = null;
             proveedorIdEnEdicion = null;
@@ -323,7 +328,6 @@ public class AdministracionPanelController {
             view.limpiarDatosCliente();
             view.limpiarDatosProveedor();
 
-            // Cambiar el rol actualiza el formulario visible.
             view.getCmbRol().setSelectedItem(
                     rol.getString("descripcion")
             );
@@ -340,16 +344,26 @@ public class AdministracionPanelController {
                     usuario.getString("email")
             );
 
-            view.getTxtEmailCliente().setText(usuario.getString("email"));
-            view.getTxtEmailProveedor().setText(usuario.getString("email"));
+            view.getTxtEmailCliente().setText(
+                    usuario.getString("email")
+            );
 
-            // Cargar la ficha existente de proveedor sin crear otro.
+            view.getTxtEmailProveedor().setText(
+                    usuario.getString("email")
+            );
+
             if (proveedorId != null) {
-                Document proveedor = mongo.buscarProveedorPorId(proveedorId.toHexString());
+
+                Document proveedor =
+                        mongo.buscarProveedorPorId(
+                                proveedorId.toHexString()
+                        );
+
                 cargarDatosProveedor(proveedor);
             }
 
-            // Nunca mostrar la contraseña almacenada.
+            // No mostrar la contraseña almacenada.
+
             view.getTxtContrasena().setText("");
 
             usuarioIdEnEdicion = id.toHexString();
@@ -357,11 +371,13 @@ public class AdministracionPanelController {
             clienteIdEnEdicion = clienteId == null
                     ? null
                     : clienteId.toHexString();
+
             proveedorIdEnEdicion = proveedorId == null
                     ? null
                     : proveedorId.toHexString();
 
-            emailOriginalEnEdicion = usuario.getString("email");
+            emailOriginalEnEdicion =
+                    usuario.getString("email");
 
             actualizarBotonesUsuario();
 
@@ -388,33 +404,25 @@ public class AdministracionPanelController {
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // REGISTRAR USUARIO
-    // =========================================================
+    // ==========================================
 
     private void registrarUsuario() {
 
         String nombre =
-                view.getTxtNombre()
-                        .getText()
-                        .trim();
+                view.getTxtNombre().getText().trim();
 
         String apellido =
-                view.getTxtApellido()
-                        .getText()
-                        .trim();
+                view.getTxtApellido().getText().trim();
 
         String contrasena =
                 new String(
-                        view.getTxtContrasena()
-                                .getPassword()
+                        view.getTxtContrasena().getPassword()
                 ).trim();
 
         Object rolSeleccionado =
-                view.getCmbRol()
-                        .getSelectedItem();
-
+                view.getCmbRol().getSelectedItem();
 
         if (rolSeleccionado == null) {
 
@@ -428,97 +436,99 @@ public class AdministracionPanelController {
             return;
         }
 
-
         String descripcionRol =
-                rolSeleccionado
-                        .toString()
-                        .trim();
+                rolSeleccionado.toString().trim();
 
-        // Para Cliente, el email de Datos del cliente se usa
-        // en ambas colecciones: clientes y usuarios.
-
-        String email = descripcionRol.equalsIgnoreCase("Cliente")
-                ? view.getTxtEmailCliente().getText().trim()
-                : descripcionRol.equalsIgnoreCase("Proveedor")
-                ? view.getTxtEmailProveedor().getText().trim()
-                : view.getTxtEmail().getText().trim();
-
-        if (email.isBlank()) {
-
-            JOptionPane.showMessageDialog(
-                    view,
-                    "Ingresá el email.",
-                    "Validación",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            return;
-        }
-
+        String email =
+                descripcionRol.equalsIgnoreCase("Cliente")
+                        ? view.getTxtEmailCliente().getText().trim()
+                        : descripcionRol.equalsIgnoreCase("Proveedor")
+                        ? view.getTxtEmailProveedor().getText().trim()
+                        : view.getTxtEmail().getText().trim();
 
         try {
 
-            // =================================================
+            // ======================================
+            // VALIDAR ANTES DE GUARDAR
+            // ======================================
+
+            ValidacionesRegistro.nombre(
+                    nombre,
+                    "nombre"
+            );
+
+            ValidacionesRegistro.nombre(
+                    apellido,
+                    "apellido"
+            );
+
+            ValidacionesRegistro.email(email);
+
+            ValidacionesRegistro.contrasena(contrasena);
+
+            Document usuarioConEseEmail =
+                    mongo.buscarUsuarioPorEmail(
+                            email.trim().toLowerCase()
+                    );
+
+            if (usuarioConEseEmail != null) {
+                throw new IllegalArgumentException(
+                        "Ya existe un usuario con ese email."
+                );
+            }
+
+            // Validar toda la ficha antes de crear
+            // el cliente o proveedor.
+
+            if ("Cliente".equalsIgnoreCase(descripcionRol)) {
+
+                validarFichaCliente();
+
+            } else if ("Proveedor".equalsIgnoreCase(descripcionRol)) {
+
+                validarFichaProveedor();
+            }
+
+            // ======================================
             // BUSCAR ROL
-            // =================================================
+            // ======================================
 
             Document rol =
                     mongo.buscarRolPorDescripcion(
                             descripcionRol
                     );
 
-
-            if (rol == null) {
+            if (rol == null
+                    || rol.getObjectId("_id") == null) {
 
                 throw new IllegalArgumentException(
                         "No se encontró el rol seleccionado."
                 );
             }
 
-
-            ObjectId rolObjectId =
-                    rol.getObjectId(
-                            "_id"
-                    );
-
-
-            if (rolObjectId == null) {
-
-                throw new IllegalArgumentException(
-                        "El rol seleccionado no tiene un ID válido."
-                );
-            }
-
-
             String rolId =
-                    rolObjectId.toHexString();
-
-
-            // =================================================
-            // CLIENTE
-            // =================================================
+                    rol.getObjectId("_id").toHexString();
 
             String clienteId = null;
             String proveedorId = null;
 
-            if (
-                    descripcionRol.equalsIgnoreCase(
-                            "Cliente"
-                    )
-            ) {
+            // ======================================
+            // CREAR CLIENTE O PROVEEDOR
+            // ======================================
 
-                clienteId =
-                        crearClienteYObtenerId();
+            if ("Cliente".equalsIgnoreCase(descripcionRol)) {
+
+                clienteId = crearClienteYObtenerId();
             }
 
+            if ("Proveedor".equalsIgnoreCase(descripcionRol)) {
 
-            if (descripcionRol.equalsIgnoreCase("Proveedor")) {
                 proveedorId = crearProveedorYObtenerId();
             }
 
-            // =================================================
+            // ======================================
             // CREAR USUARIO
-            // =================================================
+            // ======================================
 
             mongo.crearUsuario(
                     clienteId,
@@ -529,11 +539,6 @@ public class AdministracionPanelController {
                     email,
                     contrasena
             );
-
-
-            // =================================================
-            // ÉXITO
-            // =================================================
 
             JOptionPane.showMessageDialog(
                     view,
@@ -546,14 +551,12 @@ public class AdministracionPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             limpiarFormularioUsuario();
 
             view.limpiarDatosCliente();
             view.limpiarDatosProveedor();
 
             actualizarFormularioPorRol();
-
 
         } catch (Exception e) {
 
@@ -564,10 +567,9 @@ public class AdministracionPanelController {
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // MODIFICAR USUARIO
-    // =========================================================
+    // ==========================================
 
     private void modificarUsuario() {
 
@@ -600,7 +602,6 @@ public class AdministracionPanelController {
                     view.getCmbRol().getSelectedItem();
 
             if (rolSeleccionado == null) {
-
                 throw new IllegalArgumentException(
                         "Seleccioná un rol."
                 );
@@ -610,9 +611,12 @@ public class AdministracionPanelController {
                     rolSeleccionado.toString().trim();
 
             Document rol =
-                    mongo.buscarRolPorDescripcion(descripcionRol);
+                    mongo.buscarRolPorDescripcion(
+                            descripcionRol
+                    );
 
-            if (rol == null || rol.getObjectId("_id") == null) {
+            if (rol == null
+                    || rol.getObjectId("_id") == null) {
 
                 throw new IllegalArgumentException(
                         "No se encontró el rol seleccionado."
@@ -634,8 +638,33 @@ public class AdministracionPanelController {
                     ? view.getTxtEmailProveedor().getText().trim()
                     : view.getTxtEmail().getText().trim();
 
-            // Conservamos la empresa asociada.
-            // No creamos clientes nuevos al modificar usuarios.
+            // ======================================
+            // VALIDACIONES ANTES DE MODIFICAR
+            // ======================================
+
+            ValidacionesRegistro.nombre(
+                    nombre,
+                    "nombre"
+            );
+
+            ValidacionesRegistro.nombre(
+                    apellido,
+                    "apellido"
+            );
+
+            ValidacionesRegistro.email(email);
+
+            if (!contraseña.isBlank()) {
+                ValidacionesRegistro.contrasena(contraseña);
+            }
+
+            if (esProveedor) {
+                validarFichaProveedor();
+            }
+
+            // ======================================
+            // CONSERVAR ASOCIACIONES
+            // ======================================
 
             if (esCliente && clienteIdEnEdicion == null) {
 
@@ -645,21 +674,24 @@ public class AdministracionPanelController {
                 );
             }
 
-            String clienteId = esCliente ? clienteIdEnEdicion : null;
+            String clienteId =
+                    esCliente ? clienteIdEnEdicion : null;
 
             if (esProveedor && proveedorIdEnEdicion == null) {
+
                 throw new IllegalArgumentException(
                         "Este usuario no tiene un proveedor asociado. "
                                 + "No se puede cambiar a Proveedor desde este formulario."
                 );
             }
 
-            String proveedorId = esProveedor ? proveedorIdEnEdicion : null;
-
-            // Recuperar el usuario original para conservar su estado.
+            String proveedorId =
+                    esProveedor ? proveedorIdEnEdicion : null;
 
             Document usuarioActual =
-                    mongo.buscarUsuarioPorEmail(emailOriginalEnEdicion);
+                    mongo.buscarUsuarioPorEmail(
+                            emailOriginalEnEdicion
+                    );
 
             if (usuarioActual == null
                     || usuarioActual.getObjectId("_id") == null
@@ -675,7 +707,9 @@ public class AdministracionPanelController {
             String estado =
                     usuarioActual.getString("estado");
 
-            // Confirmación antes de guardar.
+            // ======================================
+            // CONFIRMAR MODIFICACIÓN
+            // ======================================
 
             int respuesta =
                     JOptionPane.showConfirmDialog(
@@ -690,12 +724,10 @@ public class AdministracionPanelController {
                 return;
             }
 
-            // =================================================
-            // GUARDAR MODIFICACIONES
-            // =================================================
+            // ======================================
+            // GUARDAR CAMBIOS
+            // ======================================
 
-            // La ficha del proveedor y su usuario son operaciones
-            // independientes. No cambiamos los datos de otro proveedor.
             if (esProveedor) {
                 modificarProveedorExistente(proveedorId);
             }
@@ -725,7 +757,6 @@ public class AdministracionPanelController {
             view.limpiarDatosProveedor();
 
             actualizarFormularioPorRol();
-
             cargarSesiones();
 
         } catch (Exception e) {
@@ -737,62 +768,76 @@ public class AdministracionPanelController {
         }
     }
 
+    // ==========================================
+    // VALIDAR FICHA CLIENTE
+    // ==========================================
 
-    // =========================================================
+    private void validarFichaCliente() {
+
+        ValidacionesRegistro.datosEmpresa(
+                view.getTxtRazonSocialCliente().getText().trim(),
+                view.getTxtCuitCliente().getText().trim(),
+                view.getTxtEmailCliente().getText().trim(),
+                view.getTxtTelefonoCliente().getText().trim(),
+                view.getTxtCalleCliente().getText().trim(),
+                view.getTxtNumeroCliente().getText().trim(),
+                view.getTxtCiudadCliente().getText().trim(),
+                view.getTxtCodigoPostalCliente().getText().trim(),
+                view.getTxtPaisCliente().getText().trim()
+        );
+    }
+
+    // ==========================================
+    // VALIDAR FICHA PROVEEDOR
+    // ==========================================
+
+    private void validarFichaProveedor() {
+
+        ValidacionesRegistro.datosEmpresa(
+                view.getTxtRazonSocialProveedor().getText().trim(),
+                view.getTxtCuitProveedor().getText().trim(),
+                view.getTxtEmailProveedor().getText().trim(),
+                view.getTxtTelefonoProveedor().getText().trim(),
+                view.getTxtCalleProveedor().getText().trim(),
+                view.getTxtNumeroProveedor().getText().trim(),
+                view.getTxtCiudadProveedor().getText().trim(),
+                view.getTxtCodigoPostalProveedor().getText().trim(),
+                view.getTxtPaisProveedor().getText().trim()
+        );
+    }
+
+    // ==========================================
     // CREAR CLIENTE Y OBTENER ID
-    // =========================================================
+    // ==========================================
 
     private String crearClienteYObtenerId() {
 
         String razonSocial =
-                view.getTxtRazonSocialCliente()
-                        .getText()
-                        .trim();
+                view.getTxtRazonSocialCliente().getText().trim();
 
         String cuit =
-                view.getTxtCuitCliente()
-                        .getText()
-                        .trim();
+                view.getTxtCuitCliente().getText().trim();
 
         String email =
-                view.getTxtEmailCliente()
-                        .getText()
-                        .trim();
+                view.getTxtEmailCliente().getText().trim();
 
         String telefono =
-                view.getTxtTelefonoCliente()
-                        .getText()
-                        .trim();
+                view.getTxtTelefonoCliente().getText().trim();
 
         String calle =
-                view.getTxtCalleCliente()
-                        .getText()
-                        .trim();
+                view.getTxtCalleCliente().getText().trim();
 
         String numero =
-                view.getTxtNumeroCliente()
-                        .getText()
-                        .trim();
+                view.getTxtNumeroCliente().getText().trim();
 
         String ciudad =
-                view.getTxtCiudadCliente()
-                        .getText()
-                        .trim();
+                view.getTxtCiudadCliente().getText().trim();
 
         String codigoPostal =
-                view.getTxtCodigoPostalCliente()
-                        .getText()
-                        .trim();
+                view.getTxtCodigoPostalCliente().getText().trim();
 
         String pais =
-                view.getTxtPaisCliente()
-                        .getText()
-                        .trim();
-
-
-        // =====================================================
-        // CREAR CLIENTE
-        // =====================================================
+                view.getTxtPaisCliente().getText().trim();
 
         mongo.crearCliente(
                 razonSocial,
@@ -806,96 +851,152 @@ public class AdministracionPanelController {
                 pais
         );
 
-
-        // =====================================================
-        // BUSCAR CLIENTE RECIÉN CREADO
-        // =====================================================
-
         Document cliente =
-                mongo.buscarClientePorCuit(
-                        cuit
-                );
+                mongo.buscarClientePorCuit(cuit);
 
+        if (cliente == null
+                || cliente.getObjectId("_id") == null) {
 
-        if (cliente == null) {
-
-            throw new IllegalArgumentException(
+            throw new IllegalStateException(
                     "No se pudo recuperar el cliente recién creado."
             );
         }
 
+        return cliente.getObjectId("_id").toHexString();
+    }
 
-        ObjectId clienteId =
-                cliente.getObjectId(
-                        "_id"
-                );
+    // ==========================================
+    // CREAR PROVEEDOR Y OBTENER ID
+    // ==========================================
 
+    private String crearProveedorYObtenerId() {
 
-        if (clienteId == null) {
+        String razonSocial =
+                view.getTxtRazonSocialProveedor().getText().trim();
 
-            throw new IllegalArgumentException(
-                    "El cliente creado no tiene un ID válido."
+        String cuit =
+                view.getTxtCuitProveedor().getText().trim();
+
+        String email =
+                view.getTxtEmailProveedor().getText().trim();
+
+        String telefono =
+                view.getTxtTelefonoProveedor().getText().trim();
+
+        String calle =
+                view.getTxtCalleProveedor().getText().trim();
+
+        String numero =
+                view.getTxtNumeroProveedor().getText().trim();
+
+        String ciudad =
+                view.getTxtCiudadProveedor().getText().trim();
+
+        String codigoPostal =
+                view.getTxtCodigoPostalProveedor().getText().trim();
+
+        String pais =
+                view.getTxtPaisProveedor().getText().trim();
+
+        mongo.crearProveedor(
+                razonSocial,
+                cuit,
+                email,
+                telefono,
+                calle,
+                numero,
+                ciudad,
+                codigoPostal,
+                pais
+        );
+
+        Document proveedor =
+                mongo.buscarProveedorPorCuit(cuit);
+
+        if (proveedor == null
+                || proveedor.getObjectId("_id") == null) {
+
+            throw new IllegalStateException(
+                    "El proveedor fue creado, pero no se pudo recuperar su ID."
             );
         }
 
-
-        return clienteId.toHexString();
-    }
-
-
-    // =========================================================
-    // PROVEEDOR: CREAR Y RECUPERAR ID
-    // =========================================================
-
-    private String crearProveedorYObtenerId() {
-        String razonSocial = view.getTxtRazonSocialProveedor().getText().trim();
-        String cuit = view.getTxtCuitProveedor().getText().trim();
-        String email = view.getTxtEmailProveedor().getText().trim();
-        String telefono = view.getTxtTelefonoProveedor().getText().trim();
-        String calle = view.getTxtCalleProveedor().getText().trim();
-        String numero = view.getTxtNumeroProveedor().getText().trim();
-        String ciudad = view.getTxtCiudadProveedor().getText().trim();
-        String codigoPostal = view.getTxtCodigoPostalProveedor().getText().trim();
-        String pais = view.getTxtPaisProveedor().getText().trim();
-
-        mongo.crearProveedor(razonSocial, cuit, email, telefono,
-                calle, numero, ciudad, codigoPostal, pais);
-
-        Document proveedor = mongo.buscarProveedorPorCuit(cuit);
-        if (proveedor == null || proveedor.getObjectId("_id") == null) {
-            throw new IllegalStateException(
-                    "El proveedor fue creado, pero no se pudo recuperar su ID.");
-        }
         return proveedor.getObjectId("_id").toHexString();
     }
 
-    // =========================================================
-    // PROVEEDOR: MOSTRAR DATOS EXISTENTES
-    // =========================================================
+    // ==========================================
+    // CARGAR DATOS DE PROVEEDOR
+    // ==========================================
 
     private void cargarDatosProveedor(Document proveedor) {
-        if (proveedor == null) return;
-        view.getTxtRazonSocialProveedor().setText(proveedor.getString("razon_social"));
-        view.getTxtCuitProveedor().setText(proveedor.getString("cuit"));
-        view.getTxtEmailProveedor().setText(proveedor.getString("email"));
-        view.getTxtTelefonoProveedor().setText(proveedor.getString("telefono"));
-        view.getTxtPaisProveedor().setText(proveedor.getString("pais"));
-        Document direccion = proveedor.get("direccion", Document.class);
+
+        if (proveedor == null) {
+            return;
+        }
+
+        view.getTxtRazonSocialProveedor().setText(
+                proveedor.getString("razon_social")
+        );
+
+        view.getTxtCuitProveedor().setText(
+                proveedor.getString("cuit")
+        );
+
+        view.getTxtEmailProveedor().setText(
+                proveedor.getString("email")
+        );
+
+        view.getTxtTelefonoProveedor().setText(
+                proveedor.getString("telefono")
+        );
+
+        view.getTxtPaisProveedor().setText(
+                proveedor.getString("pais")
+        );
+
+        Document direccion =
+                proveedor.get("direccion", Document.class);
+
         if (direccion != null) {
-            view.getTxtCalleProveedor().setText(direccion.getString("calle"));
-            view.getTxtNumeroProveedor().setText(direccion.getString("numero"));
-            view.getTxtCiudadProveedor().setText(direccion.getString("ciudad"));
-            view.getTxtCodigoPostalProveedor().setText(direccion.getString("codigo_postal"));
+
+            view.getTxtCalleProveedor().setText(
+                    direccion.getString("calle")
+            );
+
+            view.getTxtNumeroProveedor().setText(
+                    direccion.getString("numero")
+            );
+
+            view.getTxtCiudadProveedor().setText(
+                    direccion.getString("ciudad")
+            );
+
+            view.getTxtCodigoPostalProveedor().setText(
+                    direccion.getString("codigo_postal")
+            );
         }
     }
 
-    // =========================================================
-    // PROVEEDOR: MODIFICAR FICHA EXISTENTE
-    // =========================================================
+    // ==========================================
+    // MODIFICAR PROVEEDOR EXISTENTE
+    // ==========================================
 
-    private void modificarProveedorExistente(String proveedorId) {
-        Document proveedorActual = mongo.buscarProveedorPorId(proveedorId);
-        String estado = proveedorActual.getString("estado");
+    private void modificarProveedorExistente(
+            String proveedorId
+    ) {
+
+        Document proveedorActual =
+                mongo.buscarProveedorPorId(proveedorId);
+
+        if (proveedorActual == null) {
+            throw new IllegalArgumentException(
+                    "No se encontró el proveedor."
+            );
+        }
+
+        String estado =
+                proveedorActual.getString("estado");
+
         mongo.modificarProveedor(
                 proveedorId,
                 view.getTxtRazonSocialProveedor().getText().trim(),
@@ -911,10 +1012,9 @@ public class AdministracionPanelController {
         );
     }
 
-
-    // =========================================================
+    // ==========================================
     // ELIMINAR USUARIO
-    // =========================================================
+    // ==========================================
 
     private void eliminarUsuario() {
 
@@ -932,16 +1032,14 @@ public class AdministracionPanelController {
 
         try {
 
-            // Eliminar por el ID del usuario encontrado.
-            // No usamos el email que pueda haber sido editado.
-
             String usuarioId = usuarioIdEnEdicion;
 
             Document usuario = null;
 
             for (Document candidato : mongo.listarUsuarios()) {
 
-                ObjectId id = candidato.getObjectId("_id");
+                ObjectId id =
+                        candidato.getObjectId("_id");
 
                 if (id != null
                         && id.toHexString().equals(usuarioId)) {
@@ -952,7 +1050,6 @@ public class AdministracionPanelController {
             }
 
             if (usuario == null) {
-
                 throw new IllegalArgumentException(
                         "El usuario seleccionado ya no existe."
                 );
@@ -965,27 +1062,17 @@ public class AdministracionPanelController {
                     JOptionPane.showConfirmDialog(
                             view,
                             "¿Querés eliminar al usuario "
-                                    + emailOriginal
-                                    + "?",
+                                    + emailOriginal + "?",
                             "Eliminar usuario",
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.WARNING_MESSAGE
                     );
 
-
-            if (
-                    respuesta !=
-                            JOptionPane.YES_OPTION
-            ) {
-
+            if (respuesta != JOptionPane.YES_OPTION) {
                 return;
             }
 
-
-            mongo.eliminarUsuario(
-                    usuarioId
-            );
-
+            mongo.eliminarUsuario(usuarioId);
 
             JOptionPane.showMessageDialog(
                     view,
@@ -994,16 +1081,13 @@ public class AdministracionPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             limpiarFormularioUsuario();
 
             view.limpiarDatosCliente();
             view.limpiarDatosProveedor();
 
             actualizarFormularioPorRol();
-
             cargarSesiones();
-
 
         } catch (Exception e) {
 
@@ -1014,14 +1098,21 @@ public class AdministracionPanelController {
         }
     }
 
-
-    // =========================================================
-    // CARGAR SESIONES
-    // =========================================================
+    // ==========================================
+    // OBTENER EMAIL DE USUARIO
+    // ==========================================
 
     private String mailDeUsuario(String id) {
-        return mailsPorUsuario.getOrDefault(id, "Mail no disponible");
+
+        return mailsPorUsuario.getOrDefault(
+                id,
+                "Mail no disponible"
+        );
     }
+
+    // ==========================================
+    // ACTUALIZAR EMAILS
+    // ==========================================
 
     private void actualizarMailsDeUsuarios() {
 
@@ -1038,9 +1129,14 @@ public class AdministracionPanelController {
                 String email =
                         usuario.getString("email");
 
-                if (id != null && email != null && !email.isBlank()) {
+                if (id != null
+                        && email != null
+                        && !email.isBlank()) {
 
-                    mails.put(id.toHexString(), email);
+                    mails.put(
+                            id.toHexString(),
+                            email
+                    );
                 }
             }
 
@@ -1049,14 +1145,16 @@ public class AdministracionPanelController {
 
         } catch (Exception e) {
 
-            // La información visual no debe impedir administrar las sesiones.
-
             AppLog.warning(
                     AdministracionPanelController.class,
                     "No se pudieron cargar las sesiones activas."
             );
         }
     }
+
+    // ==========================================
+    // CARGAR SESIONES
+    // ==========================================
 
     private void cargarSesiones() {
 
@@ -1067,30 +1165,20 @@ public class AdministracionPanelController {
             JTable tabla =
                     view.getTablaSesiones();
 
-
             String usuarioSeleccionado =
                     obtenerUsuarioSeleccionado();
-
 
             Map<String, Long> sesiones =
                     administracionController
                             .obtenerSesionesActivas();
 
-
             DefaultTableModel modelo =
-                    (DefaultTableModel)
-                            tabla.getModel();
+                    (DefaultTableModel) tabla.getModel();
 
+            modelo.setRowCount(0);
 
-            modelo.setRowCount(
-                    0
-            );
-
-
-            for (
-                    Map.Entry<String, Long> entrada :
-                            sesiones.entrySet()
-            ) {
+            for (Map.Entry<String, Long> entrada :
+                    sesiones.entrySet()) {
 
                 modelo.addRow(
                         new Object[]{
@@ -1102,18 +1190,11 @@ public class AdministracionPanelController {
                 );
             }
 
+            restaurarSeleccion(usuarioSeleccionado);
 
-            restaurarSeleccion(
-                    usuarioSeleccionado
+            view.getLblEstado().setText(
+                    "Sesiones activas: " + sesiones.size()
             );
-
-
-            view.getLblEstado()
-                    .setText(
-                            "Sesiones activas: "
-                                    + sesiones.size()
-                    );
-
 
         } catch (Exception e) {
 
@@ -1124,66 +1205,41 @@ public class AdministracionPanelController {
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // ACTUALIZAR SESIONES MANUALMENTE
-    // =========================================================
+    // ==========================================
 
     private void actualizarSesionesManualmente() {
 
         try {
 
             int fila =
-                    view.getTablaSesiones()
-                            .getSelectedRow();
-
+                    view.getTablaSesiones().getSelectedRow();
 
             if (fila == -1) {
 
                 cargarSesiones();
 
-                view.getLblEstado()
-                        .setText(
-                                "Sesiones actualizadas."
-                        );
+                view.getLblEstado().setText(
+                        "Sesiones actualizadas."
+                );
 
                 return;
             }
 
-
             String usuario =
                     String.valueOf(
                             view.getTablaSesiones()
-                                    .getValueAt(
-                                            fila,
-                                            0
-                                    )
+                                    .getValueAt(fila, 0)
                     );
 
-
-            // =================================================
-            // REFRESH DE LA SESIÓN
-            // =================================================
-
-            sesionController.renovarSesion(
-                    usuario
-            );
-
-
-            // =================================================
-            // ACTUALIZAR TABLA
-            // =================================================
+            sesionController.renovarSesion(usuario);
 
             cargarSesiones();
 
-
-            view.getLblEstado()
-                    .setText(
-                            "Sesión de "
-                                    + usuario
-                                    + " renovada."
-                    );
-
+            view.getLblEstado().setText(
+                    "Sesión de " + usuario + " renovada."
+            );
 
         } catch (Exception e) {
 
@@ -1194,121 +1250,82 @@ public class AdministracionPanelController {
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // OBTENER USUARIO SELECCIONADO
-    // =========================================================
+    // ==========================================
 
     private String obtenerUsuarioSeleccionado() {
 
         JTable tabla =
                 view.getTablaSesiones();
 
-
-        int fila =
-                tabla.getSelectedRow();
-
+        int fila = tabla.getSelectedRow();
 
         if (fila == -1) {
-
             return null;
         }
-
 
         Object valor =
-                tabla.getValueAt(
-                        fila,
-                        0
-                );
-
+                tabla.getValueAt(fila, 0);
 
         if (valor == null) {
-
             return null;
         }
-
 
         return valor.toString();
     }
 
-
-    // =========================================================
+    // ==========================================
     // RESTAURAR SELECCIÓN
-    // =========================================================
+    // ==========================================
 
     private void restaurarSeleccion(
             String usuarioSeleccionado
     ) {
 
-        if (
-                usuarioSeleccionado == null
-        ) {
-
+        if (usuarioSeleccionado == null) {
             return;
         }
-
 
         JTable tabla =
                 view.getTablaSesiones();
 
-
         DefaultTableModel modelo =
-                (DefaultTableModel)
-                        tabla.getModel();
+                (DefaultTableModel) tabla.getModel();
 
-
-        for (
-                int i = 0;
-                i < modelo.getRowCount();
-                i++
-        ) {
+        for (int i = 0; i < modelo.getRowCount(); i++) {
 
             Object valor =
-                    modelo.getValueAt(
-                            i,
-                            0
-                    );
+                    modelo.getValueAt(i, 0);
 
+            if (valor != null
+                    && valor.toString().equals(
+                            usuarioSeleccionado
+                    )) {
 
-            if (
-                    valor != null
-                            && valor.toString()
-                            .equals(
-                                    usuarioSeleccionado
-                            )
-            ) {
-
-                tabla.setRowSelectionInterval(
-                        i,
-                        i
-                );
-
+                tabla.setRowSelectionInterval(i, i);
                 return;
             }
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // ACTUALIZACIÓN AUTOMÁTICA
-    // =========================================================
+    // ==========================================
 
     private void iniciarActualizacionAutomatica() {
 
-        timer =
-                new Timer(
-                        1000,
-                        e -> actualizarTiempoSesiones()
-                );
-
+        timer = new Timer(
+                1000,
+                e -> actualizarTiempoSesiones()
+        );
 
         timer.start();
     }
 
-
-    // =========================================================
+    // ==========================================
     // ACTUALIZAR TIEMPO DE SESIONES
-    // =========================================================
+    // ==========================================
 
     private void actualizarTiempoSesiones() {
 
@@ -1317,138 +1334,86 @@ public class AdministracionPanelController {
             JTable tabla =
                     view.getTablaSesiones();
 
-
             Map<String, Long> sesiones =
                     administracionController
                             .obtenerSesionesActivas();
 
-
             DefaultTableModel modelo =
-                    (DefaultTableModel)
-                            tabla.getModel();
+                    (DefaultTableModel) tabla.getModel();
 
+            // ACTUALIZAR TIEMPOS
 
-            // -------------------------------------------------
-            // ACTUALIZAR TTL
-            // -------------------------------------------------
-
-            for (
-                    int fila = 0;
+            for (int fila = 0;
                     fila < modelo.getRowCount();
-                    fila++
-            ) {
+                    fila++) {
 
                 Object valorUsuario =
-                        modelo.getValueAt(
-                                fila,
-                                0
-                        );
-
+                        modelo.getValueAt(fila, 0);
 
                 if (valorUsuario == null) {
-
                     continue;
                 }
-
 
                 String usuario =
                         valorUsuario.toString();
 
-
                 Long segundos =
-                        sesiones.get(
-                                usuario
-                        );
-
+                        sesiones.get(usuario);
 
                 if (segundos != null) {
 
                     modelo.setValueAt(
-                            formatearTiempo(
-                                    segundos
-                            ),
+                            formatearTiempo(segundos),
                             fila,
                             1
                     );
                 }
             }
 
-
-            // -------------------------------------------------
             // ELIMINAR SESIONES EXPIRADAS
-            // -------------------------------------------------
 
-            for (
-                    int fila = modelo.getRowCount() - 1;
+            for (int fila = modelo.getRowCount() - 1;
                     fila >= 0;
-                    fila--
-            ) {
+                    fila--) {
 
                 Object valorUsuario =
-                        modelo.getValueAt(
-                                fila,
-                                0
-                        );
-
+                        modelo.getValueAt(fila, 0);
 
                 if (valorUsuario == null) {
-
                     continue;
                 }
-
 
                 String usuario =
                         valorUsuario.toString();
 
+                if (!sesiones.containsKey(usuario)) {
 
-                if (
-                        !sesiones.containsKey(
-                                usuario
-                        )
-                ) {
-
-                    modelo.removeRow(
-                            fila
-                    );
+                    modelo.removeRow(fila);
                 }
             }
 
-
-            view.getLblEstado()
-                    .setText(
-                            "Sesiones activas: "
-                                    + sesiones.size()
-                    );
-
+            view.getLblEstado().setText(
+                    "Sesiones activas: " + sesiones.size()
+            );
 
         } catch (Exception e) {
 
-            // No mostrar un JOptionPane cada segundo.
+            // No mostrar errores cada segundo.
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // FORMATEAR TIEMPO
-    // =========================================================
+    // ==========================================
 
-    private String formatearTiempo(
-            long segundos
-    ) {
+    private String formatearTiempo(long segundos) {
 
         if (segundos < 0) {
-
             return "Expirada";
         }
 
-
-        long minutos =
-                segundos / 60;
-
-
-        long segundosRestantes =
-                segundos % 60;
-
+        long minutos = segundos / 60;
+        long segundosRestantes = segundos % 60;
 
         return String.format(
                 "%02d:%02d",
@@ -1457,10 +1422,9 @@ public class AdministracionPanelController {
         );
     }
 
-
-    // =========================================================
+    // ==========================================
     // LIMPIAR FORMULARIO
-    // =========================================================
+    // ==========================================
 
     private void limpiarFormularioUsuario() {
 
@@ -1469,28 +1433,19 @@ public class AdministracionPanelController {
         proveedorIdEnEdicion = null;
         emailOriginalEnEdicion = null;
 
-        view.getTxtNombre()
-                .setText("");
+        view.getTxtNombre().setText("");
+        view.getTxtApellido().setText("");
+        view.getTxtEmail().setText("");
+        view.getTxtContrasena().setText("");
 
-        view.getTxtApellido()
-                .setText("");
-
-        view.getTxtEmail()
-                .setText("");
-
-        view.getTxtContrasena()
-                .setText("");
-
-        view.getCmbRol()
-                .setSelectedIndex(-1);
+        view.getCmbRol().setSelectedIndex(-1);
 
         actualizarBotonesUsuario();
     }
 
-
-    // =========================================================
-    // ERROR
-    // =========================================================
+    // ==========================================
+    // MOSTRAR ERROR
+    // ==========================================
 
     private void mostrarError(
             String mensaje,
@@ -1499,19 +1454,20 @@ public class AdministracionPanelController {
 
         JOptionPane.showMessageDialog(
                 view,
-                mensaje
-                        + "\n\n"
-                        + e.getMessage(),
+                mensaje + "\n\n" + e.getMessage(),
                 "Error",
                 JOptionPane.ERROR_MESSAGE
         );
     }
 
+    // ==========================================
+    // CERRAR SESIÓN
+    // ==========================================
+
     private void cerrarSesionSeleccionada() {
 
         int fila =
-                view.getTablaSesiones()
-                        .getSelectedRow();
+                view.getTablaSesiones().getSelectedRow();
 
         if (fila == -1) {
 
@@ -1528,10 +1484,7 @@ public class AdministracionPanelController {
         String usuario =
                 String.valueOf(
                         view.getTablaSesiones()
-                                .getValueAt(
-                                        fila,
-                                        0
-                                )
+                                .getValueAt(fila, 0)
                 );
 
         int respuesta =
@@ -1551,16 +1504,13 @@ public class AdministracionPanelController {
 
         try {
 
-            administracionController.cerrarSesion(
-                    usuario
-            );
+            administracionController.cerrarSesion(usuario);
 
             cargarSesiones();
 
             JOptionPane.showMessageDialog(
                     view,
-                    "La sesión de "
-                            + usuario
+                    "La sesión de " + usuario
                             + " fue cerrada.",
                     "Sesión cerrada",
                     JOptionPane.INFORMATION_MESSAGE

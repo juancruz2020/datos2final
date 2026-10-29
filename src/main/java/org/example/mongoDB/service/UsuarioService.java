@@ -2,7 +2,6 @@
 package org.example.mongoDB.service;
 
 import org.example.consola.TablaConsola;
-
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.ClienteMongoDAO;
@@ -22,9 +21,9 @@ public class UsuarioService {
     private final ClienteMongoDAO clienteDAO;
     private final ProveedorMongoDAO proveedorDAO;
 
-    // =========================
+    // ==========================================
     // CONSTRUCTOR
-    // =========================
+    // ==========================================
 
     public UsuarioService() {
         this.usuarioDAO = new UsuarioMongoDAO();
@@ -33,10 +32,9 @@ public class UsuarioService {
         this.proveedorDAO = new ProveedorMongoDAO();
     }
 
-    // =========================
-    // CREAR USUARIO
-    // MÉTODO ORIGINAL
-    // =========================
+    // ==========================================
+    // CREAR USUARIO - MÉTODO ORIGINAL
+    // ==========================================
 
     public Usuario crearUsuario(
             String clienteId,
@@ -58,10 +56,9 @@ public class UsuarioService {
         );
     }
 
-    // =========================
-    // CREAR USUARIO
-    // CON PROVEEDOR
-    // =========================
+    // ==========================================
+    // CREAR USUARIO CON PROVEEDOR
+    // ==========================================
 
     public Usuario crearUsuario(
             String clienteId,
@@ -73,29 +70,20 @@ public class UsuarioService {
             String contraseña
     ) {
 
-        validarTexto(nombre, "El nombre es obligatorio.");
-        validarTexto(apellido, "El apellido es obligatorio.");
-        validarTexto(email, "El email es obligatorio.");
-        validarTexto(contraseña, "La contraseña es obligatoria.");
+        ValidacionesRegistro.nombre(nombre, "nombre");
+        ValidacionesRegistro.nombre(apellido, "apellido");
+        ValidacionesRegistro.email(email);
+        ValidacionesRegistro.contrasena(contraseña);
 
         validarObjectId(
                 rolId,
                 "El ID del rol no es válido."
         );
 
-        String emailNormalizado = email.trim().toLowerCase();
+        String emailNormalizado =
+                email.trim().toLowerCase();
 
-        if (!emailNormalizado.matches(
-                "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"
-        )) {
-            throw new IllegalArgumentException(
-                    "Ingresá un email válido. Ejemplo: usuario@gmail.com"
-            );
-        }
-
-        // =========================
         // VALIDAR EMAIL REPETIDO
-        // =========================
 
         if (usuarioDAO.buscarPorEmail(emailNormalizado) != null) {
             throw new IllegalArgumentException(
@@ -103,9 +91,7 @@ public class UsuarioService {
             );
         }
 
-        // =========================
-        // OBTENER ROL
-        // =========================
+        // VALIDAR ROL
 
         Document rol = rolDAO.buscarPorId(rolId);
 
@@ -122,9 +108,7 @@ public class UsuarioService {
                 "El rol no tiene una descripción válida."
         );
 
-        // =========================
-        // VALIDAR ASOCIACIONES SEGÚN ROL
-        // =========================
+        // NORMALIZAR ASOCIACIONES
 
         String clienteIdFinal = normalizarClienteId(
                 clienteId,
@@ -136,9 +120,7 @@ public class UsuarioService {
                 descripcionRol
         );
 
-        // =========================
         // VALIDAR CLIENTE
-        // =========================
 
         if (clienteIdFinal != null) {
 
@@ -155,9 +137,7 @@ public class UsuarioService {
             }
         }
 
-        // =========================
         // VALIDAR PROVEEDOR
-        // =========================
 
         if (proveedorIdFinal != null) {
 
@@ -174,8 +154,7 @@ public class UsuarioService {
             }
         }
 
-        // MANTENEMOS EL COMPORTAMIENTO ACTUAL
-        // DE CONTRASEÑAS DE PRUEBA SIN ENCRIPTAR
+        // CREAR USUARIO
 
         Usuario usuario = new Usuario(
                 null,
@@ -200,10 +179,9 @@ public class UsuarioService {
         return usuario;
     }
 
-    // =========================
-    // MODIFICAR USUARIO
-    // MÉTODO ORIGINAL
-    // =========================
+    // ==========================================
+    // MODIFICAR USUARIO - MÉTODO ORIGINAL
+    // ==========================================
 
     public void modificarUsuario(
             String usuarioId,
@@ -217,9 +195,6 @@ public class UsuarioService {
     ) {
 
         validarUsuarioExistente(usuarioId);
-
-        // Recuperamos la asociación original del proveedor
-        // para no perderla al usar el método existente.
 
         Document actual = usuarioDAO.buscarPorId(usuarioId);
 
@@ -243,10 +218,9 @@ public class UsuarioService {
         );
     }
 
-    // =========================
-    // MODIFICAR USUARIO
-    // CON PROVEEDOR
-    // =========================
+    // ==========================================
+    // MODIFICAR USUARIO CON PROVEEDOR
+    // ==========================================
 
     public void modificarUsuario(
             String usuarioId,
@@ -262,10 +236,18 @@ public class UsuarioService {
 
         validarUsuarioExistente(usuarioId);
 
-        validarTexto(nombre, "El nombre es obligatorio.");
-        validarTexto(apellido, "El apellido es obligatorio.");
-        validarTexto(email, "El email es obligatorio.");
-        validarTexto(estado, "El estado es obligatorio.");
+        ValidacionesRegistro.nombre(nombre, "nombre");
+        ValidacionesRegistro.nombre(apellido, "apellido");
+        ValidacionesRegistro.email(email);
+
+        validarTexto(
+                estado,
+                "El estado es obligatorio."
+        );
+
+        if (contraseña != null && !contraseña.isBlank()) {
+            ValidacionesRegistro.contrasena(contraseña);
+        }
 
         validarObjectId(
                 rolId,
@@ -281,19 +263,10 @@ public class UsuarioService {
             );
         }
 
-        // =========================
-        // VALIDAR EMAIL
-        // =========================
+        // VALIDAR EMAIL Y DUPLICADOS
 
-        String emailNormalizado = email.trim().toLowerCase();
-
-        if (!emailNormalizado.matches(
-                "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$"
-        )) {
-            throw new IllegalArgumentException(
-                    "Ingresá un email válido."
-            );
-        }
+        String emailNormalizado =
+                email.trim().toLowerCase();
 
         Document otroUsuario =
                 usuarioDAO.buscarPorEmail(emailNormalizado);
@@ -307,9 +280,7 @@ public class UsuarioService {
             );
         }
 
-        // =========================
         // VALIDAR ROL
-        // =========================
 
         String descripcionRol =
                 rol.getString("descripcion");
@@ -319,9 +290,7 @@ public class UsuarioService {
                 "El rol no tiene una descripción válida."
         );
 
-        // =========================
         // NORMALIZAR ASOCIACIONES
-        // =========================
 
         String clienteIdFinal = normalizarClienteId(
                 clienteId,
@@ -333,9 +302,7 @@ public class UsuarioService {
                 descripcionRol
         );
 
-        // =========================
         // VALIDAR CLIENTE
-        // =========================
 
         if (clienteIdFinal != null) {
 
@@ -362,9 +329,7 @@ public class UsuarioService {
             }
         }
 
-        // =========================
         // VALIDAR PROVEEDOR
-        // =========================
 
         if (proveedorIdFinal != null) {
 
@@ -391,9 +356,7 @@ public class UsuarioService {
             }
         }
 
-        // =========================
         // VALIDAR ESTADO
-        // =========================
 
         if (!"ACTIVO".equalsIgnoreCase(estado)
                 && !"INACTIVO".equalsIgnoreCase(estado)) {
@@ -403,18 +366,14 @@ public class UsuarioService {
             );
         }
 
-        // =========================
-        // CONSERVAR CONTRASEÑA
-        // =========================
+        // CONSERVAR CONTRASEÑA SI NO SE MODIFICA
 
         String contraseñaFinal =
                 contraseña == null || contraseña.isBlank()
                         ? actual.getString("contraseña_encriptada")
                         : contraseña;
 
-        // =========================
-        // CONSTRUIR USUARIO
-        // =========================
+        // MODIFICAR USUARIO
 
         Usuario usuario = new Usuario(
                 usuarioId,
@@ -437,9 +396,9 @@ public class UsuarioService {
         );
     }
 
-    // =========================
+    // ==========================================
     // ELIMINAR USUARIO
-    // =========================
+    // ==========================================
 
     public void eliminarUsuario(String usuarioId) {
 
@@ -453,9 +412,9 @@ public class UsuarioService {
         );
     }
 
-    // =========================
+    // ==========================================
     // BUSCAR POR EMAIL
-    // =========================
+    // ==========================================
 
     public Document buscarPorEmail(String email) {
 
@@ -472,9 +431,9 @@ public class UsuarioService {
         );
     }
 
-    // =========================
+    // ==========================================
     // LISTAR USUARIOS
-    // =========================
+    // ==========================================
 
     public List<Document> listarUsuarios() {
 
@@ -484,9 +443,9 @@ public class UsuarioService {
         );
     }
 
-    // =========================
+    // ==========================================
     // VALIDAR USUARIO EXISTENTE
-    // =========================
+    // ==========================================
 
     private void validarUsuarioExistente(String usuarioId) {
 
@@ -502,9 +461,9 @@ public class UsuarioService {
         }
     }
 
-    // =========================
+    // ==========================================
     // VALIDAR OBJECT ID
-    // =========================
+    // ==========================================
 
     private void validarObjectId(
             String id,
@@ -519,9 +478,9 @@ public class UsuarioService {
         }
     }
 
-    // =========================
+    // ==========================================
     // VALIDAR TEXTO
-    // =========================
+    // ==========================================
 
     private void validarTexto(
             String valor,
@@ -533,9 +492,9 @@ public class UsuarioService {
         }
     }
 
-    // =========================
+    // ==========================================
     // VERIFICAR ROL SIN CLIENTE
-    // =========================
+    // ==========================================
 
     private boolean esRolSinCliente(String descripcionRol) {
 
@@ -544,16 +503,14 @@ public class UsuarioService {
                 || "Operador".equalsIgnoreCase(descripcionRol);
     }
 
-    // =========================
+    // ==========================================
     // NORMALIZAR CLIENTE SEGÚN ROL
-    // =========================
+    // ==========================================
 
     private String normalizarClienteId(
             String clienteId,
             String descripcionRol
     ) {
-
-        // CLIENTE: EMPRESA OBLIGATORIA
 
         if ("Cliente".equalsIgnoreCase(descripcionRol)) {
 
@@ -565,19 +522,13 @@ public class UsuarioService {
             return clienteId;
         }
 
-        // PROVEEDOR: NO TIENE CLIENTE ASOCIADO
-
         if ("Proveedor".equalsIgnoreCase(descripcionRol)) {
             return null;
         }
 
-        // ADMIN Y OPERADOR: SIN EMPRESA
-
         if (esRolSinCliente(descripcionRol)) {
             return null;
         }
-
-        // OTROS ROLES
 
         if (clienteId == null || clienteId.isBlank()) {
             return null;
@@ -591,16 +542,14 @@ public class UsuarioService {
         return clienteId;
     }
 
-    // =========================
+    // ==========================================
     // NORMALIZAR PROVEEDOR SEGÚN ROL
-    // =========================
+    // ==========================================
 
     private String normalizarProveedorId(
             String proveedorId,
             String descripcionRol
     ) {
-
-        // PROVEEDOR: ASOCIACIÓN OBLIGATORIA
 
         if ("Proveedor".equalsIgnoreCase(descripcionRol)) {
 
@@ -612,9 +561,6 @@ public class UsuarioService {
 
             return proveedorId;
         }
-
-        // CLIENTE, ADMINISTRADOR Y OPERADOR:
-        // NO TIENEN PROVEEDOR ASOCIADO
 
         return null;
     }

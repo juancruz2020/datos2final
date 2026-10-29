@@ -531,7 +531,7 @@ public class GeneradorDatosPruebaMongo {
                     null,
                     proveedor4.getObjectId("_id").toHexString(),
                     rolProveedorExistente.getObjectId("_id").toHexString(),
-                    "4", "4", "4@gmail.com", "4"
+                    "Carlos", "Ramirez", "4@gmail.com", "4"
             );
         }
 
