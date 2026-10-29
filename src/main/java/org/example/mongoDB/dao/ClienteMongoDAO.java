@@ -158,12 +158,12 @@ public class ClienteMongoDAO {
     // ELIMINAR CLIENTE
     // =========================
 
-    public void eliminar(String id) {
-
+        public void eliminar(ClientSession session, String id) {
         coleccion.deleteOne(
+                session,
                 eq("_id", new ObjectId(id))
         );
-    }
+        }
 
     // =========================
     // BUSCAR CLIENTE POR ID

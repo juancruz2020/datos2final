@@ -174,7 +174,7 @@ public class MenuLateralPanel extends JPanel {
                 "◉",
                 "Sensores",
                 "SENSORES"
-        );
+        );  
 
         agregarItem(
                 opciones,

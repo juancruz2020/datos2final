@@ -6,7 +6,9 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Conversacion;
+import com.mongodb.client.ClientSession;
 
+import static com.mongodb.client.model.Updates.pull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,5 +115,29 @@ public class ConversacionMongoDAO {
                 );
     }
 
+
+    // ELIMINAR CONVERSACIÓN PRIVADA
+    public void eliminar(
+            ClientSession session,
+            String conversacionId
+    ) {
+        coleccion.deleteOne(
+                session,
+                eq("_id", new ObjectId(conversacionId))
+        );
+    }
+
+    // QUITAR USUARIO DE UNA CONVERSACIÓN GRUPAL
+    public void quitarParticipante(
+            ClientSession session,
+            String conversacionId,
+            String usuarioId
+    ) {
+        coleccion.updateOne(
+                session,
+                eq("_id", new ObjectId(conversacionId)),
+                pull("participantes_ids", usuarioId)
+        );
+    }
 
 }

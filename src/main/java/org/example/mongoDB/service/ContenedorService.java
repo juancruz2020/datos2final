@@ -2,14 +2,21 @@
 package org.example.mongoDB.service;
 
 import org.example.consola.TablaConsola;
-
-import org.bson.Document;
-import org.bson.types.ObjectId;
-import org.example.mongoDB.dao.ContenedorMongoDAO;
 import org.example.logging.AppLog;
+import org.example.conecciones.MongoSingleton;
+
+import org.example.mongoDB.dao.ContenedorMongoDAO;
+import org.example.mongoDB.dao.SensorMongoDAO;
 import org.example.mongoDB.model.Contenedor;
 
+import org.example.neo4j.controller.ControllerNeo4j;
+
+import com.mongodb.client.ClientSession;
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
 import java.util.List;
+import java.util.Map;
 
 public class ContenedorService {
 
@@ -41,7 +48,6 @@ public class ContenedorService {
             );
         }
 
-        // El código se genera automáticamente en el DAO.
         Contenedor contenedor = new Contenedor(
                 null,
                 null,
@@ -51,6 +57,7 @@ public class ContenedorService {
         );
 
         contenedorDAO.agregar(contenedor);
+
         AppLog.info(ContenedorService.class, "Contenedor creado.");
     }
 
@@ -94,11 +101,7 @@ public class ContenedorService {
             );
         }
 
-        // Recuperamos el código original de MongoDB.
-        // No permitimos modificarlo desde el formulario.
-        String codigoOriginal = actual.getString(
-                "codigo_internacional"
-        );
+        String codigoOriginal = actual.getString("codigo_internacional");
 
         Contenedor contenedor = new Contenedor(
                 id,
@@ -125,7 +128,61 @@ public class ContenedorService {
             );
         }
 
-        contenedorDAO.eliminar(id);
+        // Verificar que no tenga envíos activos.
+        for (Map<String, Object> envio : new ControllerNeo4j().listarEnvios()) {
+
+            Object contenedores = envio.get("contenedoresIds");
+
+            if (!(contenedores instanceof List<?> ids) || !ids.contains(id)) {
+                continue;
+            }
+
+            String estado = (String) envio.get("estado");
+
+            if (estado == null ||
+                    (!estado.equalsIgnoreCase("ENTREGADO") &&
+                     !estado.equalsIgnoreCase("FINALIZADO") &&
+                     !estado.equalsIgnoreCase("CANCELADO"))) {
+
+                throw new IllegalStateException(
+                        "No se puede eliminar el contenedor porque tiene un envío activo."
+                );
+            }
+        }
+
+        // Obtener los sensores asociados.
+        SensorMongoDAO sensorDAO = new SensorMongoDAO();
+        List<Document> sensores = sensorDAO.buscarPorContenedor(id);
+
+        // Eliminar sensores y contenedor en una misma transacción.
+        try (ClientSession session = MongoSingleton.getInstance().startSession()) {
+
+            session.startTransaction();
+
+            try {
+                for (Document sensor : sensores) {
+                    sensorDAO.eliminar(
+                            session,
+                            sensor.getObjectId("_id").toHexString()
+                    );
+                }
+
+                contenedorDAO.eliminar(session, id);
+
+                session.commitTransaction();
+
+                AppLog.info(
+                        ContenedorService.class,
+                        "Contenedor y sensores asociados eliminados."
+                );
+
+            } catch (RuntimeException e) {
+                if (session.hasActiveTransaction()) {
+                    session.abortTransaction();
+                }
+                throw e;
+            }
+        }
     }
 
     // =========================================================
@@ -133,7 +190,10 @@ public class ContenedorService {
     // =========================================================
 
     public List<Document> listarContenedores() {
-        return TablaConsola.mostrar("ContenedorService.listarContenedores", contenedorDAO.listarTodos());
+        return TablaConsola.mostrar(
+                "ContenedorService.listarContenedores",
+                contenedorDAO.listarTodos()
+        );
     }
 
     // =========================================================
@@ -152,9 +212,11 @@ public class ContenedorService {
             );
         }
 
-        return TablaConsola.mostrar("ContenedorService.buscarPorId", contenedor);
+        return TablaConsola.mostrar(
+                "ContenedorService.buscarPorId",
+                contenedor
+        );
     }
-
 
     // =========================================================
     // VALIDAR OBJECT ID

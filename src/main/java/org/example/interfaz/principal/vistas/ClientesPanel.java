@@ -1042,8 +1042,7 @@ public class ClientesPanel extends JPanel {
         );
 
         btnMostrarFormulario.setVisible(
-
-                true
+                false
 
         );
 

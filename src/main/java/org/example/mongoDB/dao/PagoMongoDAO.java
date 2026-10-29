@@ -45,5 +45,23 @@ public class PagoMongoDAO {
         pago.setId(documento.getObjectId("_id").toHexString());
     }
 
+    //Cuando se dé de baja definitivamente un cliente, este método permitirá eliminar los pagos de cada una de sus facturas.
+    // =========================
+    // ELIMINAR PAGOS DE UNA FACTURA
+    // =========================
+
+    public void eliminarPorFactura(
+            ClientSession session,
+            String facturaId
+    ) {
+        coleccion.deleteMany(
+                session,
+                com.mongodb.client.model.Filters.eq(
+                        "factura_id",
+                        new ObjectId(facturaId)
+                )
+        );
+    }
+
 
 }

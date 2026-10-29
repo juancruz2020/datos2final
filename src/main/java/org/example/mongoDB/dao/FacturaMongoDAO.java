@@ -120,4 +120,20 @@ public class FacturaMongoDAO {
     }
 
 
+    // =========================
+    // ELIMINAR FACTURAS POR CLIENTE
+    // =========================
+
+    public void eliminarPorCliente(
+            com.mongodb.client.ClientSession session,
+            String clienteId
+    ) {
+        coleccion.deleteMany(
+                session,
+                eq("cliente_id", new ObjectId(clienteId))
+        );
+    }
+
+
+
 }

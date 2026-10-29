@@ -336,9 +336,10 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
                     "CUENTAS_CORRIENTES"
             );
 
-            new CuentasCorrientesPanelController(
-                    cuentasCorrientesPanel
-            );
+                new CuentasCorrientesPanelController(
+                        cuentasCorrientesPanel,
+                        usuarioId
+                );
         }
 
         // =====================================================
@@ -406,19 +407,29 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
 
         if (tienePermiso("DASHBOARD")) {
 
-            mostrarVista("DASHBOARD");
+        mostrarVista("DASHBOARD");
 
         } else if (tienePermiso("ENVIOS")) {
 
-            mostrarVista("ENVIOS");
+        mostrarVista("ENVIOS");
+
+        } else if (tienePermiso("CUENTAS_CORRIENTES")) {
+
+        mostrarVista("CUENTAS_CORRIENTES");
+
+        } else if (tienePermiso("COMUNICACIONES")) {
+
+        mostrarVista("COMUNICACIONES");
 
         } else {
 
-            throw new SecurityException(
-                    "El usuario no tiene una vista inicial permitida."
-            );
+        throw new SecurityException(
+                "El usuario no tiene una vista inicial permitida."
+        );
         }
-    }
+
+        } // Cierra construirContenido()
+
 
     // =========================================================
     // NAVEGACION

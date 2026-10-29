@@ -19,6 +19,8 @@ public class CuentasCorrientesPanel extends JPanel {
     private JButton btnVerCierres;
     private JButton btnGenerarCierre;
 
+    private JComboBox<String> cmbTipoCuenta;
+
     private JLabel lblEstado;
 
     // =========================================
@@ -57,11 +59,58 @@ public class CuentasCorrientesPanel extends JPanel {
         add(titulo, BorderLayout.NORTH);
 
         // =========================================
-        // TABLA
+        // SELECTOR CLIENTES / PROVEEDORES
         // =========================================
 
-        add(
+        JPanel contenido = new JPanel(
+                new BorderLayout(0, 15)
+        );
+
+        contenido.setOpaque(false);
+
+        JPanel selector = new JPanel(
+                new FlowLayout(FlowLayout.LEFT)
+        );
+
+        selector.setOpaque(false);
+
+        JLabel lblTipo = new JLabel(
+                "Mostrar cuentas de:"
+        );
+
+        lblTipo.setFont(Fuentes.NORMAL);
+        lblTipo.setForeground(Colores.TEXTO);
+
+        cmbTipoCuenta = new JComboBox<>(
+                new String[]{
+                        "Clientes",
+                        "Proveedores"
+                }
+        );
+
+        cmbTipoCuenta.setFont(Fuentes.NORMAL);
+
+        cmbTipoCuenta.setPreferredSize(
+                new Dimension(180, 30)
+        );
+
+        selector.add(lblTipo);
+        selector.add(cmbTipoCuenta);
+
+        contenido.add(
+                selector,
+                BorderLayout.NORTH
+        );
+
+        // Una sola tabla para clientes y proveedores.
+
+        contenido.add(
                 construirPanelTabla(),
+                BorderLayout.CENTER
+        );
+
+        add(
+                contenido,
                 BorderLayout.CENTER
         );
 
@@ -69,12 +118,20 @@ public class CuentasCorrientesPanel extends JPanel {
         // ESTADO
         // =========================================
 
-        lblEstado = new JLabel("Cuentas registradas: 0");
+        lblEstado = new JLabel(
+                "Cuentas registradas: 0"
+        );
 
         lblEstado.setFont(Fuentes.NORMAL);
-        lblEstado.setForeground(Colores.TEXTO_SECUNDARIO);
 
-        add(lblEstado, BorderLayout.SOUTH);
+        lblEstado.setForeground(
+                Colores.TEXTO_SECUNDARIO
+        );
+
+        add(
+                lblEstado,
+                BorderLayout.SOUTH
+        );
     }
 
     // =========================================
@@ -110,7 +167,9 @@ public class CuentasCorrientesPanel extends JPanel {
 
         cabecera.setOpaque(false);
 
-        JLabel titulo = new JLabel("Cuentas registradas");
+        JLabel titulo = new JLabel(
+                "Cuentas registradas"
+        );
 
         titulo.setFont(Fuentes.LABEL);
         titulo.setForeground(Colores.TEXTO);
@@ -233,7 +292,19 @@ public class CuentasCorrientesPanel extends JPanel {
     }
 
     // =========================================
-    // GETTERS
+    // TIPO DE CUENTA SELECCIONADO
+    // =========================================
+
+    public boolean mostrandoProveedores() {
+        return cmbTipoCuenta.getSelectedIndex() == 1;
+    }
+
+    public JComboBox<String> getCmbTipoCuenta() {
+        return cmbTipoCuenta;
+    }
+
+    // =========================================
+    // GETTERS ORIGINALES
     // =========================================
 
     public JTable getTablaCuentas() {

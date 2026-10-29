@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.model;
 
 import java.util.Date;
@@ -6,6 +7,7 @@ public class Usuario {
 
     private String id;
     private String clienteId;
+    private String proveedorId;
     private String rolId;
     private String nombre;
     private String apellido;
@@ -13,6 +15,10 @@ public class Usuario {
     private String contraseñaEncriptada;
     private String estado;
     private Date fechaRegistro;
+
+    // =========================
+    // CONSTRUCTOR ORIGINAL
+    // =========================
 
     public Usuario(
             String id,
@@ -27,6 +33,7 @@ public class Usuario {
     ) {
         this.id = id;
         this.clienteId = clienteId;
+        this.proveedorId = null;
         this.rolId = rolId;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -35,6 +42,38 @@ public class Usuario {
         this.estado = estado;
         this.fechaRegistro = fechaRegistro;
     }
+
+    // =========================
+    // CONSTRUCTOR CON PROVEEDOR
+    // =========================
+
+    public Usuario(
+            String id,
+            String clienteId,
+            String proveedorId,
+            String rolId,
+            String nombre,
+            String apellido,
+            String email,
+            String contraseñaEncriptada,
+            String estado,
+            Date fechaRegistro
+    ) {
+        this.id = id;
+        this.clienteId = clienteId;
+        this.proveedorId = proveedorId;
+        this.rolId = rolId;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.email = email;
+        this.contraseñaEncriptada = contraseñaEncriptada;
+        this.estado = estado;
+        this.fechaRegistro = fechaRegistro;
+    }
+
+    // =========================
+    // GETTERS Y SETTERS
+    // =========================
 
     public String getId() {
         return id;
@@ -48,39 +87,35 @@ public class Usuario {
         return clienteId;
     }
 
+    public String getProveedorId() {
+        return proveedorId;
+    }
 
     public String getRolId() {
         return rolId;
     }
 
-
     public String getNombre() {
         return nombre;
     }
-
 
     public String getApellido() {
         return apellido;
     }
 
-
     public String getEmail() {
         return email;
     }
-
 
     public String getContraseñaEncriptada() {
         return contraseñaEncriptada;
     }
 
-
     public String getEstado() {
         return estado;
     }
 
-
     public Date getFechaRegistro() {
         return fechaRegistro;
     }
-
 }

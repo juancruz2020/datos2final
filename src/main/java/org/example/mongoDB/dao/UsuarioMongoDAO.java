@@ -1,7 +1,10 @@
+
 package org.example.mongoDB.dao;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.ClientSession;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
@@ -11,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Updates.*;
 
 public class UsuarioMongoDAO {
 
     private final MongoCollection<Document> coleccion;
-
 
     // =========================
     // CONSTRUCTOR
@@ -42,7 +45,6 @@ public class UsuarioMongoDAO {
         Document documento =
                 new Document();
 
-
         // CLIENTE PUEDE SER NULL
 
         if (
@@ -66,6 +68,28 @@ public class UsuarioMongoDAO {
             );
         }
 
+        // PROVEEDOR PUEDE SER NULL
+
+        if (
+                usuario.getProveedorId() != null
+                        &&
+                !usuario.getProveedorId().isBlank()
+        ) {
+
+            documento.append(
+                    "proveedor_id",
+                    new ObjectId(
+                            usuario.getProveedorId()
+                    )
+            );
+
+        } else {
+
+            documento.append(
+                    "proveedor_id",
+                    null
+            );
+        }
 
         documento
                 .append(
@@ -99,11 +123,9 @@ public class UsuarioMongoDAO {
                         usuario.getFechaRegistro()
                 );
 
-
         coleccion.insertOne(
                 documento
         );
-
 
         usuario.setId(
                 documento
@@ -170,7 +192,6 @@ public class UsuarioMongoDAO {
         List<String> ids =
                 new ArrayList<>();
 
-
         for (
                 Document documento :
                 coleccion.find()
@@ -181,7 +202,6 @@ public class UsuarioMongoDAO {
                             "_id"
                     );
 
-
             if (id != null) {
 
                 ids.add(
@@ -189,7 +209,6 @@ public class UsuarioMongoDAO {
                 );
             }
         }
-
 
         return ids;
     }
@@ -212,7 +231,6 @@ public class UsuarioMongoDAO {
                                 )
                         )
                         .first();
-
 
         return documento != null;
     }
@@ -238,17 +256,100 @@ public class UsuarioMongoDAO {
 
 
     // =========================
-        // VERIFICAR SI UN CLIENTE YA TIENE USUARIO
-        // =========================
+    // VERIFICAR SI UN CLIENTE YA TIENE USUARIO
+    // =========================
 
-        public boolean existeUsuarioPorCliente(String clienteId) {
+    public boolean existeUsuarioPorCliente(String clienteId) {
 
         if (clienteId == null || !ObjectId.isValid(clienteId)) {
-                return false;
+            return false;
         }
 
         return coleccion.find(
                 eq("cliente_id", new ObjectId(clienteId))
         ).first() != null;
+    }
+
+
+    // =========================
+    // VERIFICAR SI UN PROVEEDOR YA TIENE USUARIO
+    // =========================
+
+    public boolean existeUsuarioPorProveedor(String proveedorId) {
+
+        if (proveedorId == null || !ObjectId.isValid(proveedorId)) {
+            return false;
         }
+
+        return coleccion.find(
+                eq("proveedor_id", new ObjectId(proveedorId))
+        ).first() != null;
+    }
+
+
+    // =========================
+    // ELIMINAR USUARIO POR CLIENTE
+    // =========================
+
+    public void eliminarPorCliente(
+            ClientSession session,
+            String clienteId
+    ) {
+
+        coleccion.deleteMany(
+                session,
+                eq("cliente_id", new ObjectId(clienteId))
+        );
+    }
+
+
+    // =========================
+    // ELIMINAR USUARIO POR PROVEEDOR
+    // =========================
+
+    public void eliminarPorProveedor(
+            ClientSession session,
+            String proveedorId
+    ) {
+
+        coleccion.deleteMany(
+                session,
+                eq("proveedor_id", new ObjectId(proveedorId))
+        );
+    }
+
+
+    // =========================
+    // MODIFICAR USUARIO
+    // =========================
+
+    public void modificar(Usuario usuario) {
+
+        coleccion.updateOne(
+                eq("_id", new ObjectId(usuario.getId())),
+                combine(
+                        set(
+                                "cliente_id",
+                                usuario.getClienteId() == null
+                                        ? null
+                                        : new ObjectId(usuario.getClienteId())
+                        ),
+                        set(
+                                "proveedor_id",
+                                usuario.getProveedorId() == null
+                                        ? null
+                                        : new ObjectId(usuario.getProveedorId())
+                        ),
+                        set("rol_id", new ObjectId(usuario.getRolId())),
+                        set("nombre", usuario.getNombre()),
+                        set("apellido", usuario.getApellido()),
+                        set("email", usuario.getEmail()),
+                        set(
+                                "contraseña_encriptada",
+                                usuario.getContraseñaEncriptada()
+                        ),
+                        set("estado", usuario.getEstado())
+                )
+        );
+    }
 }

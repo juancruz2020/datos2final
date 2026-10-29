@@ -157,5 +157,21 @@ public class CierreMensualCuentaCorrienteMongoDAO {
         .into(new ArrayList<>());
     }
 
+    //Cuando demos de baja definitivamente a un cliente, este método eliminará todos los cierres mensuales que pertenezcan a su cuenta corriente.
+
+    // =========================================
+    // ELIMINAR CIERRES POR CUENTA
+    // =========================================
+
+    public void eliminarPorCuenta(
+            ClientSession session,
+            String cuentaId
+    ) {
+        coleccion.deleteMany(
+                session,
+                eq("cuenta_corriente_id", new ObjectId(cuentaId))
+        );
+    }
+
 
 }

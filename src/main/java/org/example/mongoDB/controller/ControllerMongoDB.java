@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.controller;
 
 import org.bson.Document;
@@ -21,6 +22,13 @@ import java.util.function.Supplier;
 public class ControllerMongoDB {
 
     private final Perezoso<ClienteController> clientes = new Perezoso<>(ClienteController::new);
+
+    // =====================================================
+    // NUEVO CONTROLLER DE PROVEEDORES
+    // =====================================================
+
+    private final Perezoso<ProveedorController> proveedores = new Perezoso<>(ProveedorController::new);
+
     private final Perezoso<UsuarioController> usuarios = new Perezoso<>(UsuarioController::new);
     private final Perezoso<RolController> roles = new Perezoso<>(RolController::new);
     private final Perezoso<PermisosController> permisos = new Perezoso<>(PermisosController::new);
@@ -74,11 +82,128 @@ public class ControllerMongoDB {
 
 
     // =====================================================
+    // PROVEEDORES
+    // =====================================================
+
+    public void crearProveedor(
+            String razonSocial,
+            String cuit,
+            String email,
+            String telefono,
+            String calle,
+            String numero,
+            String ciudad,
+            String codigoPostal,
+            String pais
+    ) {
+        proveedores.get().crearProveedor(
+                razonSocial,
+                cuit,
+                email,
+                telefono,
+                calle,
+                numero,
+                ciudad,
+                codigoPostal,
+                pais
+        );
+    }
+
+    public void modificarProveedor(
+            String proveedorId,
+            String razonSocial,
+            String cuit,
+            String email,
+            String telefono,
+            String calle,
+            String numero,
+            String ciudad,
+            String codigoPostal,
+            String pais,
+            String estado
+    ) {
+        proveedores.get().modificarProveedor(
+                proveedorId,
+                razonSocial,
+                cuit,
+                email,
+                telefono,
+                calle,
+                numero,
+                ciudad,
+                codigoPostal,
+                pais,
+                estado
+        );
+    }
+
+    public void eliminarProveedor(String proveedorId) {
+        proveedores.get().eliminarProveedor(proveedorId);
+    }
+
+    public List<Document> listarProveedores() {
+        return proveedores.get().listarProveedores();
+    }
+
+    public Document buscarProveedorPorId(String proveedorId) {
+        return proveedores.get().buscarPorId(proveedorId);
+    }
+
+    public Document buscarProveedorPorCuit(String cuit) {
+        return proveedores.get().buscarPorCuit(cuit);
+    }
+
+
+    // =====================================================
     // USUARIOS
     // =====================================================
 
-    public Usuario crearUsuario(String clienteId, String rolId, String nombre, String apellido, String email, String contraseña) {
-        return usuarios.get().crearUsuario(clienteId, rolId, nombre, apellido, email, contraseña);
+    // =====================================================
+    // USUARIOS
+    // =====================================================
+
+    public Usuario crearUsuario(
+            String clienteId,
+            String proveedorId,
+            String rolId,
+            String nombre,
+            String apellido,
+            String email,
+            String contraseña
+    ) {
+        return usuarios.get().crearUsuario(
+                clienteId,
+                proveedorId,
+                rolId,
+                nombre,
+                apellido,
+                email,
+                contraseña
+        );
+    }
+
+    public void modificarUsuario(
+            String usuarioId,
+            String clienteId,
+            String proveedorId,
+            String rolId,
+            String nombre,
+            String apellido,
+            String email,
+            String contraseña,
+            String estado
+    ) {
+        usuarios.get().modificarUsuario(
+                usuarioId,
+                clienteId,
+                proveedorId,
+                rolId,
+                nombre,
+                apellido,
+                email,
+                contraseña,
+                estado
+        );
     }
 
     public void eliminarUsuario(String usuarioId) {
@@ -376,6 +501,7 @@ public class ControllerMongoDB {
 
     /** Una instancia por dependencia y fachada; evita la construcción circular Mongo / Neo4j. */
     private static final class Perezoso<T> {
+
         private final Supplier<T> crear;
         private T instancia;
 

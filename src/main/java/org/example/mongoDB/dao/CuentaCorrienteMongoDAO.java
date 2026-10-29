@@ -1,3 +1,4 @@
+
 package org.example.mongoDB.dao;
 
 import java.math.BigDecimal;
@@ -48,19 +49,48 @@ public class CuentaCorrienteMongoDAO {
             CuentaCorriente cuentaCorriente
     ) {
 
-        Document documento = new Document()
-                .append(
-                        "cliente_id",
-                        new ObjectId(cuentaCorriente.getClienteId())
-                )
-                .append(
-                        "saldo",
-                        new Decimal128(cuentaCorriente.getSaldo())
-                )
-                .append(
-                        "fecha_actualizacion",
-                        cuentaCorriente.getFechaActualizacion()
-                );
+        String clienteId = cuentaCorriente.getClienteId();
+        String proveedorId = cuentaCorriente.getProveedorId();
+
+        // Una cuenta debe pertenecer a un cliente
+        // o a un proveedor, pero nunca a ambos.
+
+        boolean tieneCliente = clienteId != null && !clienteId.isBlank();
+        boolean tieneProveedor = proveedorId != null && !proveedorId.isBlank();
+
+        if (tieneCliente == tieneProveedor) {
+            throw new IllegalArgumentException(
+                    "La cuenta corriente debe pertenecer "
+                            + "a un cliente o a un proveedor."
+            );
+        }
+
+        Document documento = new Document();
+
+        if (tieneCliente) {
+
+            documento.append(
+                    "cliente_id",
+                    new ObjectId(clienteId)
+            );
+
+        } else {
+
+            documento.append(
+                    "proveedor_id",
+                    new ObjectId(proveedorId)
+            );
+        }
+
+        documento.append(
+                "saldo",
+                new Decimal128(cuentaCorriente.getSaldo())
+        );
+
+        documento.append(
+                "fecha_actualizacion",
+                cuentaCorriente.getFechaActualizacion()
+        );
 
         if (session == null) {
             coleccion.insertOne(documento);
@@ -100,6 +130,21 @@ public class CuentaCorrienteMongoDAO {
     }
 
 
+    // =========================
+    // BUSCAR CUENTA CORRIENTE POR PROVEEDOR
+    // =========================
+
+    public Document buscarPorProveedor(String proveedorId) {
+
+        return coleccion.find(
+                eq(
+                        "proveedor_id",
+                        new ObjectId(proveedorId)
+                )
+        ).first();
+    }
+
+
     // =========================================
     // BUSCAR POR ID CON TRANSACCIÓN
     // =========================================
@@ -114,6 +159,7 @@ public class CuentaCorrienteMongoDAO {
                 eq("_id", new ObjectId(cuentaId))
         ).first();
     }
+
 
     // =========================================
     // ACTUALIZAR SALDO CON TRANSACCIÓN
@@ -139,5 +185,23 @@ public class CuentaCorrienteMongoDAO {
                     "No se encontró la cuenta corriente."
             );
         }
+    }
+
+
+    // Utilizamos ClientSession porque todas las eliminaciones
+    // deben formar parte de una misma transacción.
+    // Este método elimina solamente la cuenta corriente.
+    // No elimina sus movimientos, aperturas ni cierres.
+
+    // =========================
+    // ELIMINAR CUENTA CORRIENTE
+    // =========================
+
+    public void eliminar(ClientSession session, String cuentaId) {
+
+        coleccion.deleteOne(
+                session,
+                eq("_id", new ObjectId(cuentaId))
+        );
     }
 }

@@ -1,6 +1,8 @@
 package org.example.DatosPorDefecto;
 
 import com.mongodb.client.ClientSession;
+import org.bson.Document;
+import org.example.mongoDB.controller.ControllerMongoDB;
 import org.example.mongoDB.dao.*;
 
 import org.example.mongoDB.model.*;
@@ -21,6 +23,8 @@ public class GeneradorDatosPruebaMongo {
 
     private final UsuarioMongoDAO usuarioDAO = new UsuarioMongoDAO();
 
+    private final ControllerMongoDB mongo = new ControllerMongoDB();
+
     private final ConversacionMongoDAO conversacionDAO = new ConversacionMongoDAO();
 
     private final MensajeMongoDAO mensajeDAO = new MensajeMongoDAO();
@@ -35,7 +39,6 @@ public class GeneradorDatosPruebaMongo {
 
     private final IncidenteMongoDAO incidenteDAO = new IncidenteMongoDAO();
 
-    private final AlertaMongoDAO alertaDAO = new AlertaMongoDAO();
 
 
     private final FacturaMongoDAO facturaDAO = new FacturaMongoDAO();
@@ -58,41 +61,42 @@ public class GeneradorDatosPruebaMongo {
 
         // =====================================================
 
+// =====================================================
+// ROLES
+// =====================================================
+
         Rol administrador = new Rol(
-
                 null,
-
                 "Administrador",
-
                 3
-
         );
 
         Rol operador = new Rol(
-
                 null,
-
                 "Operador",
-
                 2
-
         );
 
         Rol clienteRol = new Rol(
-
                 null,
-
                 "Cliente",
-
                 1
+        );
 
+        Rol proveedorRol = new Rol(
+                null,
+                "Proveedor",
+                1
         );
 
         rolDAO.agregar(administrador);
-
         rolDAO.agregar(operador);
-
         rolDAO.agregar(clienteRol);
+
+        // Evitar duplicar Proveedor si ya existe.
+        if (rolDAO.buscarPorDescripcion("Proveedor") == null) {
+        rolDAO.agregar(proveedorRol);
+        }
 
         // =====================================================
 
@@ -467,6 +471,51 @@ public class GeneradorDatosPruebaMongo {
         usuarioDAO.agregar(usuario7);
         usuarioDAO.agregar(usuarioClientePrueba);
         usuarioDAO.agregar(usuarioOperadorPrueba);
+
+        // =====================================================
+        // PROVEEDOR DE PRUEBA: usuario 4, contraseña 4
+        // =====================================================
+
+        String cuitProveedorPrueba = "30-76666666-6";
+        Document proveedorPrueba = mongo.buscarProveedorPorCuit(cuitProveedorPrueba);
+
+        if (proveedorPrueba == null) {
+            // El servicio de Proveedores crea también su cuenta corriente.
+            mongo.crearProveedor(
+                    "Proveedor de prueba 4",
+                    cuitProveedorPrueba,
+                    "proveedor4@prueba.com",
+                    "1140001004",
+                    "Av. Siempre Viva",
+                    "400",
+                    "Buenos Aires",
+                    "1400",
+                    "Argentina"
+            );
+            proveedorPrueba = mongo.buscarProveedorPorCuit(cuitProveedorPrueba);
+        }
+
+        if (proveedorPrueba == null || proveedorPrueba.getObjectId("_id") == null) {
+            throw new IllegalStateException("No se pudo crear o recuperar el proveedor de prueba.");
+        }
+
+        if (mongo.buscarUsuarioPorEmail("4") == null) {
+            Document rolProveedor = rolDAO.buscarPorDescripcion("Proveedor");
+            if (rolProveedor == null || rolProveedor.getObjectId("_id") == null) {
+                throw new IllegalStateException("No se encontró el rol Proveedor.");
+            }
+
+            mongo.crearUsuario(
+                    null,
+                    proveedorPrueba.getObjectId("_id").toHexString(),
+                    rolProveedor.getObjectId("_id").toHexString(),
+                    "4",
+                    "4",
+                    "4@gmail.com",
+                    "4"
+            );
+        }
+
 
         // =====================================================
         // COMUNICACION: CHATS PRIVADOS Y GRUPALES
@@ -1083,101 +1132,7 @@ public class GeneradorDatosPruebaMongo {
 
         incidenteDAO.agregar(incidente7);
 
-        // =====================================================
 
-        // ALERTAS
-
-        // =====================================================
-
-        Alerta alerta1 = new Alerta(
-
-                null,
-
-                sensor1.getId(),
-
-                evento1.getId(),
-
-                "TEMPERATURA",
-
-                new Date(),
-
-                "ACTIVA"
-
-        );
-
-        Alerta alerta2 = new Alerta(
-
-                null,
-
-                sensor2.getId(),
-
-                evento2.getId(),
-
-                "HUMEDAD",
-
-                new Date(),
-
-                "ACTIVA"
-
-        );
-
-        Alerta alerta3 = new Alerta(
-
-                null,
-
-                sensor3.getId(),
-
-                evento3.getId(),
-
-                "UBICACION",
-
-                new Date(),
-
-                "RESUELTA"
-
-        );
-
-        Alerta alerta4 = new Alerta(
-
-                null,
-
-                sensor4.getId(),
-
-                evento4.getId(),
-
-                "TEMPERATURA",
-
-                new Date(),
-
-                "ACTIVA"
-
-        );
-
-        Alerta alerta5 = new Alerta(
-
-                null,
-
-                sensor5.getId(),
-
-                evento5.getId(),
-
-                "APERTURA",
-
-                new Date(),
-
-                "RESUELTA"
-
-        );
-
-        alertaDAO.agregar(alerta1);
-
-        alertaDAO.agregar(alerta2);
-
-        alertaDAO.agregar(alerta3);
-
-        alertaDAO.agregar(alerta4);
-
-        alertaDAO.agregar(alerta5);
 
 
         // =====================================================

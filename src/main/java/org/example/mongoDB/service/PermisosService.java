@@ -100,6 +100,19 @@ public class PermisosService {
         );
     }
 
+
+    // =========================
+    // VERIFICAR PROVEEDOR
+    // =========================
+
+    public boolean esProveedor(String usuarioId) {
+
+        return "Proveedor".equalsIgnoreCase(
+                obtenerRolUsuario(usuarioId)
+        );
+    }
+
+
     // =========================
     // EXIGIR ADMINISTRADOR
     // =========================
@@ -113,6 +126,22 @@ public class PermisosService {
             );
         }
     }
+
+
+    // =========================
+    // EXIGIR PROVEEDOR
+    // =========================
+
+    public void exigirProveedor(String usuarioId) {
+
+        if (!esProveedor(usuarioId)) {
+
+            throw new SecurityException(
+                    "Esta operación requiere rol Proveedor"
+            );
+        }
+    }
+
 
     // =========================
     // EXIGIR ADMINISTRADOR
@@ -172,6 +201,43 @@ public class PermisosService {
         }
 
         return clienteId.toHexString();
+    }
+
+    // =========================
+    // OBTENER PROVEEDOR DEL USUARIO
+    // =========================
+
+    public String obtenerProveedorId(String usuarioId) {
+
+        if (usuarioId == null || !ObjectId.isValid(usuarioId)) {
+            throw new IllegalArgumentException(
+                    "El ID del usuario no es válido"
+            );
+        }
+
+        Document usuario = usuarioDAO.buscarPorId(usuarioId);
+
+        if (usuario == null) {
+            throw new IllegalArgumentException(
+                    "El usuario no existe"
+            );
+        }
+
+        if (!esProveedor(usuarioId)) {
+            throw new SecurityException(
+                    "El usuario no tiene rol Proveedor"
+            );
+        }
+
+        ObjectId proveedorId = usuario.getObjectId("proveedor_id");
+
+        if (proveedorId == null) {
+            throw new IllegalStateException(
+                    "El usuario Proveedor no tiene un proveedor asociado"
+            );
+        }
+
+        return proveedorId.toHexString();
     }
 
 
@@ -241,18 +307,32 @@ public class PermisosService {
             return switch (vistaNormalizada) {
 
                 case "ENVIOS",
-                    "REPORTES",
-                    "COMUNICACIONES",
-                    "FACTURACION",
-                    "PAGOS",
-                    "SEGUIMIENTO_ENVIO",
-                    "RIESGOS",
-                    "EVENTOS_LOGISTICOS" -> true;
+                     "REPORTES",
+                     "COMUNICACIONES",
+                     "FACTURACION",
+                     "PAGOS",
+                     "SEGUIMIENTO_ENVIO",
+                     "RIESGOS",
+                     "EVENTOS_LOGISTICOS" -> true;
 
                 default -> false;
             };
         }
 
+        // =========================
+        // PROVEEDOR
+        // =========================
+
+        if ("Proveedor".equalsIgnoreCase(rol)) {
+
+            return switch (vistaNormalizada) {
+
+                case "COMUNICACIONES",
+                     "CUENTAS_CORRIENTES" -> true;
+
+                default -> false;
+            };
+        }
 
         // =========================
         // ROL DESCONOCIDO

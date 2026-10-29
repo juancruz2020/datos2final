@@ -6,7 +6,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Mensaje;
-
+import com.mongodb.client.ClientSession;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -158,6 +158,28 @@ public class MensajeMongoDAO {
                         "_id",
                         new ObjectId(id)
                 )
+        );
+    }
+
+    // ELIMINAR MENSAJES DE UNA CONVERSACIÓN
+    public void eliminarPorConversacion(
+            ClientSession session,
+            String conversacionId
+    ) {
+        coleccion.deleteMany(
+                session,
+                eq("conversacion_id", conversacionId)
+        );
+    }
+
+    // ELIMINAR MENSAJES DE UN USUARIO
+    public void eliminarPorRemitente(
+            ClientSession session,
+            String usuarioId
+    ) {
+        coleccion.deleteMany(
+                session,
+                eq("remitente_id", usuarioId)
         );
     }
 

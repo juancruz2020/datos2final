@@ -9,7 +9,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Contenedor;
-
+import com.mongodb.client.ClientSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -194,12 +194,12 @@ public class ContenedorMongoDAO {
     // ELIMINAR CONTENEDOR
     // =========================
 
-    public void eliminar(String id) {
-
+        public void eliminar(ClientSession session, String id) {
         coleccion.deleteOne(
+                session,
                 eq("_id", new ObjectId(id))
         );
-    }
+        }
 
     // =========================
     // BUSCAR CONTENEDOR POR ID

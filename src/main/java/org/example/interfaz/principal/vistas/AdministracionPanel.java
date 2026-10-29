@@ -39,6 +39,10 @@ public class AdministracionPanel extends JPanel {
 
     private final JButton btnRegistrar;
 
+    private final JButton btnBuscar;
+
+    private final JButton btnModificar;
+
     private final JButton btnEliminar;
 
 
@@ -65,6 +69,23 @@ public class AdministracionPanel extends JPanel {
     private final JTextField txtCodigoPostalCliente;
 
     private final JTextField txtPaisCliente;
+
+
+    // =========================================================
+    // DATOS DEL PROVEEDOR
+    // =========================================================
+
+    private JPanel panelDatosProveedor;
+
+    private final JTextField txtRazonSocialProveedor;
+    private final JTextField txtCuitProveedor;
+    private final JTextField txtEmailProveedor;
+    private final JTextField txtTelefonoProveedor;
+    private final JTextField txtCalleProveedor;
+    private final JTextField txtNumeroProveedor;
+    private final JTextField txtCiudadProveedor;
+    private final JTextField txtCodigoPostalProveedor;
+    private final JTextField txtPaisProveedor;
 
 
     // =========================================================
@@ -134,10 +155,27 @@ public class AdministracionPanel extends JPanel {
                 new JTextField();
 
 
+        txtRazonSocialProveedor = new JTextField();
+        txtCuitProveedor = new JTextField();
+        txtEmailProveedor = new JTextField();
+        txtTelefonoProveedor = new JTextField();
+        txtCalleProveedor = new JTextField();
+        txtNumeroProveedor = new JTextField();
+        txtCiudadProveedor = new JTextField();
+        txtCodigoPostalProveedor = new JTextField();
+        txtPaisProveedor = new JTextField();
+
+
         btnRegistrar =
                 new JButton(
                         "Registrar usuario"
                 );
+
+        btnBuscar =
+                new JButton("Buscar usuario");
+
+        btnModificar =
+                new JButton("Modificar usuario");
 
         btnEliminar =
                 new JButton(
@@ -620,6 +658,18 @@ public class AdministracionPanel extends JPanel {
 
 
         // =====================================================
+        // DATOS DEL PROVEEDOR
+        // =====================================================
+
+        panelDatosProveedor = crearPanelDatosProveedor();
+        panelDatosProveedor.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panelDatosProveedor.setVisible(false);
+
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(panelDatosProveedor);
+
+
+        // =====================================================
         // BOTONES
         // =====================================================
 
@@ -643,12 +693,28 @@ public class AdministracionPanel extends JPanel {
                 Fuentes.BOTON
         );
 
+        btnBuscar.setFont(
+                Fuentes.BOTON
+        );
+
+        btnModificar.setFont(
+                Fuentes.BOTON
+        );
+
         btnEliminar.setFont(
                 Fuentes.BOTON
         );
 
 
         btnRegistrar.setFocusPainted(
+                false
+        );
+
+        btnBuscar.setFocusPainted(
+                false
+        );
+
+        btnModificar.setFocusPainted(
                 false
         );
 
@@ -659,6 +725,14 @@ public class AdministracionPanel extends JPanel {
 
         botones.add(
                 btnRegistrar
+        );
+
+        botones.add(
+                btnBuscar
+        );
+
+        botones.add(
+                btnModificar
         );
 
         botones.add(
@@ -869,6 +943,193 @@ public class AdministracionPanel extends JPanel {
 
 
     // =========================================================
+    // PANEL DATOS DEL PROVEEDOR
+    // =========================================================
+
+    private JPanel crearPanelDatosProveedor() {
+
+        JPanel panel =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        panel.setBackground(
+                Colores.FONDO
+        );
+
+        panel.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(
+                                Colores.BORDE
+                        ),
+                        new EmptyBorder(
+                                15,
+                                15,
+                                15,
+                                15
+                        )
+                )
+        );
+
+
+        // =====================================================
+        // TÍTULO
+        // =====================================================
+
+        JLabel titulo =
+                new JLabel(
+                        "Datos del proveedor"
+                );
+
+        titulo.setFont(
+                Fuentes.LABEL
+        );
+
+        titulo.setForeground(
+                Colores.TEXTO
+        );
+
+
+        panel.add(
+                titulo,
+                BorderLayout.NORTH
+        );
+
+
+        // =====================================================
+        // FORMULARIO
+        // =====================================================
+
+        JPanel formulario =
+                new JPanel(
+                        new GridBagLayout()
+                );
+
+        formulario.setOpaque(
+                false
+        );
+
+
+        GridBagConstraints gbc =
+                new GridBagConstraints();
+
+        gbc.insets =
+                new Insets(
+                        5,
+                        5,
+                        5,
+                        5
+                );
+
+        gbc.fill =
+                GridBagConstraints.HORIZONTAL;
+
+
+        // -----------------------------------------------------
+        // IZQUIERDA
+        // -----------------------------------------------------
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                0,
+                0,
+                "Razón social:",
+                txtRazonSocialProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                0,
+                1,
+                "CUIT:",
+                txtCuitProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                0,
+                2,
+                "Email:",
+                txtEmailProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                0,
+                3,
+                "Teléfono:",
+                txtTelefonoProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                0,
+                4,
+                "País:",
+                txtPaisProveedor
+        );
+
+
+        // -----------------------------------------------------
+        // DERECHA
+        // -----------------------------------------------------
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                2,
+                0,
+                "Calle:",
+                txtCalleProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                2,
+                1,
+                "Número:",
+                txtNumeroProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                2,
+                2,
+                "Ciudad:",
+                txtCiudadProveedor
+        );
+
+        agregarCampoProveedor(
+                formulario,
+                gbc,
+                2,
+                3,
+                "Código postal:",
+                txtCodigoPostalProveedor
+        );
+
+
+        panel.add(
+                formulario,
+                BorderLayout.CENTER
+        );
+
+
+        return panel;
+    }
+
+
+    // =========================================================
     // CONSTRAINTS USUARIO
     // =========================================================
 
@@ -1031,6 +1292,22 @@ public class AdministracionPanel extends JPanel {
 
 
     // =========================================================
+    // AGREGAR CAMPO PROVEEDOR
+    // =========================================================
+
+    private void agregarCampoProveedor(
+            JPanel panel,
+            GridBagConstraints gbc,
+            int columna,
+            int fila,
+            String texto,
+            JComponent campo
+    ) {
+        agregarCampoCliente(panel, gbc, columna, fila, texto, campo);
+    }
+
+
+    // =========================================================
     // PANEL BASE
     // =========================================================
 
@@ -1117,6 +1394,60 @@ public class AdministracionPanel extends JPanel {
 
 
     // =========================================================
+    // MOSTRAR / OCULTAR DATOS DEL PROVEEDOR
+    // =========================================================
+
+    public void mostrarDatosProveedor() {
+
+        panelDatosProveedor.setVisible(
+                true
+        );
+
+        revalidate();
+
+        repaint();
+    }
+
+
+    public void ocultarDatosProveedor() {
+
+        panelDatosProveedor.setVisible(
+                false
+        );
+
+        revalidate();
+
+        repaint();
+    }
+
+
+    // =========================================================
+    // LIMPIAR DATOS DEL PROVEEDOR
+    // =========================================================
+
+    public void limpiarDatosProveedor() {
+
+        txtRazonSocialProveedor.setText("");
+
+        txtCuitProveedor.setText("");
+
+        txtEmailProveedor.setText("");
+
+        txtTelefonoProveedor.setText("");
+
+        txtCalleProveedor.setText("");
+
+        txtNumeroProveedor.setText("");
+
+        txtCiudadProveedor.setText("");
+
+        txtCodigoPostalProveedor.setText("");
+
+        txtPaisProveedor.setText("");
+    }
+
+
+    // =========================================================
     // GETTERS SESIONES
     // =========================================================
 
@@ -1154,8 +1485,7 @@ public class AdministracionPanel extends JPanel {
     }
 
 
-    // Para Cliente, el correo solo se carga en Datos del cliente.
-    // Para Administrador/Operador, se muestra el correo de usuario.
+    // El controller decide cuándo mostrar el correo de acceso según el rol.
     public void mostrarEmailUsuario(boolean mostrar) {
         if (lblEmailUsuario != null) {
             lblEmailUsuario.setVisible(mostrar);
@@ -1186,6 +1516,18 @@ public class AdministracionPanel extends JPanel {
     public JButton getBtnRegistrar() {
 
         return btnRegistrar;
+    }
+
+
+    public JButton getBtnBuscar() {
+
+        return btnBuscar;
+    }
+
+
+    public JButton getBtnModificar() {
+
+        return btnModificar;
     }
 
 
@@ -1250,6 +1592,64 @@ public class AdministracionPanel extends JPanel {
     public JTextField getTxtPaisCliente() {
 
         return txtPaisCliente;
+    }
+
+
+    // =========================================================
+    // GETTERS PROVEEDOR
+    // =========================================================
+
+    public JTextField getTxtRazonSocialProveedor() {
+
+        return txtRazonSocialProveedor;
+    }
+
+
+    public JTextField getTxtCuitProveedor() {
+
+        return txtCuitProveedor;
+    }
+
+
+    public JTextField getTxtEmailProveedor() {
+
+        return txtEmailProveedor;
+    }
+
+
+    public JTextField getTxtTelefonoProveedor() {
+
+        return txtTelefonoProveedor;
+    }
+
+
+    public JTextField getTxtCalleProveedor() {
+
+        return txtCalleProveedor;
+    }
+
+
+    public JTextField getTxtNumeroProveedor() {
+
+        return txtNumeroProveedor;
+    }
+
+
+    public JTextField getTxtCiudadProveedor() {
+
+        return txtCiudadProveedor;
+    }
+
+
+    public JTextField getTxtCodigoPostalProveedor() {
+
+        return txtCodigoPostalProveedor;
+    }
+
+
+    public JTextField getTxtPaisProveedor() {
+
+        return txtPaisProveedor;
     }
 
 

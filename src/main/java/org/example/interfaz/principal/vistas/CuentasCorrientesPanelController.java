@@ -2,14 +2,14 @@
 package org.example.interfaz.principal.vistas;
 
 import org.example.mongoDB.controller.ControllerMongoDB;
+import org.example.mongoDB.dao.MovimientoCuentaCorrienteMongoDAO;
+import org.example.mongoDB.service.CuentaCorrienteService;
+import org.example.mongoDB.service.CierreMensualCuentaCorrienteService;
+import org.example.mongoDB.service.PermisosService;
 
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-
-import org.example.mongoDB.service.CuentaCorrienteService;
-import org.example.mongoDB.service.CierreMensualCuentaCorrienteService;
-
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -27,28 +27,60 @@ public class CuentasCorrientesPanelController {
     private final ControllerMongoDB mongo = new ControllerMongoDB();
 
     private final CuentasCorrientesPanel view;
+    private final String usuarioId;
 
+    private final PermisosService permisosService;
     private final CuentaCorrienteService cuentaService;
     private final CierreMensualCuentaCorrienteService cierreService;
+    private final MovimientoCuentaCorrienteMongoDAO movimientoDAO;
 
     private final List<String> cuentasIds;
+
+    private final boolean proveedor;
+    private final String proveedorId;
 
     // =========================================
     // CONSTRUCTOR
     // =========================================
 
     public CuentasCorrientesPanelController(
-            CuentasCorrientesPanel view
+            CuentasCorrientesPanel view,
+            String usuarioId
     ) {
 
         this.view = view;
+        this.usuarioId = usuarioId;
 
+        permisosService = new PermisosService();
         cuentaService = new CuentaCorrienteService();
         cierreService = new CierreMensualCuentaCorrienteService();
+        movimientoDAO = new MovimientoCuentaCorrienteMongoDAO();
 
         cuentasIds = new ArrayList<>();
 
+        if (!permisosService.puedeAccederVista(
+                usuarioId,
+                "CUENTAS_CORRIENTES"
+        )) {
+            throw new SecurityException(
+                    "No tenés permisos para acceder a Cuentas Corrientes."
+            );
+        }
+
+        proveedor = permisosService.esProveedor(usuarioId);
+
+        proveedorId = proveedor
+                ? permisosService.obtenerProveedorId(usuarioId)
+                : null;
+
+        if (proveedor) {
+
+            view.getCmbTipoCuenta().setSelectedIndex(1);
+            view.getCmbTipoCuenta().setEnabled(false);
+        }
+
         configurarEventos();
+        actualizarBotones();
         cargarCuentas();
     }
 
@@ -81,6 +113,32 @@ public class CuentasCorrientesPanelController {
         view.getBtnGenerarCierre().addActionListener(
                 e -> generarCierreMensual()
         );
+
+        view.getCmbTipoCuenta().addActionListener(e -> {
+
+            actualizarBotones();
+            cargarCuentas();
+        });
+    }
+
+    // =========================================
+    // ACTUALIZAR BOTONES
+    // =========================================
+
+    private void actualizarBotones() {
+
+        boolean soloLectura =
+                proveedor || view.mostrandoProveedores();
+
+        view.getBtnRegistrarDebito().setVisible(!soloLectura);
+        view.getBtnRegistrarCredito().setVisible(!soloLectura);
+        view.getBtnGenerarCierre().setVisible(!soloLectura);
+
+        view.getBtnVerMovimientos().setVisible(true);
+        view.getBtnVerCierres().setVisible(true);
+
+        view.revalidate();
+        view.repaint();
     }
 
     // =========================================
@@ -89,29 +147,86 @@ public class CuentasCorrientesPanelController {
 
     private void cargarCuentas() {
 
+        DefaultTableModel modelo =
+                (DefaultTableModel) view
+                        .getTablaCuentas()
+                        .getModel();
+
+        modelo.setRowCount(0);
+        cuentasIds.clear();
+
         try {
 
-            List<Document> cuentas = cuentaService.listarCuentas();
+            boolean mostrandoProveedores =
+                    view.mostrandoProveedores();
 
-            DefaultTableModel modelo =
-                    (DefaultTableModel) view
-                            .getTablaCuentas()
-                            .getModel();
+            if (proveedor && !mostrandoProveedores) {
+                throw new SecurityException(
+                        "No tenés permisos para consultar cuentas de clientes."
+                );
+            }
 
-            modelo.setRowCount(0);
-            cuentasIds.clear();
+            List<Document> cuentas =
+        cuentaService.listarCuentasParaUsuario(usuarioId);
+
+            view.getTablaCuentas()
+                    .getColumnModel()
+                    .getColumn(0)
+                    .setHeaderValue(
+                            mostrandoProveedores
+                                    ? "Proveedor"
+                                    : "Cliente"
+                    );
+
+            view.getTablaCuentas()
+                    .getTableHeader()
+                    .repaint();
 
             for (Document cuenta : cuentas) {
 
-                ObjectId cuentaId = cuenta.getObjectId("_id");
-                ObjectId clienteId = cuenta.getObjectId("cliente_id");
+                ObjectId cuentaId =
+                        cuenta.getObjectId("_id");
+
+                ObjectId clienteId =
+                        cuenta.getObjectId("cliente_id");
+
+                ObjectId cuentaProveedorId =
+                        cuenta.getObjectId("proveedor_id");
 
                 if (cuentaId == null) {
                     continue;
                 }
 
+                String nombre;
+
+                if (mostrandoProveedores) {
+
+                    if (cuentaProveedorId == null) {
+                        continue;
+                    }
+
+                    if (proveedor && !cuentaProveedorId
+                            .toHexString()
+                            .equals(proveedorId)) {
+
+                        continue;
+                    }
+
+                    nombre = obtenerNombreProveedor(
+                            cuentaProveedorId
+                    );
+
+                } else {
+
+                    if (clienteId == null) {
+                        continue;
+                    }
+
+                    nombre = obtenerNombreCliente(clienteId);
+                }
+
                 modelo.addRow(new Object[]{
-                        obtenerNombreCliente(clienteId),
+                        nombre,
                         obtenerImporte(cuenta.get("saldo")),
                         formatearFecha(
                                 cuenta.getDate("fecha_actualizacion")
@@ -122,7 +237,10 @@ public class CuentasCorrientesPanelController {
             }
 
             view.getLblEstado().setText(
-                    "Cuentas registradas: " + cuentasIds.size()
+                    (mostrandoProveedores
+                            ? "Cuentas de proveedores: "
+                            : "Cuentas de clientes: ")
+                            + cuentasIds.size()
             );
 
         } catch (Exception e) {
@@ -140,13 +258,21 @@ public class CuentasCorrientesPanelController {
 
     private void registrarMovimiento(String tipo) {
 
-        String cuentaId = obtenerCuentaSeleccionada();
-
-        if (cuentaId == null) {
-            return;
-        }
-
         try {
+
+            permisosService.exigirAdminUOperador(usuarioId);
+
+            if (view.mostrandoProveedores()) {
+                throw new SecurityException(
+                        "Los movimientos de proveedores todavía no están habilitados."
+                );
+            }
+
+            String cuentaId = obtenerCuentaSeleccionada();
+
+            if (cuentaId == null) {
+                return;
+            }
 
             Document cuenta = buscarCuentaPorId(cuentaId);
 
@@ -156,7 +282,8 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            ObjectId clienteId = cuenta.getObjectId("cliente_id");
+            ObjectId clienteId =
+                    cuenta.getObjectId("cliente_id");
 
             if (clienteId == null) {
                 throw new IllegalStateException(
@@ -164,7 +291,8 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            String nombreCliente = obtenerNombreCliente(clienteId);
+            String nombreCliente =
+                    obtenerNombreCliente(clienteId);
 
             JTextField txtImporte = new JTextField(20);
             JTextField txtDescripcion = new JTextField(20);
@@ -211,12 +339,16 @@ public class CuentasCorrientesPanelController {
                 return;
             }
 
-            String importeTexto = txtImporte.getText()
+            String importeTexto = txtImporte
+                    .getText()
                     .trim()
                     .replace(",", ".");
 
-            String descripcion = txtDescripcion.getText().trim();
-            String referencia = txtReferencia.getText().trim();
+            String descripcion =
+                    txtDescripcion.getText().trim();
+
+            String referencia =
+                    txtReferencia.getText().trim();
 
             BigDecimal importe;
 
@@ -319,18 +451,33 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            ObjectId clienteId = cuenta.getObjectId("cliente_id");
+            List<Document> movimientos;
 
-            if (clienteId == null) {
-                throw new IllegalStateException(
-                        "La cuenta no tiene un cliente asociado."
+            if (view.mostrandoProveedores()) {
+
+                if (cuenta.getObjectId("proveedor_id") == null) {
+                    throw new IllegalStateException(
+                            "La cuenta no tiene un proveedor asociado."
+                    );
+                }
+
+                movimientos = movimientoDAO.buscarPorCuenta(cuentaId);
+
+            } else {
+
+                ObjectId clienteId =
+                        cuenta.getObjectId("cliente_id");
+
+                if (clienteId == null) {
+                    throw new IllegalStateException(
+                            "La cuenta no tiene un cliente asociado."
+                    );
+                }
+
+                movimientos = cuentaService.consultarHistorial(
+                        clienteId.toHexString()
                 );
             }
-
-            List<Document> movimientos =
-                    cuentaService.consultarHistorial(
-                            clienteId.toHexString()
-                    );
 
             DefaultTableModel modelo = new DefaultTableModel(
                     new Object[]{
@@ -342,6 +489,7 @@ public class CuentasCorrientesPanelController {
                     },
                     0
             ) {
+
                 @Override
                 public boolean isCellEditable(int row, int column) {
                     return false;
@@ -389,6 +537,17 @@ public class CuentasCorrientesPanelController {
 
         try {
 
+            // Verifica que la cuenta corresponda
+            // al usuario antes de consultar sus cierres.
+
+            Document cuenta = buscarCuentaPorId(cuentaId);
+
+            if (cuenta == null) {
+                throw new IllegalStateException(
+                        "No se encontró la cuenta seleccionada."
+                );
+            }
+
             List<Document> cierres =
                     cierreService.consultarCierres(cuentaId);
 
@@ -403,6 +562,7 @@ public class CuentasCorrientesPanelController {
                     },
                     0
             ) {
+
                 @Override
                 public boolean isCellEditable(int row, int column) {
                     return false;
@@ -454,13 +614,21 @@ public class CuentasCorrientesPanelController {
 
     private void generarCierreMensual() {
 
-        String cuentaId = obtenerCuentaSeleccionada();
-
-        if (cuentaId == null) {
-            return;
-        }
-
         try {
+
+            permisosService.exigirAdminUOperador(usuarioId);
+
+            if (view.mostrandoProveedores()) {
+                throw new SecurityException(
+                        "Los cierres de proveedores todavía no están habilitados."
+                );
+            }
+
+            String cuentaId = obtenerCuentaSeleccionada();
+
+            if (cuentaId == null) {
+                return;
+            }
 
             Document cuenta = buscarCuentaPorId(cuentaId);
 
@@ -470,9 +638,17 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            String cliente = obtenerNombreCliente(
-                    cuenta.getObjectId("cliente_id")
-            );
+            ObjectId clienteId =
+                    cuenta.getObjectId("cliente_id");
+
+            if (clienteId == null) {
+                throw new IllegalStateException(
+                        "La cuenta no tiene un cliente asociado."
+                );
+            }
+
+            String cliente =
+                    obtenerNombreCliente(clienteId);
 
             JComboBox<String> cmbMes = new JComboBox<>(
                     new String[]{
@@ -594,6 +770,38 @@ public class CuentasCorrientesPanelController {
 
     private Document buscarCuentaPorId(String cuentaId) {
 
+        if (!permisosService.puedeAccederVista(
+                usuarioId,
+                "CUENTAS_CORRIENTES"
+        )) {
+            throw new SecurityException(
+                    "No tenés permisos para consultar cuentas corrientes."
+            );
+        }
+
+        if (proveedor) {
+
+            Document cuenta = cuentaService.buscarPorProveedor(
+                    proveedorId
+            );
+
+            if (cuenta == null) {
+                return null;
+            }
+
+            ObjectId id = cuenta.getObjectId("_id");
+
+            if (id != null &&
+                    id.toHexString().equals(cuentaId)) {
+
+                return cuenta;
+            }
+
+            throw new SecurityException(
+                    "No tenés permisos para consultar esta cuenta corriente."
+            );
+        }
+
         for (Document cuenta : cuentaService.listarCuentas()) {
 
             ObjectId id = cuenta.getObjectId("_id");
@@ -668,6 +876,38 @@ public class CuentasCorrientesPanelController {
         }
 
         return clienteId.toHexString();
+    }
+
+    // =========================================
+    // OBTENER NOMBRE DEL PROVEEDOR
+    // =========================================
+
+    private String obtenerNombreProveedor(ObjectId proveedorId) {
+
+        if (proveedorId == null) {
+            return "";
+        }
+
+        try {
+
+            Document proveedor = mongo.buscarProveedorPorId(
+                    proveedorId.toHexString()
+            );
+
+            if (proveedor != null) {
+
+                String nombre = proveedor.getString("razon_social");
+
+                if (nombre != null && !nombre.isBlank()) {
+                    return nombre;
+                }
+            }
+
+        } catch (Exception ignored) {
+            // Si falla la consulta, mostramos el ID.
+        }
+
+        return proveedorId.toHexString();
     }
 
     // =========================================

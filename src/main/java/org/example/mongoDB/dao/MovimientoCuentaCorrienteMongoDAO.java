@@ -136,5 +136,22 @@ public class MovimientoCuentaCorrienteMongoDAO {
         .into(new ArrayList<>());
     }
 
+    //eliminar todos los movimientos de la cuenta corriente de un cliente cuando lo damos de baja definitivamente.
+    // se ejecuta cuando cuando el administrador dé de baja definitivamente a un cliente, después de verificar que no tenga envíos activos ni facturas sin pagar.
+    
+    // =========================================
+    // ELIMINAR MOVIMIENTOS POR CUENTA
+    // =========================================
+
+    public void eliminarPorCuenta(
+            ClientSession session,
+            String cuentaId
+    ) {
+        coleccion.deleteMany(
+                session,
+                eq("cuenta_corriente_id", new ObjectId(cuentaId))
+        );
+    }
+
 
 }
