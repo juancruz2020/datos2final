@@ -96,6 +96,18 @@ public class FacturaProveedorService {
             );
         }
 
+        // NUEVA VALIDACIÓN:
+        // Solo se pueden registrar facturas de
+        // proveedores que estén activos.
+
+        if (!"ACTIVO".equalsIgnoreCase(
+                proveedor.getString("estado")
+        )) {
+            throw new IllegalStateException(
+                    "No se pueden registrar facturas de proveedores inactivos."
+            );
+        }
+
         Document cuenta = cuentaDAO.buscarPorProveedor(proveedorId);
 
         if (cuenta == null || cuenta.getObjectId("_id") == null) {

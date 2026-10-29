@@ -119,9 +119,19 @@ public class PrincipalPanel extends JPanel {
         }
 
         if (tienePermiso("PROVEEDOR")) {
-            JPanel proveedorPanel = new JPanel();
-            proveedorPanel.setBackground(Colores.FONDO);
-            contenido.add(proveedorPanel, "PROVEEDOR");
+
+        ProveedoresPanel proveedoresPanel =
+                new ProveedoresPanel();
+
+        contenido.add(
+                proveedoresPanel,
+                "PROVEEDOR"
+        );
+
+        new ProveedoresPanelController(
+                proveedoresPanel,
+                usuarioId
+        );
         }
 
         // =====================================================

@@ -6,6 +6,9 @@ import org.example.mongoDB.controller.ControllerMongoDB;
 import org.example.mongoDB.dao.*;
 
 import org.example.mongoDB.model.*;
+import org.example.mongoDB.service.ProveedorService;
+import org.example.mongoDB.service.FacturaProveedorService;
+import org.example.mongoDB.service.PagoProveedorService;
 import org.example.conecciones.MongoSingleton;
 import org.example.logging.AppLog;
 
@@ -473,49 +476,106 @@ public class GeneradorDatosPruebaMongo {
         usuarioDAO.agregar(usuarioOperadorPrueba);
 
         // =====================================================
-        // PROVEEDOR DE PRUEBA: usuario 4, contraseña 4
+        // PROVEEDORES Y DOCUMENTOS PARA DEMOSTRACIÓN
+        // El usuario 4 mantiene su proveedor y su cuenta corriente.
         // =====================================================
 
-        String cuitProveedorPrueba = "30-76666666-6";
-        Document proveedorPrueba = mongo.buscarProveedorPorCuit(cuitProveedorPrueba);
+        ProveedorService proveedorService = new ProveedorService();
+        FacturaProveedorService facturaProveedorService = new FacturaProveedorService();
+        PagoProveedorService pagoProveedorService = new PagoProveedorService();
 
-        if (proveedorPrueba == null) {
-            // El servicio de Proveedores crea también su cuenta corriente.
-            mongo.crearProveedor(
-                    "Proveedor de prueba 4",
-                    cuitProveedorPrueba,
-                    "proveedor4@prueba.com",
-                    "1140001004",
-                    "Av. Siempre Viva",
-                    "400",
-                    "Buenos Aires",
-                    "1400",
-                    "Argentina"
+        String cuitProveedor4 = "30-76666666-6";
+        Document proveedor4 = mongo.buscarProveedorPorCuit(cuitProveedor4);
+
+        // Si ya existe el usuario 4, priorizar el proveedor al que está asociado.
+        // No se crea otra cuenta ni se pierden sus facturas y pagos.
+        Document usuarioProveedor4 = mongo.buscarUsuarioPorEmail("4@gmail.com");
+        if (usuarioProveedor4 != null
+                && usuarioProveedor4.getObjectId("proveedor_id") != null) {
+            proveedor4 = proveedorService.buscarPorId(
+                    usuarioProveedor4.getObjectId("proveedor_id").toHexString());
+        }
+
+        if (proveedor4 == null) {
+            proveedorService.crearProveedor(
+                    "Servicios Portuarios del Plata S.R.L.",
+                    cuitProveedor4,
+                    "administracion@puertosdelplata.example.com",
+                    "1145552100",
+                    "Av. Alicia Moreau de Justo", "1250", "Buenos Aires", "1107", "Argentina"
             );
-            proveedorPrueba = mongo.buscarProveedorPorCuit(cuitProveedorPrueba);
+            proveedor4 = mongo.buscarProveedorPorCuit(cuitProveedor4);
+        } else {
+            // Actualizar el proveedor EXISTENTE (mismo _id) sin tocar su cuenta.
+            proveedorService.modificarProveedor(
+                    proveedor4.getObjectId("_id").toHexString(),
+                    "Servicios Portuarios del Plata S.R.L.",
+                    proveedor4.getString("cuit"),
+                    "administracion@puertosdelplata.example.com",
+                    "1145552100",
+                    "Av. Alicia Moreau de Justo", "1250", "Buenos Aires", "1107", "Argentina",
+                    "ACTIVO"
+            );
         }
 
-        if (proveedorPrueba == null || proveedorPrueba.getObjectId("_id") == null) {
-            throw new IllegalStateException("No se pudo crear o recuperar el proveedor de prueba.");
+        if (proveedor4 == null || proveedor4.getObjectId("_id") == null) {
+            throw new IllegalStateException("No se pudo recuperar el proveedor del usuario 4.");
         }
 
-        if (mongo.buscarUsuarioPorEmail("4") == null) {
-            Document rolProveedor = rolDAO.buscarPorDescripcion("Proveedor");
-            if (rolProveedor == null || rolProveedor.getObjectId("_id") == null) {
+        if (usuarioProveedor4 == null) {
+            Document rolProveedorExistente = rolDAO.buscarPorDescripcion("Proveedor");
+            if (rolProveedorExistente == null || rolProveedorExistente.getObjectId("_id") == null) {
                 throw new IllegalStateException("No se encontró el rol Proveedor.");
             }
-
             mongo.crearUsuario(
                     null,
-                    proveedorPrueba.getObjectId("_id").toHexString(),
-                    rolProveedor.getObjectId("_id").toHexString(),
-                    "4",
-                    "4",
-                    "4@gmail.com",
-                    "4"
+                    proveedor4.getObjectId("_id").toHexString(),
+                    rolProveedorExistente.getObjectId("_id").toHexString(),
+                    "4", "4", "4@gmail.com", "4"
             );
         }
 
+        // Más proveedores ficticios. El servicio crea sus cuentas corrientes.
+        String proveedor2Id = asegurarProveedorDemostracion(
+                proveedorService, "30-77777777-7", "Transportes Costanera S.A.",
+                "contacto@transportescostanera.example.com", "1145553200",
+                "Av. del Libertador", "4300", "Buenos Aires", "1426", "Argentina"
+        );
+        String proveedor3Id = asegurarProveedorDemostracion(
+                proveedorService, "30-78888888-8", "Repuestos Industriales Delta S.R.L.",
+                "ventas@repuestosdelta.example.com", "1145554400",
+                "Mitre", "760", "San Fernando", "1646", "Argentina"
+        );
+        String proveedor4ExtraId = asegurarProveedorDemostracion(
+                proveedorService, "30-79999999-9", "Frío Patagónico Logística S.A.",
+                "administracion@friopatagonico.example.com", "2994555100",
+                "Ruta 22", "1250", "Neuquén", "8300", "Argentina"
+        );
+
+        // Facturas de proveedores: pendientes, parcialmente pagadas y pagadas.
+        // Se usan los servicios: número automático, pagos, movimientos y saldos
+        // quedan vinculados en transacciones, sin actualizar importes a mano.
+        String administradorId = usuarioAdministrador.getId();
+        generarFacturaProveedorDemo(
+                facturaProveedorService, pagoProveedorService,
+                administradorId, proveedor4.getObjectId("_id").toHexString(),
+                "Servicio de estiba y descarga", "125000.00", null
+        );
+        generarFacturaProveedorDemo(
+                facturaProveedorService, pagoProveedorService,
+                administradorId, proveedor2Id,
+                "Transporte de contenedores", "240000.00", "80000.00"
+        );
+        generarFacturaProveedorDemo(
+                facturaProveedorService, pagoProveedorService,
+                administradorId, proveedor3Id,
+                "Repuestos y mantenimiento", "98000.00", "98000.00"
+        );
+        generarFacturaProveedorDemo(
+                facturaProveedorService, pagoProveedorService,
+                administradorId, proveedor4ExtraId,
+                "Servicio de refrigeración", "175000.00", null
+        );
 
         // =====================================================
         // COMUNICACION: CHATS PRIVADOS Y GRUPALES
@@ -1377,6 +1437,68 @@ public class GeneradorDatosPruebaMongo {
         AppLog.info(GeneradorDatosPruebaMongo.class,
                 "Datos de prueba MongoDB generados correctamente.");
 
+    }
+
+    // =====================================================
+    // DATOS DE PROVEEDORES PARA DEMOSTRACIÓN
+    // =====================================================
+
+    private String asegurarProveedorDemostracion(
+            ProveedorService proveedorService,
+            String cuit,
+            String razonSocial,
+            String email,
+            String telefono,
+            String calle,
+            String numero,
+            String ciudad,
+            String codigoPostal,
+            String pais
+    ) {
+        Document existente = proveedorService.buscarPorCuit(cuit);
+        if (existente == null) {
+            proveedorService.crearProveedor(
+                    razonSocial, cuit, email, telefono,
+                    calle, numero, ciudad, codigoPostal, pais
+            );
+            existente = proveedorService.buscarPorCuit(cuit);
+        }
+        if (existente == null || existente.getObjectId("_id") == null) {
+            throw new IllegalStateException("No se pudo recuperar el proveedor: " + razonSocial);
+        }
+        return existente.getObjectId("_id").toHexString();
+    }
+
+    private void generarFacturaProveedorDemo(
+            FacturaProveedorService facturaService,
+            PagoProveedorService pagoService,
+            String administradorId,
+            String proveedorId,
+            String concepto,
+            String importeTotal,
+            String importePago
+    ) {
+        // Evitar duplicar las facturas de demostración al ejecutar de nuevo.
+        for (Document existente : facturaService.listarPorProveedor(administradorId, proveedorId)) {
+            if (concepto.equals(existente.getString("concepto"))) {
+                return;
+            }
+        }
+
+        Date emision = new Date();
+        Date vencimiento = new Date(emision.getTime() + 15L * 24 * 60 * 60 * 1000);
+
+        FacturaProveedor factura = facturaService.registrarFactura(
+                administradorId, proveedorId, concepto,
+                emision, vencimiento, new BigDecimal(importeTotal)
+        );
+
+        if (importePago != null) {
+            pagoService.registrarPago(
+                    administradorId, factura.getId(),
+                    new BigDecimal(importePago), "TRANSFERENCIA"
+            );
+        }
     }
 
     // =====================================================
