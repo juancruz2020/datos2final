@@ -1,21 +1,29 @@
+
 package org.example.mongoDB.dao;
 
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
+
 import org.example.conecciones.MongoSingleton;
 import org.example.mongoDB.model.Reporte;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class ReporteMongoDAO {
 
     private final MongoCollection<Document> coleccion;
 
+    // =========================
+    // CONSTRUCTOR
+    // =========================
+
     public ReporteMongoDAO() {
+
         MongoDatabase database = MongoSingleton
                 .getInstance()
                 .getDatabase("datos2");
@@ -23,22 +31,14 @@ public class ReporteMongoDAO {
         this.coleccion = database.getCollection("reportes");
     }
 
-
     // =========================
     // AGREGAR REPORTE
+    // MÉTODO ORIGINAL
     // =========================
 
     public void agregar(Reporte reporte) {
 
-        Document documento = new Document()
-                .append(
-                        "usuario_id",
-                        new ObjectId(reporte.getUsuarioId())
-                )
-                .append("tipo", reporte.getTipo())
-                .append("fecha_generacion", reporte.getFechaGeneracion())
-                .append("formato", reporte.getFormato())
-                .append("estado", reporte.getEstado());
+        Document documento = crearDocumento(reporte);
 
         coleccion.insertOne(documento);
 
@@ -47,6 +47,50 @@ public class ReporteMongoDAO {
         );
     }
 
+    // =========================
+    // AGREGAR REPORTE CON TRANSACCIÓN
+    // NUEVO MÉTODO
+    // =========================
+
+    public void agregar(
+            ClientSession session,
+            Reporte reporte
+    ) {
+
+        if (session == null || !session.hasActiveTransaction()) {
+            throw new IllegalArgumentException(
+                    "Se necesita una transacción activa para registrar el reporte."
+            );
+        }
+
+        Document documento = crearDocumento(reporte);
+
+        coleccion.insertOne(session, documento);
+
+        reporte.setId(
+                documento.getObjectId("_id").toHexString()
+        );
+    }
+
+    // =========================
+    // CONSTRUIR DOCUMENTO
+    // =========================
+
+    private Document crearDocumento(Reporte reporte) {
+
+        return new Document()
+                .append(
+                        "usuario_id",
+                        new ObjectId(reporte.getUsuarioId())
+                )
+                .append("tipo", reporte.getTipo())
+                .append(
+                        "fecha_generacion",
+                        reporte.getFechaGeneracion()
+                )
+                .append("formato", reporte.getFormato())
+                .append("estado", reporte.getEstado());
+    }
 
     // =========================
     // LISTAR REPORTES
@@ -57,6 +101,4 @@ public class ReporteMongoDAO {
         return coleccion.find()
                 .into(new ArrayList<>());
     }
-
-
 }
