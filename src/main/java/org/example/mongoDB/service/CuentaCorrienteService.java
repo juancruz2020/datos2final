@@ -2,18 +2,15 @@
 package org.example.mongoDB.service;
 
 import org.example.consola.TablaConsola;
-
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
-
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-
 import org.example.conecciones.MongoSingleton;
 import org.example.logging.AppLog;
 import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
@@ -39,12 +36,7 @@ public class CuentaCorrienteService {
     private final MovimientoCuentaCorrienteMongoDAO movimientoDAO;
     private final CierreMensualCuentaCorrienteMongoDAO cierreDAO;
     private final PermisosService permisosService;
-
     private final MongoCollection<Document> aperturas;
-
-    // ==========================================
-    // CONSTRUCTOR
-    // ==========================================
 
     public CuentaCorrienteService() {
 
@@ -74,7 +66,7 @@ public class CuentaCorrienteService {
     }
 
     // ==========================================
-    // CREAR CUENTA CORRIENTE
+    // CREAR CUENTAS
     // ==========================================
 
     public CuentaCorriente crearCuenta(
@@ -101,10 +93,6 @@ public class CuentaCorrienteService {
         return cuenta;
     }
 
-    // ==========================================
-    // CREAR CUENTA DE PROVEEDOR
-    // ==========================================
-
     public CuentaCorriente crearCuentaProveedor(
             ClientSession session,
             String proveedorId
@@ -114,8 +102,7 @@ public class CuentaCorrienteService {
 
         if (session == null || !session.hasActiveTransaction()) {
             throw new IllegalArgumentException(
-                    "La creación de cuenta del proveedor "
-                            + "necesita una transacción activa."
+                    "La creación de cuenta del proveedor necesita una transacción activa."
             );
         }
 
@@ -134,13 +121,8 @@ public class CuentaCorrienteService {
         );
 
         crearCuenta(session, cuenta);
-
         return cuenta;
     }
-
-    // ==========================================
-    // INSERTAR CUENTA Y APERTURA
-    // ==========================================
 
     private void crearCuenta(
             ClientSession session,
@@ -148,16 +130,11 @@ public class CuentaCorrienteService {
     ) {
 
         cuentaDAO.agregar(session, cuenta);
-
-        registrarApertura(
-                session,
-                cuenta.getId(),
-                BigDecimal.ZERO
-        );
+        registrarApertura(session, cuenta.getId(), BigDecimal.ZERO);
     }
 
     // ==========================================
-    // REGISTRAR APERTURA INICIAL
+    // APERTURA INICIAL
     // ==========================================
 
     private void registrarApertura(
@@ -170,14 +147,12 @@ public class CuentaCorrienteService {
 
         if (saldoInicial == null
                 || saldoInicial.compareTo(BigDecimal.ZERO) < 0) {
-
             throw new IllegalArgumentException(
                     "El saldo inicial no puede ser negativo."
             );
         }
 
         YearMonth periodo = YearMonth.now(ZONA);
-
         ObjectId idCuenta = new ObjectId(cuentaId);
 
         Document apertura = new Document(
@@ -185,10 +160,7 @@ public class CuentaCorrienteService {
         )
                 .append("anio", periodo.getYear())
                 .append("mes", periodo.getMonthValue())
-                .append(
-                        "saldo_inicial",
-                        new Decimal128(saldoInicial)
-                );
+                .append("saldo_inicial", new Decimal128(saldoInicial));
 
         aperturas.updateOne(
                 session,
@@ -203,7 +175,7 @@ public class CuentaCorrienteService {
     }
 
     // ==========================================
-    // BUSCAR CUENTA POR CLIENTE
+    // CONSULTAR CUENTAS
     // ==========================================
 
     public Document buscarPorCliente(String clienteId) {
@@ -216,10 +188,6 @@ public class CuentaCorrienteService {
         );
     }
 
-    // ==========================================
-    // BUSCAR CUENTA POR PROVEEDOR
-    // ==========================================
-
     public Document buscarPorProveedor(String proveedorId) {
 
         validarId(proveedorId, "proveedor");
@@ -230,10 +198,6 @@ public class CuentaCorrienteService {
         );
     }
 
-    // ==========================================
-    // LISTAR CUENTAS
-    // ==========================================
-
     public List<Document> listarCuentas() {
 
         return TablaConsola.mostrar(
@@ -241,10 +205,6 @@ public class CuentaCorrienteService {
                 cuentaDAO.listarTodos()
         );
     }
-
-    // ==========================================
-    // LISTAR CUENTAS SEGÚN USUARIO
-    // ==========================================
 
     public List<Document> listarCuentasParaUsuario(
             String usuarioId
@@ -254,7 +214,6 @@ public class CuentaCorrienteService {
                 usuarioId,
                 "CUENTAS_CORRIENTES"
         )) {
-
             throw new SecurityException(
                     "No tenés permisos para consultar cuentas corrientes."
             );
@@ -268,11 +227,7 @@ public class CuentaCorrienteService {
             Document cuenta =
                     cuentaDAO.buscarPorProveedor(proveedorId);
 
-            if (cuenta == null) {
-                return List.of();
-            }
-
-            return List.of(cuenta);
+            return cuenta == null ? List.of() : List.of(cuenta);
         }
 
         permisosService.exigirAdminUOperador(usuarioId);
@@ -281,7 +236,7 @@ public class CuentaCorrienteService {
     }
 
     // ==========================================
-    // REGISTRAR DÉBITO
+    // DÉBITOS Y CRÉDITOS DE CLIENTES
     // ==========================================
 
     public void registrarDebito(
@@ -300,10 +255,6 @@ public class CuentaCorrienteService {
         );
     }
 
-    // ==========================================
-    // REGISTRAR CRÉDITO
-    // ==========================================
-
     public void registrarCredito(
             String clienteId,
             String referenciaId,
@@ -320,6 +271,7 @@ public class CuentaCorrienteService {
         );
     }
 
+
     // ==========================================
     // ASEGURAR APERTURA AUTOMÁTICA
     // ==========================================
@@ -331,7 +283,6 @@ public class CuentaCorrienteService {
     ) {
 
         ObjectId idCuenta = new ObjectId(cuentaId);
-
         YearMonth mesActual = YearMonth.now(ZONA);
 
         Document primeraApertura = aperturas.find(
@@ -351,9 +302,8 @@ public class CuentaCorrienteService {
 
             if (!movimientos.isEmpty()) {
                 throw new IllegalStateException(
-                        "La cuenta tiene movimientos históricos "
-                                + "pero no tiene apertura. "
-                                + "Se necesita revisar su historial."
+                        "La cuenta tiene movimientos históricos pero "
+                                + "no tiene apertura. Se necesita revisar su historial."
                 );
             }
 
@@ -441,7 +391,7 @@ public class CuentaCorrienteService {
     }
 
     // ==========================================
-    // REGISTRAR MOVIMIENTO NORMAL
+    // MOVIMIENTOS DE CLIENTES
     // ==========================================
 
     private void registrarMovimiento(
@@ -563,6 +513,7 @@ public class CuentaCorrienteService {
 
     // ==========================================
     // DESCONTAR PAGO DE FACTURA
+    // SE CONSERVA LA LÓGICA ORIGINAL
     // ==========================================
 
     public void descontarPagoFactura(
@@ -572,9 +523,7 @@ public class CuentaCorrienteService {
             BigDecimal importe
     ) {
 
-        if (session == null
-                || !session.hasActiveTransaction()) {
-
+        if (session == null || !session.hasActiveTransaction()) {
             throw new IllegalArgumentException(
                     "El pago necesita una transacción activa."
             );
@@ -600,8 +549,7 @@ public class CuentaCorrienteService {
             );
         }
 
-        BigDecimal saldoActual =
-                obtenerSaldo(cuentaActual);
+        BigDecimal saldoActual = obtenerSaldo(cuentaActual);
 
         asegurarApertura(
                 session,
@@ -610,7 +558,6 @@ public class CuentaCorrienteService {
         );
 
         if (saldoActual.compareTo(importe) < 0) {
-
             throw new IllegalArgumentException(
                     "Saldo insuficiente.\n"
                             + "Disponible: $"
@@ -631,10 +578,7 @@ public class CuentaCorrienteService {
                         new Date()
                 );
 
-        movimientoDAO.agregar(
-                session,
-                movimiento
-        );
+        movimientoDAO.agregar(session, movimiento);
 
         cuentaDAO.actualizarSaldo(
                 session,
@@ -646,7 +590,7 @@ public class CuentaCorrienteService {
     }
 
     // ==========================================
-    // CONSULTAR HISTORIAL
+    // CONSULTAR HISTORIAL DE CLIENTE
     // ==========================================
 
     public List<Document> consultarHistorial(
@@ -664,17 +608,12 @@ public class CuentaCorrienteService {
         );
     }
 
-    // ==========================================
-    // BUSCAR CUENTA O LANZAR ERROR
-    // ==========================================
-
     private Document obtenerCuenta(String clienteId) {
 
         Document cuenta = buscarPorCliente(clienteId);
 
         if (cuenta == null
                 || cuenta.getObjectId("_id") == null) {
-
             throw new IllegalArgumentException(
                     "El cliente no tiene una cuenta corriente."
             );
@@ -682,10 +621,6 @@ public class CuentaCorrienteService {
 
         return cuenta;
     }
-
-    // ==========================================
-    // OBTENER SALDO
-    // ==========================================
 
     private BigDecimal obtenerSaldo(Document cuenta) {
 
@@ -709,7 +644,6 @@ public class CuentaCorrienteService {
 
         if (importe == null
                 || importe.compareTo(BigDecimal.ZERO) <= 0) {
-
             throw new IllegalArgumentException(
                     "El importe debe ser mayor a cero."
             );
@@ -726,7 +660,7 @@ public class CuentaCorrienteService {
     }
 
     // ==========================================
-    // ELIMINAR APERTURAS POR CUENTA
+    // ELIMINAR APERTURAS
     // ==========================================
 
     public void eliminarAperturas(
@@ -739,4 +673,37 @@ public class CuentaCorrienteService {
                 eq("cuenta_corriente_id", new ObjectId(cuentaId))
         );
     }
+
+
+        public void validarPeriodoCuenta(
+                ClientSession session,
+                String cuentaId
+        ) {
+
+        validarId(cuentaId, "cuenta corriente");
+
+        if (session == null || !session.hasActiveTransaction()) {
+                throw new IllegalArgumentException(
+                        "Se necesita una transacción activa."
+                );
+        }
+
+        Document cuenta = cuentaDAO.buscarPorId(
+                session,
+                cuentaId
+        );
+
+        if (cuenta == null) {
+                throw new IllegalArgumentException(
+                        "No se encontró la cuenta corriente."
+                );
+        }
+
+        asegurarApertura(
+                session,
+                cuentaId,
+                obtenerSaldo(cuenta)
+        );
+        }
+
 }

@@ -19,7 +19,7 @@ import org.example.mongoDB.model.CierreMensualCuentaCorriente;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +27,9 @@ import java.util.List;
 import static com.mongodb.client.model.Filters.*;
 
 public class CierreMensualCuentaCorrienteService {
+
+    private static final ZoneId ZONA =
+            ZoneId.of("America/Argentina/Buenos_Aires");
 
     private final CierreMensualCuentaCorrienteMongoDAO cierreDAO;
     private final CuentaCorrienteMongoDAO cuentaDAO;
@@ -83,7 +86,7 @@ public class CierreMensualCuentaCorrienteService {
         LocalDate inicio = LocalDate.of(anio, mes, 1);
         LocalDate fin = inicio.plusMonths(1);
 
-        LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
+        LocalDate hoy = LocalDate.now(ZONA);
 
         if (fin.isAfter(hoy)) {
             throw new IllegalArgumentException(
@@ -92,13 +95,11 @@ public class CierreMensualCuentaCorrienteService {
         }
 
         Date fechaInicio = Date.from(
-                inicio.atStartOfDay()
-                        .toInstant(ZoneOffset.UTC)
+                inicio.atStartOfDay(ZONA).toInstant()
         );
 
         Date fechaFin = Date.from(
-                fin.atStartOfDay()
-                        .toInstant(ZoneOffset.UTC)
+                fin.atStartOfDay(ZONA).toInstant()
         );
 
         try (ClientSession session =
@@ -201,7 +202,10 @@ public class CierreMensualCuentaCorrienteService {
                 for (Document movimiento : lista) {
 
                     Decimal128 importeDecimal =
-                            movimiento.get("importe", Decimal128.class);
+                            movimiento.get(
+                                    "importe",
+                                    Decimal128.class
+                            );
 
                     if (importeDecimal == null) {
                         throw new IllegalStateException(
@@ -232,6 +236,7 @@ public class CierreMensualCuentaCorrienteService {
 
                 // =========================================
                 // CALCULAR SALDO FINAL
+                // VÁLIDO PARA CLIENTES Y PROVEEDORES
                 // =========================================
 
                 BigDecimal saldoFinal = saldoInicial
@@ -258,17 +263,24 @@ public class CierreMensualCuentaCorrienteService {
                 cierreDAO.agregar(session, cierre);
 
                 session.commitTransaction();
-                AppLog.info(CierreMensualCuentaCorrienteService.class,
-                        "Cierre mensual de cuenta corriente confirmado.");
+
+                AppLog.info(
+                        CierreMensualCuentaCorrienteService.class,
+                        "Cierre mensual de cuenta corriente confirmado."
+                );
 
                 return cierre;
 
             } catch (Exception e) {
 
                 if (session.hasActiveTransaction()) {
+
                     session.abortTransaction();
-                    AppLog.warning(CierreMensualCuentaCorrienteService.class,
-                            "Cierre mensual revertido por un error.");
+
+                    AppLog.warning(
+                            CierreMensualCuentaCorrienteService.class,
+                            "Cierre mensual revertido por un error."
+                    );
                 }
 
                 throw e;
@@ -312,10 +324,14 @@ public class CierreMensualCuentaCorrienteService {
     ) {
 
         // Para el primer mes utilizamos el saldo de apertura.
+
         if (periodo.equals(primerPeriodo)) {
 
             Decimal128 saldoApertura =
-                    apertura.get("saldo_inicial", Decimal128.class);
+                    apertura.get(
+                            "saldo_inicial",
+                            Decimal128.class
+                    );
 
             if (saldoApertura == null) {
                 throw new IllegalStateException(
@@ -328,6 +344,7 @@ public class CierreMensualCuentaCorrienteService {
 
         // Para los siguientes meses utilizamos el
         // saldo final del cierre anterior.
+
         LocalDate anterior = periodo.minusMonths(1);
 
         Document cierreAnterior = cierreDAO.buscarPorPeriodo(
@@ -347,7 +364,10 @@ public class CierreMensualCuentaCorrienteService {
         }
 
         Decimal128 saldoAnterior =
-                cierreAnterior.get("saldo_final", Decimal128.class);
+                cierreAnterior.get(
+                        "saldo_final",
+                        Decimal128.class
+                );
 
         if (saldoAnterior == null) {
             throw new IllegalStateException(
@@ -363,8 +383,10 @@ public class CierreMensualCuentaCorrienteService {
     // =========================================
 
     public List<Document> consultarCierres(String cuentaId) {
-        return TablaConsola.mostrar("CierreMensualCuentaCorrienteService.consultarCierres", cierreDAO.buscarPorCuenta(cuentaId));
+
+        return TablaConsola.mostrar(
+                "CierreMensualCuentaCorrienteService.consultarCierres",
+                cierreDAO.buscarPorCuenta(cuentaId)
+        );
     }
-
-
 }

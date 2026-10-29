@@ -13,16 +13,19 @@ import org.bson.types.ObjectId;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
 import java.awt.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class CuentasCorrientesPanelController {
+
+    private static final ZoneId ZONA =
+            ZoneId.of("America/Argentina/Buenos_Aires");
 
     private final ControllerMongoDB mongo = new ControllerMongoDB();
 
@@ -74,7 +77,6 @@ public class CuentasCorrientesPanelController {
                 : null;
 
         if (proveedor) {
-
             view.getCmbTipoCuenta().setSelectedIndex(1);
             view.getCmbTipoCuenta().setEnabled(false);
         }
@@ -115,7 +117,6 @@ public class CuentasCorrientesPanelController {
         );
 
         view.getCmbTipoCuenta().addActionListener(e -> {
-
             actualizarBotones();
             cargarCuentas();
         });
@@ -127,12 +128,33 @@ public class CuentasCorrientesPanelController {
 
     private void actualizarBotones() {
 
-        boolean soloLectura =
-                proveedor || view.mostrandoProveedores();
+        boolean mostrandoProveedores =
+                view.mostrandoProveedores();
 
-        view.getBtnRegistrarDebito().setVisible(!soloLectura);
-        view.getBtnRegistrarCredito().setVisible(!soloLectura);
-        view.getBtnGenerarCierre().setVisible(!soloLectura);
+        boolean puedeModificar = !proveedor;
+
+        // Los movimientos de proveedores se registran
+        // exclusivamente desde la pantalla Pagos.
+
+        view.getBtnRegistrarDebito().setVisible(
+                puedeModificar && !mostrandoProveedores
+        );
+
+        view.getBtnRegistrarCredito().setVisible(
+                puedeModificar && !mostrandoProveedores
+        );
+
+        view.getBtnGenerarCierre().setVisible(
+                puedeModificar
+        );
+
+        view.getBtnRegistrarDebito().setText(
+                "+ Registrar débito"
+        );
+
+        view.getBtnRegistrarCredito().setText(
+                "+ Registrar crédito"
+        );
 
         view.getBtnVerMovimientos().setVisible(true);
         view.getBtnVerCierres().setVisible(true);
@@ -148,9 +170,7 @@ public class CuentasCorrientesPanelController {
     private void cargarCuentas() {
 
         DefaultTableModel modelo =
-                (DefaultTableModel) view
-                        .getTablaCuentas()
-                        .getModel();
+                (DefaultTableModel) view.getTablaCuentas().getModel();
 
         modelo.setRowCount(0);
         cuentasIds.clear();
@@ -167,20 +187,16 @@ public class CuentasCorrientesPanelController {
             }
 
             List<Document> cuentas =
-        cuentaService.listarCuentasParaUsuario(usuarioId);
+                    cuentaService.listarCuentasParaUsuario(usuarioId);
 
             view.getTablaCuentas()
                     .getColumnModel()
                     .getColumn(0)
                     .setHeaderValue(
-                            mostrandoProveedores
-                                    ? "Proveedor"
-                                    : "Cliente"
+                            mostrandoProveedores ? "Proveedor" : "Cliente"
                     );
 
-            view.getTablaCuentas()
-                    .getTableHeader()
-                    .repaint();
+            view.getTablaCuentas().getTableHeader().repaint();
 
             for (Document cuenta : cuentas) {
 
@@ -208,13 +224,10 @@ public class CuentasCorrientesPanelController {
                     if (proveedor && !cuentaProveedorId
                             .toHexString()
                             .equals(proveedorId)) {
-
                         continue;
                     }
 
-                    nombre = obtenerNombreProveedor(
-                            cuentaProveedorId
-                    );
+                    nombre = obtenerNombreProveedor(cuentaProveedorId);
 
                 } else {
 
@@ -253,20 +266,24 @@ public class CuentasCorrientesPanelController {
     }
 
     // =========================================
-    // REGISTRAR DÉBITO O CRÉDITO
+    // REGISTRAR MOVIMIENTOS DE CLIENTES
     // =========================================
 
     private void registrarMovimiento(String tipo) {
 
         try {
 
-            permisosService.exigirAdminUOperador(usuarioId);
+            // No se permite registrar movimientos
+            // de proveedores desde Cuentas Corrientes.
 
-            if (view.mostrandoProveedores()) {
+            if (view.mostrandoProveedores() || proveedor) {
                 throw new SecurityException(
-                        "Los movimientos de proveedores todavía no están habilitados."
+                        "Las facturas y pagos de proveedores "
+                                + "se registran desde la pantalla Pagos."
                 );
             }
+
+            permisosService.exigirAdminUOperador(usuarioId);
 
             String cuentaId = obtenerCuentaSeleccionada();
 
@@ -291,8 +308,10 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            String nombreCliente =
-                    obtenerNombreCliente(clienteId);
+            String nombre = obtenerNombreCliente(clienteId);
+
+            String nombreMovimiento =
+                    "DEBITO".equals(tipo) ? "débito" : "crédito";
 
             JTextField txtImporte = new JTextField(20);
             JTextField txtDescripcion = new JTextField(20);
@@ -302,18 +321,13 @@ public class CuentasCorrientesPanelController {
                     new GridLayout(0, 1, 5, 5)
             );
 
-            formulario.add(
-                    new JLabel("Cliente: " + nombreCliente)
-            );
+            formulario.add(new JLabel(
+                    "Cliente: " + nombre
+            ));
 
-            formulario.add(
-                    new JLabel(
-                            "Tipo: " +
-                                    (tipo.equals("DEBITO")
-                                            ? "Débito"
-                                            : "Crédito")
-                    )
-            );
+            formulario.add(new JLabel(
+                    "Tipo: " + nombreMovimiento
+            ));
 
             formulario.add(new JLabel("Importe:"));
             formulario.add(txtImporte);
@@ -327,10 +341,7 @@ public class CuentasCorrientesPanelController {
             int opcion = JOptionPane.showConfirmDialog(
                     view,
                     formulario,
-                    "Registrar " +
-                            (tipo.equals("DEBITO")
-                                    ? "débito"
-                                    : "crédito"),
+                    "Registrar " + nombreMovimiento,
                     JOptionPane.OK_CANCEL_OPTION,
                     JOptionPane.PLAIN_MESSAGE
             );
@@ -392,7 +403,7 @@ public class CuentasCorrientesPanelController {
                 return;
             }
 
-            if (tipo.equals("DEBITO")) {
+            if ("DEBITO".equals(tipo)) {
 
                 cuentaService.registrarDebito(
                         clienteId.toHexString(),
@@ -435,13 +446,13 @@ public class CuentasCorrientesPanelController {
 
     private void mostrarMovimientos() {
 
-        String cuentaId = obtenerCuentaSeleccionada();
-
-        if (cuentaId == null) {
-            return;
-        }
-
         try {
+
+            String cuentaId = obtenerCuentaSeleccionada();
+
+            if (cuentaId == null) {
+                return;
+            }
 
             Document cuenta = buscarCuentaPorId(cuentaId);
 
@@ -451,9 +462,12 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
+            boolean mostrandoProveedores =
+                    view.mostrandoProveedores();
+
             List<Document> movimientos;
 
-            if (view.mostrandoProveedores()) {
+            if (mostrandoProveedores) {
 
                 if (cuenta.getObjectId("proveedor_id") == null) {
                     throw new IllegalStateException(
@@ -498,11 +512,24 @@ public class CuentasCorrientesPanelController {
 
             for (Document movimiento : movimientos) {
 
+                String tipo = movimiento.getString("tipo");
+
+                // En proveedores:
+                // DEBITO = factura recibida
+                // CREDITO = pago realizado
+
+                if (mostrandoProveedores) {
+
+                    if ("DEBITO".equals(tipo)) {
+                        tipo = "FACTURA";
+                    } else if ("CREDITO".equals(tipo)) {
+                        tipo = "PAGO";
+                    }
+                }
+
                 modelo.addRow(new Object[]{
-                        formatearFecha(
-                                movimiento.getDate("fecha")
-                        ),
-                        movimiento.getString("tipo"),
+                        formatearFecha(movimiento.getDate("fecha")),
+                        tipo,
                         movimiento.getString("descripcion"),
                         movimiento.getString("referencia_id"),
                         obtenerImporte(movimiento.get("importe"))
@@ -529,16 +556,13 @@ public class CuentasCorrientesPanelController {
 
     private void mostrarCierres() {
 
-        String cuentaId = obtenerCuentaSeleccionada();
-
-        if (cuentaId == null) {
-            return;
-        }
-
         try {
 
-            // Verifica que la cuenta corresponda
-            // al usuario antes de consultar sus cierres.
+            String cuentaId = obtenerCuentaSeleccionada();
+
+            if (cuentaId == null) {
+                return;
+            }
 
             Document cuenta = buscarCuentaPorId(cuentaId);
 
@@ -616,13 +640,10 @@ public class CuentasCorrientesPanelController {
 
         try {
 
-            permisosService.exigirAdminUOperador(usuarioId);
+            // Solo ADMIN y OPERADOR.
+            // Los proveedores únicamente consultan.
 
-            if (view.mostrandoProveedores()) {
-                throw new SecurityException(
-                        "Los cierres de proveedores todavía no están habilitados."
-                );
-            }
+            permisosService.exigirAdminUOperador(usuarioId);
 
             String cuentaId = obtenerCuentaSeleccionada();
 
@@ -638,17 +659,25 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            ObjectId clienteId =
-                    cuenta.getObjectId("cliente_id");
+            boolean mostrandoProveedores =
+                    view.mostrandoProveedores();
 
-            if (clienteId == null) {
+            ObjectId titularId = cuenta.getObjectId(
+                    mostrandoProveedores ? "proveedor_id" : "cliente_id"
+            );
+
+            if (titularId == null) {
                 throw new IllegalStateException(
-                        "La cuenta no tiene un cliente asociado."
+                        "La cuenta no tiene un titular asociado."
                 );
             }
 
-            String cliente =
-                    obtenerNombreCliente(clienteId);
+            String nombre = mostrandoProveedores
+                    ? obtenerNombreProveedor(titularId)
+                    : obtenerNombreCliente(titularId);
+
+            YearMonth actual = YearMonth.now(ZONA);
+            YearMonth anterior = actual.minusMonths(1);
 
             JComboBox<String> cmbMes = new JComboBox<>(
                     new String[]{
@@ -661,19 +690,26 @@ public class CuentasCorrientesPanelController {
 
             JSpinner spinnerAnio = new JSpinner(
                     new SpinnerNumberModel(
-                            2026, 2026, 2100, 1
+                            anterior.getYear(),
+                            2026,
+                            2100,
+                            1
                     )
             );
 
-            cmbMes.setSelectedIndex(9);
+            cmbMes.setSelectedIndex(
+                    anterior.getMonthValue() - 1
+            );
 
             JPanel formulario = new JPanel(
                     new GridLayout(0, 1, 5, 5)
             );
 
-            formulario.add(
-                    new JLabel("Cliente: " + cliente)
-            );
+            formulario.add(new JLabel(
+                    (mostrandoProveedores
+                            ? "Proveedor: "
+                            : "Cliente: ") + nombre
+            ));
 
             formulario.add(new JLabel("Mes:"));
             formulario.add(cmbMes);
@@ -697,7 +733,6 @@ public class CuentasCorrientesPanelController {
             int anio = (Integer) spinnerAnio.getValue();
 
             YearMonth periodo = YearMonth.of(anio, mes);
-            YearMonth actual = YearMonth.now();
 
             if (!periodo.isBefore(actual)) {
 
@@ -711,9 +746,7 @@ public class CuentasCorrientesPanelController {
                 return;
             }
 
-            if (periodo.isBefore(
-                    YearMonth.of(2026, 10)
-            )) {
+            if (periodo.isBefore(YearMonth.of(2026, 10))) {
 
                 JOptionPane.showMessageDialog(
                         view,
@@ -727,10 +760,10 @@ public class CuentasCorrientesPanelController {
 
             int confirmacion = JOptionPane.showConfirmDialog(
                     view,
-                    "¿Confirmás el cierre de " +
-                            String.format("%02d/%d", mes, anio) +
-                            " para " + cliente + "?\n\n" +
-                            "El cierre quedará registrado en MongoDB.",
+                    "¿Confirmás el cierre de "
+                            + String.format("%02d/%d", mes, anio)
+                            + " para " + nombre + "?\n\n"
+                            + "El cierre quedará registrado en MongoDB.",
                     "Confirmar cierre mensual",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
@@ -740,11 +773,7 @@ public class CuentasCorrientesPanelController {
                 return;
             }
 
-            cierreService.cerrarMes(
-                    cuentaId,
-                    anio,
-                    mes
-            );
+            cierreService.cerrarMes(cuentaId, anio, mes);
 
             JOptionPane.showMessageDialog(
                     view,
@@ -765,7 +794,7 @@ public class CuentasCorrientesPanelController {
     }
 
     // =========================================
-    // BUSCAR CUENTA POR ID
+    // BUSCAR CUENTA POR ID Y VALIDAR ACCESO
     // =========================================
 
     private Document buscarCuentaPorId(String cuentaId) {
@@ -781,9 +810,8 @@ public class CuentasCorrientesPanelController {
 
         if (proveedor) {
 
-            Document cuenta = cuentaService.buscarPorProveedor(
-                    proveedorId
-            );
+            Document cuenta =
+                    cuentaService.buscarPorProveedor(proveedorId);
 
             if (cuenta == null) {
                 return null;
@@ -791,9 +819,8 @@ public class CuentasCorrientesPanelController {
 
             ObjectId id = cuenta.getObjectId("_id");
 
-            if (id != null &&
-                    id.toHexString().equals(cuentaId)) {
-
+            if (id != null
+                    && id.toHexString().equals(cuentaId)) {
                 return cuenta;
             }
 
@@ -802,13 +829,13 @@ public class CuentasCorrientesPanelController {
             );
         }
 
-        for (Document cuenta : cuentaService.listarCuentas()) {
+        for (Document cuenta :
+                cuentaService.listarCuentasParaUsuario(usuarioId)) {
 
             ObjectId id = cuenta.getObjectId("_id");
 
-            if (id != null &&
-                    id.toHexString().equals(cuentaId)) {
-
+            if (id != null
+                    && id.toHexString().equals(cuentaId)) {
                 return cuenta;
             }
         }
@@ -847,7 +874,7 @@ public class CuentasCorrientesPanelController {
     }
 
     // =========================================
-    // OBTENER NOMBRE DEL CLIENTE
+    // NOMBRE DEL CLIENTE
     // =========================================
 
     private String obtenerNombreCliente(ObjectId clienteId) {
@@ -879,7 +906,7 @@ public class CuentasCorrientesPanelController {
     }
 
     // =========================================
-    // OBTENER NOMBRE DEL PROVEEDOR
+    // NOMBRE DEL PROVEEDOR
     // =========================================
 
     private String obtenerNombreProveedor(ObjectId proveedorId) {
@@ -911,7 +938,7 @@ public class CuentasCorrientesPanelController {
     }
 
     // =========================================
-    // FORMATEAR IMPORTE
+    // FORMATEAR VALORES
     // =========================================
 
     private String obtenerImporte(Object valor) {
@@ -921,7 +948,6 @@ public class CuentasCorrientesPanelController {
         }
 
         if (valor instanceof Decimal128) {
-
             return ((Decimal128) valor)
                     .bigDecimalValue()
                     .toPlainString();
@@ -929,10 +955,6 @@ public class CuentasCorrientesPanelController {
 
         return valor.toString();
     }
-
-    // =========================================
-    // FORMATEAR FECHA
-    // =========================================
 
     private String formatearFecha(Date fecha) {
 

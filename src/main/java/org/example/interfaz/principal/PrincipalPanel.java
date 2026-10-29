@@ -317,9 +317,18 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
         }
 
         if (tienePermiso("PAGOS")) {
-            JPanel pagosPanel = new JPanel();
-            pagosPanel.setBackground(Colores.FONDO);
-            contenido.add(pagosPanel, "PAGOS");
+
+        PagosPanel pagosPanel = new PagosPanel();
+
+        contenido.add(
+                pagosPanel,
+                "PAGOS"
+        );
+
+        new PagosPanelController(
+                pagosPanel,
+                usuarioId
+        );
         }
 
         // =====================================================
