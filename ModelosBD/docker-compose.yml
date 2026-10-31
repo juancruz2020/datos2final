@@ -1,3 +1,4 @@
+
 services:
 
   mongodb:
@@ -9,6 +10,59 @@ services:
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongodb_data:/data/db
+
+  # Inicializa el replica set solo si hace falta.
+  mongodb-init:
+    image: mongo:8
+    restart: "no"
+    network_mode: "service:mongodb"
+    depends_on:
+      mongodb:
+        condition: service_started
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+
+        echo "Esperando a MongoDB..."
+
+        until mongosh --quiet --host localhost:27017 \
+          --eval 'db.adminCommand({ping: 1})' > /dev/null 2>&1
+        do
+          sleep 2
+        done
+
+        echo "Comprobando replica set..."
+
+        mongosh --quiet --host localhost:27017 --eval '
+          try {
+            rs.status();
+            print("Replica set ya inicializado");
+          } catch (e) {
+            if (e.codeName === "NotYetInitialized") {
+              rs.initiate({
+                _id: "rs0",
+                members: [
+                  { _id: 0, host: "localhost:27017" }
+                ]
+              });
+              print("Replica set inicializado");
+            } else {
+              throw e;
+            }
+          }
+        '
+
+        echo "Esperando al nodo PRIMARY..."
+
+        until mongosh --quiet --host localhost:27017 \
+          --eval 'if (!db.hello().isWritablePrimary) quit(1)' \
+          > /dev/null 2>&1
+        do
+          sleep 2
+        done
+
+        echo "MongoDB replica set listo"
 
   cassandra:
     image: cassandra:5.0
@@ -46,7 +100,6 @@ services:
     command: redis-server --requirepass TuPasswordRedis123
     volumes:
       - redis_data:/data
-
 
 volumes:
   mongodb_data:
