@@ -27,6 +27,11 @@ posiciones_sensor
   PRIMARY KEY ((sensor_id), fecha_hora)
   Partición: sensor_id. Clustering: fecha_hora DESC. Sin fecha_dia.
 
+alertas
+  id text, nombre text, descripcion text
+  PRIMARY KEY (id)
+  Catálogo de tipos de alerta. IDs de texto deterministas para la carga de prueba.
+
 REFERENCIAS E INTEGRIDAD
 Los IDs son String desde Java. En la carga de prueba se reciben los ObjectId de MongoDB
 convertidos a texto. Cassandra no declara claves foráneas a sensores o contenedores.

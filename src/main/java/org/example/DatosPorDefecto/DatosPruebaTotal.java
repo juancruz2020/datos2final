@@ -1,6 +1,8 @@
 package org.example.DatosPorDefecto;
 
 import org.example.mongoDB.controller.ControllerMongoDB;
+import org.example.mongoDB.dao.IncidenteMongoDAO;
+import org.example.mongoDB.dao.SensorMongoDAO;
 
 import java.util.List;
 import org.example.logging.AppLog;
@@ -10,11 +12,15 @@ public class DatosPruebaTotal {
     private final ControllerMongoDB mongo;
     private final DatosDePruebaCassandra cassandra;
     private final CrearTablasMonitoreo tablascass;
+    private final CrearTablaAlertas tablaAlertas;
+    private final DatosPruebaAlertasCassandra datosAlertas;
 
     public DatosPruebaTotal() {
         this.mongo = new ControllerMongoDB();
         this.cassandra = new DatosDePruebaCassandra();
         this.tablascass = new CrearTablasMonitoreo();
+        this.tablaAlertas = new CrearTablaAlertas();
+        this.datosAlertas = new DatosPruebaAlertasCassandra();
     }
 
     // =====================================================
@@ -98,6 +104,7 @@ public class DatosPruebaTotal {
             // no las vuelve a crear.
 
             tablascass.crearTablas();
+            tablaAlertas.crearTabla();
 
             // =====================================================
             // 6. GENERAR LECTURAS EN CASSANDRA
@@ -107,6 +114,9 @@ public class DatosPruebaTotal {
                     idsMongoSensor,
                     idsMongoContenedor
             );
+
+            // Los tipos de alerta reflejan los sensores e incidentes de prueba de MongoDB.
+            cargarAlertasDesdeMongo();
 
             // =====================================================
             // 7. FINALIZADO
@@ -119,7 +129,16 @@ public class DatosPruebaTotal {
             AppLog.info(DatosPruebaTotal.class,
                     "Hay datos existentes; se sincronizarán las referencias de Neo4j.");
             GeneradorDatosPruebaNeo.sincronizarReferenciasMongo();
+            // Crear también el catálogo para instalaciones con datos previos.
+            tablaAlertas.crearTabla();
+            cargarAlertasDesdeMongo();
         }
         new org.example.neo4j.dao.EnvioNeo4jDAO().normalizarEnviosExistentes();
+    }
+
+    private void cargarAlertasDesdeMongo() {
+        List<org.bson.Document> incidentes = new IncidenteMongoDAO().buscarAbiertos();
+        List<org.bson.Document> sensores = new SensorMongoDAO().listarTodos();
+        datosAlertas.insertarDatos(incidentes, sensores);
     }
 }

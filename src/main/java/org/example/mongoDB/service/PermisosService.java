@@ -268,6 +268,7 @@ public class PermisosService {
                      "CONTENEDORES",
                      "SENSORES",
                      "MONITOREO",
+                     "ALERTAS",
                      "TRAZABILIDAD",
                      "SEGUIMIENTO",
                      "SEGUIMIENTO_GPS",

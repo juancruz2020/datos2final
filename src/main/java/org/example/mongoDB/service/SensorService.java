@@ -7,6 +7,7 @@ import org.example.logging.AppLog;
 import org.example.mongoDB.dao.ContenedorMongoDAO;
 import org.example.mongoDB.dao.SensorMongoDAO;
 import org.example.mongoDB.model.Sensor;
+import org.example.cassandra.alertas.service.AlertasCassandraService;
 
 import com.mongodb.client.ClientSession;
 import org.bson.Document;
@@ -19,6 +20,7 @@ public class SensorService {
 
     private final SensorMongoDAO sensorDAO;
     private final ContenedorMongoDAO contenedorDAO;
+    private AlertasCassandraService alertasCassandra;
 
     // =========================================================
     // CONSTRUCTOR
@@ -106,6 +108,11 @@ public class SensorService {
             );
         }
 
+        Document estadoAnterior = sensorDAO.buscarPorId(id);
+        String estadoAnteriorTexto = estadoAnterior == null
+                ? null
+                : estadoAnterior.getString("estado");
+
         validarObjectId(
                 contenedorId,
                 "El ID del contenedor no es válido."
@@ -151,6 +158,32 @@ public class SensorService {
         );
 
         sensorDAO.modificar(sensor);
+
+        if (!"INACTIVO".equalsIgnoreCase(estadoAnteriorTexto)
+                && "INACTIVO".equalsIgnoreCase(estado.trim())) {
+            generarAlertaSensorInactivo(sensor, estadoAnterior);
+        }
+    }
+
+    private void generarAlertaSensorInactivo(Sensor sensor, Document estadoAnterior) {
+        String codigo = estadoAnterior.getString("codigo");
+        String identificador = codigo == null ? sensor.getId() : codigo;
+        String descripcion = "El sensor " + identificador
+                + " (ID " + sensor.getId() + ") del contenedor "
+                + sensor.getContenedorId() + " fue marcado como INACTIVO.";
+        try {
+            obtenerServicioAlertas().generarAlerta("Sensor inactivo", descripcion);
+        } catch (RuntimeException ex) {
+            AppLog.error(SensorService.class,
+                    "El sensor se actualizó, pero no se pudo registrar la alerta en Cassandra.", ex);
+        }
+    }
+
+    private AlertasCassandraService obtenerServicioAlertas() {
+        if (alertasCassandra == null) {
+            alertasCassandra = new AlertasCassandraService();
+        }
+        return alertasCassandra;
     }
 
     // =========================================================

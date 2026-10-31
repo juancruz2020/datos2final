@@ -244,6 +244,12 @@ public class PrincipalPanel extends JPanel {
             );
         }
 
+        if (tienePermiso("ALERTAS")) {
+            AlertasPanel alertasPanel = new AlertasPanel();
+            contenido.add(alertasPanel, "ALERTAS");
+            new AlertasPanelController(alertasPanel);
+        }
+
         // =====================================================
         // SEGUIMIENTO GPS
         // =====================================================
@@ -498,6 +504,8 @@ new TrazabilidadPanelController(trazabilidadPanel, usuarioId);
             case "SENSORES" -> "Sensores";
 
             case "MONITOREO" -> "Monitoreo";
+
+            case "ALERTAS" -> "Alertas";
 
             case "SEGUIMIENTO",
                  "SEGUIMIENTO_GPS" -> "Seguimiento GPS";

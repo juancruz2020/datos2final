@@ -179,6 +179,10 @@ public class SensorMongoDAO {
         return documento != null;
     }
 
+    public Document buscarPorId(String id) {
+        return coleccion.find(eq("_id", new ObjectId(id))).first();
+    }
+
 
     // =========================
     // BUSCAR SENSORES POR CONTENEDOR

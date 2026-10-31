@@ -8,6 +8,7 @@ import org.example.mongoDB.dao.IncidenteMongoDAO;
 import org.example.logging.AppLog;
 import org.example.mongoDB.model.Incidente;
 import org.example.neo4j.controller.ControllerNeo4j;
+import org.example.cassandra.alertas.service.AlertasCassandraService;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +17,7 @@ public class IncidenteService {
 
     private final IncidenteMongoDAO incidenteDAO;
     private final ControllerNeo4j neo4j;
+    private AlertasCassandraService alertasCassandra;
 
 
     // =========================================================
@@ -115,6 +117,7 @@ public class IncidenteService {
         incidenteDAO.agregar(
                 incidente
         );
+        generarAlertaIncidente(incidente);
         AppLog.info(IncidenteService.class, "Incidente logístico creado.");
     }
 
@@ -154,6 +157,8 @@ public class IncidenteService {
                     "El incidente no existe."
             );
         }
+
+        String estadoAnterior = existente.getString("estado");
 
 
         // -----------------------------------------------------
@@ -256,6 +261,32 @@ public class IncidenteService {
         incidenteDAO.modificar(
                 incidente
         );
+
+        if (!"ABIERTO".equalsIgnoreCase(estadoAnterior)
+                && "ABIERTO".equalsIgnoreCase(estado.trim())) {
+            generarAlertaIncidente(incidente);
+        }
+    }
+
+    private void generarAlertaIncidente(Incidente incidente) {
+        String nombre = "Incidente " + incidente.getTipo().trim();
+        String descripcion = "Envío " + incidente.getEnvioId()
+                + ": " + incidente.getDescripcion()
+                + " Severidad: " + incidente.getSeveridad()
+                + ". Estado: " + incidente.getEstado() + ".";
+        try {
+            obtenerServicioAlertas().generarAlerta(nombre, descripcion);
+        } catch (RuntimeException ex) {
+            AppLog.error(IncidenteService.class,
+                    "El incidente se guardó, pero no se pudo registrar la alerta en Cassandra.", ex);
+        }
+    }
+
+    private AlertasCassandraService obtenerServicioAlertas() {
+        if (alertasCassandra == null) {
+            alertasCassandra = new AlertasCassandraService();
+        }
+        return alertasCassandra;
     }
 
 

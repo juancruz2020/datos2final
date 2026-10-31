@@ -185,6 +185,13 @@ public class MenuLateralPanel extends JPanel {
 
         agregarItem(
                 opciones,
+                "⚠",
+                "Alertas",
+                "ALERTAS"
+        );
+
+        agregarItem(
+                opciones,
                 "◉",
                 "Seguimiento GPS",
                 "SEGUIMIENTO_GPS"

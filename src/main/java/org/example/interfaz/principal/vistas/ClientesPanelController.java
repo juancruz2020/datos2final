@@ -5,6 +5,7 @@ import org.example.mongoDB.controller.ControllerMongoDB;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.neo4j.controller.ControllerNeo4j;
+import org.example.mongoDB.dao.ContenedorMongoDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -35,6 +36,7 @@ public class ClientesPanelController {
         configurarEventos();
         cargarClientes();
         cargarRankingEnvios();
+        cargarRankingVolumen();
     }
 
     // =========================
@@ -45,6 +47,7 @@ public class ClientesPanelController {
         view.getBtnActualizar().addActionListener(e -> {
             cargarClientes();
             cargarRankingEnvios();
+            cargarRankingVolumen();
         });
         view.getBtnMostrarFormulario().addActionListener(e -> prepararNuevoCliente());
         view.getBtnEditar().addActionListener(e -> editarClienteSeleccionado());
@@ -145,6 +148,89 @@ public class ClientesPanelController {
         } catch (Exception e) {
             mostrarError("No se pudo cargar el ranking de clientes.", e);
         }
+    }
+
+    // =========================
+    // RANKING DE VOLUMEN ENVIADO
+    // =========================
+
+    private void cargarRankingVolumen() {
+        try {
+            Map<String, Double> volumenes = new HashMap<>();
+            Map<String, String> nombresNeo = new HashMap<>();
+
+            Map<String, Double> capacidadPorContenedor = new HashMap<>();
+            for (Document contenedor : new ContenedorMongoDAO().listarTodos()) {
+                String id = idTexto(contenedor.get("_id"));
+                Object capacidad = contenedor.get("capacidad");
+                if (id != null && capacidad instanceof Number numero) {
+                    capacidadPorContenedor.put(id, numero.doubleValue());
+                }
+            }
+
+            for (Map<String, Object> envio : neo4j.listarEnvios()) {
+                Object cliente = envio.get("clienteId");
+                if (cliente == null) continue;
+
+                String clienteId = cliente.toString();
+                volumenes.putIfAbsent(clienteId, 0.0);
+                Object nombre = envio.get("cliente");
+                if (nombre != null && !nombre.toString().isBlank()) {
+                    nombresNeo.put(clienteId, nombre.toString());
+                }
+
+                Object ids = envio.get("contenedoresIds");
+                if (ids instanceof Iterable<?> contenedores) {
+                    for (Object contenedorId : contenedores) {
+                        if (contenedorId != null) {
+                            double capacidad = capacidadPorContenedor.getOrDefault(
+                                    contenedorId.toString(), 0.0);
+                            volumenes.merge(clienteId, capacidad, Double::sum);
+                        }
+                    }
+                }
+            }
+
+            List<Document> clientes = mongo.listarClientes();
+            Map<String, String> nombresMongo = new HashMap<>();
+            for (Document cliente : clientes) {
+                String id = idTexto(cliente.get("_id"));
+                if (id != null) {
+                    nombresMongo.put(id, cliente.getString("razon_social"));
+                }
+            }
+
+            List<Map.Entry<String, Double>> ranking = new ArrayList<>(volumenes.entrySet());
+            ranking.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+            DefaultTableModel modelo =
+                    (DefaultTableModel) view.getTablaRankingVolumen().getModel();
+            modelo.setRowCount(0);
+
+            int posicion = 1;
+            java.text.NumberFormat formato = java.text.NumberFormat.getNumberInstance(
+                    java.util.Locale.forLanguageTag("es-AR"));
+            formato.setMaximumFractionDigits(2);
+            formato.setMinimumFractionDigits(0);
+            for (Map.Entry<String, Double> entrada : ranking) {
+                String clienteId = entrada.getKey();
+                modelo.addRow(new Object[]{
+                        posicion++,
+                        nombresNeo.getOrDefault(clienteId,
+                                nombresMongo.getOrDefault(clienteId, clienteId)),
+                        formato.format(entrada.getValue())
+                });
+            }
+        } catch (Exception e) {
+            mostrarError("No se pudo cargar el ranking de volumen por cliente.", e);
+        }
+    }
+
+    private String idTexto(Object id) {
+        if (id instanceof ObjectId objectId) {
+            return objectId.toHexString();
+        }
+        return id == null ? null : id.toString();
     }
 
     // =========================

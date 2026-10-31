@@ -935,7 +935,7 @@ public class GeneradorDatosPruebaMongo {
 
                 new Date(),
 
-                "ACTIVO"
+                "INACTIVO"
 
         );
 

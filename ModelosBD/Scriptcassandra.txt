@@ -65,3 +65,9 @@ region text,
 PRIMARY KEY ((sensor_id), fecha_hora)
 )
 WITH CLUSTERING ORDER BY (fecha_hora DESC);
+
+CREATE TABLE IF NOT EXISTS logistica.alertas (
+id text PRIMARY KEY,
+nombre text,
+descripcion text
+);
