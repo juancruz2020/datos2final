@@ -50,6 +50,29 @@ public class ProveedoresPanelController {
     }
 
     // =========================================
+    // FORMATEAR CUIT SOLO PARA MOSTRARLO
+    // =========================================
+
+    private String formatearCuit(String cuit) {
+
+        if (cuit == null) {
+            return "";
+        }
+
+        String numeros = cuit.trim().replaceAll("[\\s-]", "");
+
+        if (!numeros.matches("\\d{11}")) {
+            return cuit;
+        }
+
+        return numeros.substring(0, 2)
+                + "-"
+                + numeros.substring(2, 10)
+                + "-"
+                + numeros.substring(10);
+    }
+
+    // =========================================
     // COLORES DE PROVEEDORES ACTIVOS E INACTIVOS
     // =========================================
 
@@ -103,7 +126,6 @@ public class ProveedoresPanelController {
 
                         } else if (inactivo) {
 
-                            // Mismos colores que en Clientes.
                             componente.setBackground(
                                     new Color(235, 235, 235)
                             );
@@ -160,6 +182,7 @@ public class ProveedoresPanelController {
         );
 
         // Cambiar el texto del botón según el proveedor.
+
         view.getTablaProveedores()
                 .getSelectionModel()
                 .addListSelectionListener(e -> {
@@ -205,7 +228,10 @@ public class ProveedoresPanelController {
                 modelo.addRow(new Object[]{
                         id.toHexString(),
                         proveedor.getString("razon_social"),
-                        proveedor.getString("cuit"),
+
+                        // CUIT CON FORMATO UNIFICADO
+                        formatearCuit(proveedor.getString("cuit")),
+
                         proveedor.getString("email"),
                         proveedor.getString("telefono"),
                         obtenerCampo(direccion, "ciudad"),
@@ -382,8 +408,11 @@ public class ProveedoresPanelController {
                     obtenerCampo(proveedor, "razon_social")
             );
 
+            // MOSTRAR CUIT CON EL MISMO FORMATO
+            // QUE EN LA TABLA
+
             view.getTxtCuit().setText(
-                    obtenerCampo(proveedor, "cuit")
+                    formatearCuit(obtenerCampo(proveedor, "cuit"))
             );
 
             view.getTxtEmail().setText(

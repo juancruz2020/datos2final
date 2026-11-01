@@ -48,6 +48,29 @@ public class ClientesPanelController {
     }
 
     // ==========================================
+    // FORMATEAR CUIT SOLO PARA MOSTRARLO
+    // ==========================================
+
+    private String formatearCuit(String cuit) {
+
+        if (cuit == null) {
+            return "";
+        }
+
+        String numeros = cuit.trim().replaceAll("[\\s-]", "");
+
+        if (!numeros.matches("\\d{11}")) {
+            return cuit;
+        }
+
+        return numeros.substring(0, 2)
+                + "-"
+                + numeros.substring(2, 10)
+                + "-"
+                + numeros.substring(10);
+    }
+
+    // ==========================================
     // COLORES DE CLIENTES ACTIVOS E INACTIVOS
     // ==========================================
 
@@ -158,6 +181,7 @@ public class ClientesPanelController {
                 .addActionListener(e -> guardarCliente());
 
         // El botón cambia según el estado del cliente seleccionado.
+
         view.getTablaClientes()
                 .getSelectionModel()
                 .addListSelectionListener(e -> {
@@ -205,7 +229,10 @@ public class ClientesPanelController {
                 modelo.addRow(new Object[]{
                         cliente.getString("codigo"),
                         cliente.getString("razon_social"),
-                        cliente.getString("cuit"),
+
+                        // CUIT CON FORMATO UNIFICADO
+                        formatearCuit(cliente.getString("cuit")),
+
                         cliente.getString("email"),
                         cliente.getString("telefono"),
                         ciudad,
@@ -282,7 +309,9 @@ public class ClientesPanelController {
                 if (clienteId != null) {
 
                     cantidades.merge(
-                            clienteId.toString(), 1, Integer::sum
+                            clienteId.toString(),
+                            1,
+                            Integer::sum
                     );
 
                     Object nombre = envio.get("cliente");
@@ -320,7 +349,8 @@ public class ClientesPanelController {
 
             ranking.sort(
                     (a, b) -> Integer.compare(
-                            b.getValue(), a.getValue()
+                            b.getValue(),
+                            a.getValue()
                     )
             );
 
@@ -573,8 +603,10 @@ public class ClientesPanelController {
                     cliente.getString("razon_social")
             );
 
+            // MOSTRAR CUIT UNIFICADO TAMBIÉN AL EDITAR
+
             view.getTxtCuit().setText(
-                    cliente.getString("cuit")
+                    formatearCuit(cliente.getString("cuit"))
             );
 
             view.getTxtEmail().setText(

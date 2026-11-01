@@ -117,24 +117,37 @@ public class AdministracionPanelController {
                 .addActionListener(
                         e -> eliminarUsuario()
                 );
+
+        // NUEVO: CANCELAR MODIFICACIÓN
+
+        view.getBtnCancelarModificacion()
+                .addActionListener(
+                        e -> cancelarModificacionUsuario()
+                );
     }
 
     // ==========================================
     // ACTUALIZAR BOTONES
     // ==========================================
 
-    private void actualizarBotonesUsuario() {
+
+        private void actualizarBotonesUsuario() {
 
         boolean usuarioSeleccionado =
                 usuarioIdEnEdicion != null;
 
+        // Modo registro
         view.getBtnRegistrar()
                 .setVisible(!usuarioSeleccionado);
 
         view.getBtnBuscar()
-                .setVisible(true);
+                .setVisible(!usuarioSeleccionado);
 
+        // Modo edición
         view.getBtnModificar()
+                .setVisible(usuarioSeleccionado);
+
+        view.getBtnCancelarModificacion()
                 .setVisible(usuarioSeleccionado);
 
         view.getBtnEliminar()
@@ -142,7 +155,8 @@ public class AdministracionPanelController {
 
         view.revalidate();
         view.repaint();
-    }
+        }
+
 
     // ==========================================
     // CARGAR ROLES
@@ -1420,6 +1434,24 @@ public class AdministracionPanelController {
                 minutos,
                 segundosRestantes
         );
+    }
+
+    // ==========================================
+    // NUEVO: CANCELAR MODIFICACIÓN
+    // ==========================================
+
+    private void cancelarModificacionUsuario() {
+
+        // Salir del modo edición sin guardar cambios.
+        limpiarFormularioUsuario();
+
+        // Limpiar también los formularios asociados.
+        view.limpiarDatosCliente();
+        view.limpiarDatosProveedor();
+
+        // Volver al estado inicial del formulario.
+        actualizarFormularioPorRol();
+        actualizarBotonesUsuario();
     }
 
     // ==========================================
