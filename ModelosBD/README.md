@@ -10,6 +10,40 @@ Las funciones implementadas, parciales y pendientes se distinguen en el informe.
 
 ## Archivos por motor
 
+### Diagramas actualizados el 01/11/2026
+
+Los tres PNG se regeneraron a partir del código Java actual, incluidos los cambios
+locales, y se revisaron visualmente. Esta actualización de diagramas es posterior
+a la revisión del informe Word y de los restantes modelos de texto del 20/10/2026;
+no implica que ese informe se haya actualizado ni que se hayan consultado bases en ejecución.
+
+- [Grafo Neo4j](neo4jDiagrama.png): ocho etiquetas y ocho tipos de relaciones dirigidas,
+  propiedades del envío normalizado y distinción de datos aportados por el generador de prueba.
+- [Modelo físico Cassandra](ChebotkoCassandra.png): las cinco tablas, sus columnas,
+  tipos, claves de partición, clustering descendente y consultas. Incluye el catálogo
+  `alertas` y el batch `LOGGED` de las cuatro escrituras de monitoreo.
+- [Entidades y referencias del monitoreo](EntidadRelacionCassandra.png): maestros
+  de sensores y contenedores en MongoDB, conversión de IDs a texto y proyecciones
+  en Cassandra. El registro conceptual central no representa una tabla adicional.
+
+Las tarjetas tienen dimensiones verificadas para sus textos y las flechas usan rutas
+ortogonales sin atravesar tarjetas. Los SVG editables están en [diagramas/](diagramas/).
+Para regenerar ambos formatos con Python 3 y Pillow (fuente Arial o DejaVu Sans):
+
+```sh
+python3 ModelosBD/diagramas/generar_diagramas.py
+```
+
+Fuentes principales bajo `src/main/java/org/example/`: `neo4j/dao/EnvioNeo4jDAO.java`,
+`neo4j/dao/GrafoNeo4jDAO.java`, `neo4j/dao/VehiculoNeo4jDAO.java`,
+`DatosPorDefecto/GeneradorDatosPruebaNeo.java`, `DatosPorDefecto/CrearTablasMonitoreo.java`,
+`DatosPorDefecto/CrearTablaAlertas.java`, `cassandra/monitoreo/dao/InsertarCassandraMonitoreo.java`,
+`cassandra/monitoreo/dao/ConsultasCassandraMonitoreo.java`,
+`cassandra/alertas/dao/AlertasCassandraDAO.java`, `mongoDB/dao/SensorMongoDAO.java`
+y `mongoDB/dao/ContenedorMongoDAO.java`.
+
+### Inventario de documentación
+
 | Motor | Modelo | Script o comandos | Diagrama |
 | --- | --- | --- | --- |
 | MongoDB | [modeloMongoDB.txt](modeloMongoDB.txt) | [scriptMongoDB.txt](scriptMongoDB.txt) | Campos y referencias en el modelo y el Word |
@@ -17,7 +51,7 @@ Las funciones implementadas, parciales y pendientes se distinguen en el informe.
 | Cassandra | [modeloCassandra.txt](modeloCassandra.txt) | [Scriptcassandra.txt](Scriptcassandra.txt) | [ChebotkoCassandra.png](ChebotkoCassandra.png) y [EntidadRelacionCassandra.png](EntidadRelacionCassandra.png) |
 | Redis | [modeloRedis.txt](modeloRedis.txt) | [scriptRedis.txt](scriptRedis.txt) | Claves y TTL en el modelo y el Word |
 
-El script MongoDB crea las 19 colecciones referenciadas por Java y los tres índices únicos de aperturas, cierres y movimientos, sin datos de prueba. El DDL Cassandra reproduce las cuatro tablas creadas por Java, con IDs `text`. El script Neo4j es una plantilla de creación parametrizada; requiere valores reales y no sustituye el servicio que valida y reserva contenedores en MongoDB. Los comandos Redis requieren reemplazar el marcador por un ID de usuario real.
+El script MongoDB de la revisión del 20/10 crea 19 colecciones y los tres índices únicos de aperturas, cierres y movimientos, sin datos de prueba. El DDL Cassandra reproduce las cuatro tablas de monitoreo y el catálogo `alertas`, con IDs `text`. El script Neo4j es una plantilla de creación parametrizada; requiere valores reales y no sustituye el servicio que valida y reserva contenedores en MongoDB. Los comandos Redis requieren reemplazar el marcador por un ID de usuario real.
 
 Los datos de prueba coordinados se generan desde `DatosPruebaTotal` y los generadores Java. Los scripts de esta carpeta no están montados como inicialización automática en Docker Compose. Crear colecciones manualmente antes de llamar a `cargarDatos()` cambia su condición de carga, que comprueba si ya existe cualquier colección.
 

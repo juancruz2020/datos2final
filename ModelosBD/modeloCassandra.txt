@@ -45,11 +45,11 @@ SimpleStrategy con replication_factor 1. Un servicio Cassandra en Docker Compose
 No se configura un nivel de consistencia de consulta desde el código.
 
 ACTUALIZACION DE METRICAS
-InsertarCassandraMonitoreo inserta la lectura, inserta su proyección GPS en
-posiciones_sensor y después actualiza región y país.
-Las métricas se actualizan mediante lectura previa y nueva escritura, no counters ni LWT.
-Las cuatro escrituras no forman una transacción común. Puede haber desajustes o
-actualizaciones perdidas si hay fallos, concurrencia o reinserción de una misma clave.
+InsertarCassandraMonitoreo prepara la lectura, su proyección GPS en posiciones_sensor
+y las métricas de región y país, y envía las cuatro escrituras en un batch LOGGED.
+Las métricas se calculan mediante lectura previa al batch y nueva escritura, no
+counters ni LWT. El batch no aísla ese cálculo: puede haber actualizaciones perdidas
+por concurrencia o conteo duplicado al reinsertar una misma clave.
 
 CONSULTAS
 Historial por sensor y día; intervalo horario dentro de un día; temperatura, batería y GPS;

@@ -13,6 +13,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.example.conecciones.MongoSingleton;
 import org.example.logging.AppLog;
+import org.example.mongoDB.dao.ClienteMongoDAO;
 import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.MovimientoCuentaCorrienteMongoDAO;
 import org.example.mongoDB.dao.CierreMensualCuentaCorrienteMongoDAO;
@@ -35,6 +36,7 @@ public class CuentaCorrienteService {
     private final CuentaCorrienteMongoDAO cuentaDAO;
     private final MovimientoCuentaCorrienteMongoDAO movimientoDAO;
     private final CierreMensualCuentaCorrienteMongoDAO cierreDAO;
+    private final ClienteMongoDAO clienteDAO;
     private final PermisosService permisosService;
     private final MongoCollection<Document> aperturas;
 
@@ -43,6 +45,7 @@ public class CuentaCorrienteService {
         cuentaDAO = new CuentaCorrienteMongoDAO();
         movimientoDAO = new MovimientoCuentaCorrienteMongoDAO();
         cierreDAO = new CierreMensualCuentaCorrienteMongoDAO();
+        clienteDAO = new ClienteMongoDAO();
         permisosService = new PermisosService();
 
         MongoDatabase database = MongoSingleton
@@ -271,6 +274,35 @@ public class CuentaCorrienteService {
         );
     }
 
+    // ==========================================
+    // VALIDAR CLIENTE ACTIVO
+    // ==========================================
+
+    private void validarClienteActivo(String clienteId) {
+
+        validarId(clienteId, "cliente");
+
+        Document cliente = clienteDAO.buscarPorId(clienteId);
+
+        if (cliente == null) {
+            throw new IllegalArgumentException(
+                    "El cliente no existe."
+            );
+        }
+
+        String estado = cliente.getString("estado");
+
+        if (estado == null
+                || !"ACTIVO".equalsIgnoreCase(estado.trim())) {
+
+            throw new IllegalStateException(
+                    "No se pueden registrar movimientos "
+                            + "en la cuenta corriente porque "
+                            + "el cliente está INACTIVO. "
+                            + "Debe reactivarlo para continuar."
+            );
+        }
+    }
 
     // ==========================================
     // ASEGURAR APERTURA AUTOMÁTICA
@@ -402,6 +434,14 @@ public class CuentaCorrienteService {
             BigDecimal importe
     ) {
 
+        // ======================================
+        // NUEVA VALIDACIÓN DE BAJA LÓGICA
+        // ======================================
+        // Se comprueba el estado del cliente
+        // antes de registrar débitos o créditos.
+
+        validarClienteActivo(clienteId);
+
         validarImporte(importe);
 
         if (referenciaId == null || referenciaId.isBlank()) {
@@ -432,6 +472,11 @@ public class CuentaCorrienteService {
                             "No se encontró la cuenta corriente."
                     );
                 }
+
+                // Verificar nuevamente que el cliente
+                // continúe activo antes del movimiento.
+
+                validarClienteActivo(clienteId);
 
                 BigDecimal saldoActual =
                         obtenerSaldo(cuentaActual);
@@ -674,18 +719,21 @@ public class CuentaCorrienteService {
         );
     }
 
+    // ==========================================
+    // VALIDAR PERÍODO DE CUENTA
+    // ==========================================
 
-        public void validarPeriodoCuenta(
-                ClientSession session,
-                String cuentaId
-        ) {
+    public void validarPeriodoCuenta(
+            ClientSession session,
+            String cuentaId
+    ) {
 
         validarId(cuentaId, "cuenta corriente");
 
         if (session == null || !session.hasActiveTransaction()) {
-                throw new IllegalArgumentException(
-                        "Se necesita una transacción activa."
-                );
+            throw new IllegalArgumentException(
+                    "Se necesita una transacción activa."
+            );
         }
 
         Document cuenta = cuentaDAO.buscarPorId(
@@ -694,9 +742,9 @@ public class CuentaCorrienteService {
         );
 
         if (cuenta == null) {
-                throw new IllegalArgumentException(
-                        "No se encontró la cuenta corriente."
-                );
+            throw new IllegalArgumentException(
+                    "No se encontró la cuenta corriente."
+            );
         }
 
         asegurarApertura(
@@ -704,6 +752,5 @@ public class CuentaCorrienteService {
                 cuentaId,
                 obtenerSaldo(cuenta)
         );
-        }
-
+    }
 }

@@ -15,8 +15,8 @@ class MensajeController {
     // CONSTRUCTOR
     // =========================================================
 
-    MensajeController() {
 
+        MensajeController() {
         this.mensajeService =
                 new MensajeService();
     }

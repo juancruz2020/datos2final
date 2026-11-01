@@ -68,8 +68,18 @@ public class ProveedoresPanelController {
         );
 
         view.getBtnEliminar().addActionListener(
-                e -> eliminarProveedor()
+                e -> cambiarEstadoProveedorSeleccionado()
         );
+
+        // Cambiar el texto del botón según el proveedor.
+        view.getTablaProveedores()
+                .getSelectionModel()
+                .addListSelectionListener(e -> {
+
+                    if (!e.getValueIsAdjusting()) {
+                        actualizarBotonEstado();
+                    }
+                });
     }
 
     // =========================================
@@ -123,12 +133,47 @@ public class ProveedoresPanelController {
                             + proveedoresIds.size()
             );
 
+            actualizarBotonEstado();
+
         } catch (Exception e) {
 
             mostrarError(
                     "No se pudieron cargar los proveedores.",
                     e
             );
+        }
+    }
+
+    // =========================================
+    // ACTUALIZAR BOTÓN ACTIVO / INACTIVO
+    // =========================================
+
+    private void actualizarBotonEstado() {
+
+        int filaVista =
+                view.getTablaProveedores().getSelectedRow();
+
+        if (filaVista < 0) {
+            view.getBtnEliminar().setText("Desactivar");
+            return;
+        }
+
+        int filaModelo = view.getTablaProveedores()
+                .convertRowIndexToModel(filaVista);
+
+        String estado = String.valueOf(
+                view.getTablaProveedores()
+                        .getModel()
+                        .getValueAt(filaModelo, 7)
+        );
+
+        if ("INACTIVO".equalsIgnoreCase(estado)) {
+
+            view.getBtnEliminar().setText("Reactivar");
+
+        } else {
+
+            view.getBtnEliminar().setText("Desactivar");
         }
     }
 
@@ -146,6 +191,7 @@ public class ProveedoresPanelController {
             // modificar proveedores existentes.
 
             if (proveedorEnEdicion == null) {
+
                 throw new IllegalStateException(
                         "Primero seleccioná un proveedor para editar."
                 );
@@ -293,10 +339,10 @@ public class ProveedoresPanelController {
     }
 
     // =========================================
-    // ELIMINAR PROVEEDOR (BAJA LÓGICA)
+    // ACTIVAR / DESACTIVAR PROVEEDOR
     // =========================================
 
-    private void eliminarProveedor() {
+    private void cambiarEstadoProveedorSeleccionado() {
 
         try {
 
@@ -311,58 +357,52 @@ public class ProveedoresPanelController {
             Document proveedor =
                     proveedorService.buscarPorId(proveedorId);
 
-            if ("INACTIVO".equalsIgnoreCase(
-                    proveedor.getString("estado")
-            )) {
+            String estadoActual = proveedor.getString("estado");
 
-                JOptionPane.showMessageDialog(
-                        view,
-                        "Este proveedor ya está inactivo.",
-                        "Proveedores",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+            boolean estaInactivo =
+                    "INACTIVO".equalsIgnoreCase(estadoActual);
 
-                return;
-            }
+            String accion = estaInactivo
+                    ? "reactivar"
+                    : "desactivar";
+
+            String razonSocial =
+                    proveedor.getString("razon_social");
 
             int confirmacion = JOptionPane.showConfirmDialog(
                     view,
-                    "¿Querés eliminar a "
-                            + proveedor.getString("razon_social")
-                            + "?\n\n"
-                            + "El proveedor quedará INACTIVO.\n"
-                            + "Se conservarán sus facturas, pagos "
-                            + "y cuenta corriente.",
-                    "Confirmar eliminación",
+                    "¿Querés " + accion + " al proveedor \""
+                            + razonSocial + "\"?\n\n"
+                            + "Se conservarán sus facturas, pagos, "
+                            + "cuenta corriente e historial.",
+                    estaInactivo
+                            ? "Reactivar proveedor"
+                            : "Desactivar proveedor",
                     JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
+                    JOptionPane.QUESTION_MESSAGE
             );
 
             if (confirmacion != JOptionPane.YES_OPTION) {
                 return;
             }
 
-            Document direccion =
-                    proveedor.get("direccion", Document.class);
+            // Cambiar únicamente el estado.
+            // No se elimina información histórica.
 
-            proveedorService.modificarProveedor(
-                    proveedorId,
-                    obtenerCampo(proveedor, "razon_social"),
-                    obtenerCampo(proveedor, "cuit"),
-                    obtenerCampo(proveedor, "email"),
-                    obtenerCampo(proveedor, "telefono"),
-                    obtenerCampo(direccion, "calle"),
-                    obtenerCampo(direccion, "numero"),
-                    obtenerCampo(direccion, "ciudad"),
-                    obtenerCampo(direccion, "codigo_postal"),
-                    obtenerCampo(proveedor, "pais"),
-                    "INACTIVO"
-            );
+            if (estaInactivo) {
+
+                proveedorService.reactivarProveedor(proveedorId);
+
+            } else {
+
+                proveedorService.eliminarProveedor(proveedorId);
+            }
 
             JOptionPane.showMessageDialog(
                     view,
-                    "Proveedor eliminado correctamente.\n"
-                            + "Su información histórica se conserva.",
+                    estaInactivo
+                            ? "Proveedor reactivado correctamente."
+                            : "Proveedor desactivado correctamente.",
                     "Proveedores",
                     JOptionPane.INFORMATION_MESSAGE
             );
@@ -373,7 +413,7 @@ public class ProveedoresPanelController {
         } catch (Exception e) {
 
             mostrarError(
-                    "No se pudo eliminar el proveedor.",
+                    "No se pudo cambiar el estado del proveedor.",
                     e
             );
         }
@@ -421,7 +461,9 @@ public class ProveedoresPanelController {
         proveedorEnEdicion = null;
 
         view.limpiarFormulario();
+
         view.getBtnAgregar().setText("Guardar cambios");
+
         view.ocultarFormulario();
     }
 

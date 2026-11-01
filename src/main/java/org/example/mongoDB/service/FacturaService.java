@@ -26,7 +26,6 @@ public class FacturaService {
     private static final ZoneId ZONA_HORARIA =
             ZoneId.of("America/Argentina/Buenos_Aires");
 
-
     // ==========================================
     // CONSTRUCTOR
     // ==========================================
@@ -48,6 +47,7 @@ public class FacturaService {
             String estado
     ) {
 
+        // Verificar que exista y esté ACTIVO.
         validarCliente(clienteId);
 
         if (fechaEmision == null) {
@@ -86,9 +86,12 @@ public class FacturaService {
         );
 
         facturaDAO.agregar(factura);
-        AppLog.info(FacturaService.class, "Factura creada.");
-    }
 
+        AppLog.info(
+                FacturaService.class,
+                "Factura creada."
+        );
+    }
 
     // ==========================================
     // MODIFICAR FECHA DE VENCIMIENTO
@@ -142,7 +145,10 @@ public class FacturaService {
 
         actualizarEstados(facturas);
 
-        return TablaConsola.mostrar("FacturaService.listarFacturas", facturas);
+        return TablaConsola.mostrar(
+                "FacturaService.listarFacturas",
+                facturas
+        );
     }
 
     // ==========================================
@@ -167,9 +173,11 @@ public class FacturaService {
 
         actualizarEstado(factura);
 
-        return TablaConsola.mostrar("FacturaService.buscarPorId", factura);
+        return TablaConsola.mostrar(
+                "FacturaService.buscarPorId",
+                factura
+        );
     }
-
 
     // ==========================================
     // BUSCAR FACTURAS POR CLIENTE
@@ -189,9 +197,11 @@ public class FacturaService {
 
         actualizarEstados(facturas);
 
-        return TablaConsola.mostrar("FacturaService.buscarPorCliente", facturas);
+        return TablaConsola.mostrar(
+                "FacturaService.buscarPorCliente",
+                facturas
+        );
     }
-
 
     // ==========================================
     // ACTUALIZAR ESTADOS AUTOMÁTICAMENTE
@@ -250,6 +260,7 @@ public class FacturaService {
     ) {
 
         // Las facturas pagadas siguen pagadas.
+
         if ("PAGADA".equalsIgnoreCase(
                 estadoActual
         )) {
@@ -257,6 +268,7 @@ public class FacturaService {
         }
 
         // Facturas antiguas sin vencimiento.
+
         if (fechaVencimiento == null) {
             return "PENDIENTE";
         }
@@ -284,6 +296,7 @@ public class FacturaService {
     ) {
 
         // Compatibilidad con facturas anteriores.
+
         if (fechaVencimiento == null) {
             return;
         }
@@ -328,10 +341,36 @@ public class FacturaService {
                 "El ID del cliente no es válido."
         );
 
-        if (!clienteDAO.existePorId(clienteId)) {
+        // Buscar el cliente para comprobar
+        // tanto su existencia como su estado.
+
+        Document cliente =
+                clienteDAO.buscarPorId(clienteId);
+
+        if (cliente == null) {
 
             throw new IllegalArgumentException(
                     "El cliente seleccionado no existe."
+            );
+        }
+
+        // ======================================
+        // NUEVA VALIDACIÓN DE BAJA LÓGICA
+        // ======================================
+        // Un cliente INACTIVO no puede recibir
+        // nuevas facturas.
+        //
+        // Las facturas anteriores se conservan.
+
+        String estadoCliente =
+                cliente.getString("estado");
+
+        if (!"ACTIVO".equalsIgnoreCase(estadoCliente)) {
+
+            throw new IllegalStateException(
+                    "No se puede generar una factura "
+                            + "porque el cliente se encuentra INACTIVO. "
+                            + "Debe reactivarlo para continuar."
             );
         }
     }
@@ -380,7 +419,6 @@ public class FacturaService {
             );
         }
     }
-
 
     // ==========================================
     // VALIDAR OBJECT ID

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1840" viewBox="0 0 2400 1840">
+<rect width="100%" height="100%" fill="white"/>
+<rect x="80" y="64" width="12" height="95" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="120" y="60" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="52" font-weight="700" fill="#18304e">Neo4j · Grafo logístico</text>
+<text x="120" y="132" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#50647a">Etiquetas, propiedades y relaciones dirigidas escritas por los DAO y el generador de prueba.</text>
+<text x="2043.046875" y="190" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#50647a">DATOS2FINAL · 01/11/2026</text>
+<rect x="80" y="250" width="540" height="280" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="251" width="538" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="81" y="290" width="538" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="102" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Cliente</text>
+<text x="104" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id: String</text>
+<text x="104" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">razonSocial, cuit: String (*)</text>
+<rect x="900" y="250" width="650" height="480" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="901" y="251" width="648" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="901" y="290" width="648" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="922" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Envio</text>
+<text x="924" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id: String</text>
+<text x="924" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">fechaCreacion: String (ISO instant)</text>
+<text x="924" y="430" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">fechaSalida: String (AAAA-MM-DD)</text>
+<text x="924" y="473" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">fechaEntrega: String (AAAA-MM-DD)</text>
+<text x="924" y="516" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">estado, prioridad: String</text>
+<text x="924" y="559" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">costoEnvio: Double</text>
+<rect x="1840" y="250" width="480" height="370" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="1841" y="251" width="478" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="1841" y="290" width="478" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="1862" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Ubicacion</text>
+<text x="1864" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">clave: String</text>
+<text x="1864" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">ciudad, pais: String</text>
+<text x="1864" y="430" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">clave = ciudad|pais</text>
+<text x="1864" y="473" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">trim + minúsculas</text>
+<text x="1864" y="516" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id: String (solo prueba)</text>
+<rect x="80" y="960" width="540" height="280" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="961" width="538" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="81" y="1000" width="538" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="102" y="979" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Vehiculo</text>
+<text x="104" y="1054" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id: String</text>
+<text x="104" y="1097" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">patente, tipo: String</text>
+<text x="104" y="1140" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">identificacion: String (*)</text>
+<rect x="900" y="960" width="650" height="250" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="901" y="961" width="648" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="901" y="1000" width="648" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="922" y="979" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Contenedor</text>
+<text x="924" y="1054" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id: String</text>
+<text x="924" y="1097" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">codigo, tipo: String (*)</text>
+<rect x="1840" y="960" width="480" height="250" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="1841" y="961" width="478" height="68" rx="14" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<rect x="1841" y="1000" width="478" height="29" rx="0" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<text x="1862" y="979" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Sensor</text>
+<text x="1864" y="1054" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id, tipo: String (*)</text>
+<rect x="80" y="1420" width="540" height="180" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="1421" width="538" height="68" rx="14" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<rect x="81" y="1460" width="538" height="29" rx="0" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<text x="102" y="1439" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Operador</text>
+<text x="104" y="1514" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id, nombre: String (*)</text>
+<rect x="900" y="1420" width="650" height="180" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="901" y="1421" width="648" height="68" rx="14" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<rect x="901" y="1460" width="648" height="29" rx="0" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<text x="922" y="1439" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Proveedor</text>
+<text x="924" y="1514" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">id, nombre: String (*)</text>
+<polyline points="620,390 900,390" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="900,390 881.0,381.0 881.0,399.0" fill="#70869a"/>
+<rect x="688.0" y="343" width="144.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="700.0" y="350" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">REALIZA</text>
+<polyline points="1550,380 1840,380" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="1840,380 1821.0,371.0 1821.0,389.0" fill="#70869a"/>
+<rect x="1620.0" y="333" width="150.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1632.0" y="340" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">SALE_DE</text>
+<polyline points="1550,540 1840,540" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="1840,540 1821.0,531.0 1821.0,549.0" fill="#70869a"/>
+<rect x="1619.0" y="493" width="152.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1631.0" y="500" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">LLEGA_A</text>
+<polyline points="1050,730 1050,830 350,830 350,960" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="350,960 359.0,941.0 341.0,941.0" fill="#70869a"/>
+<rect x="634.5" y="788" width="131.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="646.5" y="795" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">UTILIZA</text>
+<polyline points="1350,730 1350,960" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="1350,960 1359.0,941.0 1341.0,941.0" fill="#70869a"/>
+<rect x="1242.515625" y="838" width="214.96875" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1254.515625" y="845" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">TRANSPORTA</text>
+<polyline points="1550,1080 1840,1080" fill="none" stroke="#087d78" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="1840,1080 1821.0,1071.0 1821.0,1089.0" fill="#087d78"/>
+<rect x="1577.5" y="1033" width="235.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1589.5" y="1040" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#087d78">TIENE_SENSOR</text>
+<polyline points="250,1420 250,1240" fill="none" stroke="#087d78" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="250,1240 241.0,1259.0 259.0,1259.0" fill="#087d78"/>
+<rect x="189.5" y="1313" width="121.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="201.5" y="1320" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#087d78">OPERA</text>
+<polyline points="1225,1420 1225,1360 500,1360 500,1240" fill="none" stroke="#087d78" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="500,1240 491.0,1259.0 509.0,1259.0" fill="#087d78"/>
+<rect x="791.5" y="1313" width="137.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="803.5" y="1320" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#087d78">PROVEE</text>
+<text x="80" y="1650" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">(*) Propiedades o nodos cargados por datos de prueba; MERGE por id puede crear nodos incompletos.</text>
+<text x="80" y="1696" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Cliente, Contenedor y Vehiculo comparten el ObjectId MongoDB como texto tras la sincronización.</text>
+<text x="80" y="1742" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Relaciones sin propiedades. Sin nodos Tramo ni restricciones físicas de cardinalidad o unicidad declaradas.</text>
+</svg>

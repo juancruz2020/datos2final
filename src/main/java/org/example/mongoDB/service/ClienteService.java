@@ -1,48 +1,40 @@
+
 package org.example.mongoDB.service;
 
 import org.example.consola.TablaConsola;
 
 import com.mongodb.client.ClientSession;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
+
 import org.example.conecciones.MongoSingleton;
 import org.example.logging.AppLog;
+
+import org.example.mongoDB.controller.ControllerMongoDB;
 import org.example.mongoDB.dao.ClienteMongoDAO;
-import org.example.mongoDB.dao.FacturaMongoDAO;
+
 import org.example.mongoDB.model.Cliente;
 import org.example.mongoDB.model.Direccion;
-import org.example.neo4j.controller.ControllerNeo4j;
-import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
-import org.example.mongoDB.dao.MovimientoCuentaCorrienteMongoDAO;
-import org.example.mongoDB.dao.CierreMensualCuentaCorrienteMongoDAO;
-import org.example.mongoDB.dao.PagoMongoDAO;
-import org.example.mongoDB.dao.UsuarioMongoDAO;
-import org.example.mongoDB.dao.ConversacionMongoDAO;
-import org.example.mongoDB.dao.MensajeMongoDAO;
 
-import java.math.BigDecimal;
-import java.util.Map;
 import java.util.List;
+import java.util.Locale;
 
 public class ClienteService {
 
     private final ClienteMongoDAO clienteDAO;
 
-
-    // =========================================================
+    // ==========================================
     // CONSTRUCTOR
-    // =========================================================
+    // ==========================================
 
     public ClienteService() {
-
-        this.clienteDAO =
-                new ClienteMongoDAO();
+        this.clienteDAO = new ClienteMongoDAO();
     }
 
-
-    // =========================================================
+    // ==========================================
     // CREAR CLIENTE
-    // =========================================================
+    // ==========================================
 
     public void crearCliente(
             String razonSocial,
@@ -56,7 +48,7 @@ public class ClienteService {
             String pais
     ) {
 
-        validarDatos(
+        ValidacionesRegistro.datosEmpresa(
                 razonSocial,
                 cuit,
                 email,
@@ -68,86 +60,70 @@ public class ClienteService {
                 pais
         );
 
+        String cuitNormalizado =
+                ValidacionesRegistro.normalizarCuit(cuit);
 
-        // -----------------------------------------------------
-        // CUIT DUPLICADO
-        // -----------------------------------------------------
+        verificarCuitDuplicado(
+                cuitNormalizado,
+                null
+        );
 
-        Document existente =
-                clienteDAO.buscarPorCuit(
-                        cuit.trim()
-                );
+        Direccion direccion = new Direccion(
+                calle.trim(),
+                numero.trim(),
+                ciudad.trim(),
+                codigoPostal.trim().toUpperCase(Locale.ROOT)
+        );
 
-        if (existente != null) {
-
-            throw new IllegalArgumentException(
-                    "Ya existe un cliente con ese CUIT."
-            );
-        }
-
-
-        // -----------------------------------------------------
-        // DIRECCIÓN
-        // -----------------------------------------------------
-
-        Direccion direccion =
-                new Direccion(
-                        calle.trim(),
-                        numero.trim(),
-                        ciudad.trim(),
-                        codigoPostal.trim()
-                );
-
-
-        // -----------------------------------------------------
-        // CLIENTE
-        // -----------------------------------------------------
-
-        Cliente cliente =
-                new Cliente(
-                        null,
-                        razonSocial.trim(),
-                        cuit.trim(),
-                        email.trim(),
-                        telefono.trim(),
-                        direccion,
-                        pais.trim(),
-                        "ACTIVO"
-                );
-
-
-        // -----------------------------------------------------
-        // GUARDAR
-        // -----------------------------------------------------
+        Cliente cliente = new Cliente(
+                null,
+                razonSocial.trim(),
+                cuitNormalizado,
+                email.trim(),
+                telefono.trim(),
+                direccion,
+                pais.trim(),
+                "ACTIVO"
+        );
 
         CuentaCorrienteService cuentaService =
                 new CuentaCorrienteService();
 
-        try (ClientSession session = MongoSingleton
-                .getInstance()
-                .startSession()) {
+        try (ClientSession session =
+                     MongoSingleton.getInstance().startSession()) {
+
             session.startTransaction();
+
             try {
+
                 clienteDAO.agregar(session, cliente);
-                cuentaService.crearCuenta(session, cliente.getId());
+
+                cuentaService.crearCuenta(
+                        session,
+                        cliente.getId()
+                );
+
                 session.commitTransaction();
-                AppLog.info(ClienteService.class,
-                        "Alta de cliente y cuenta corriente confirmada.");
+
+                AppLog.info(
+                        ClienteService.class,
+                        "Cliente y cuenta corriente creados correctamente."
+                );
+
             } catch (RuntimeException e) {
+
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
-                    AppLog.warning(ClienteService.class,
-                            "Alta de cliente revertida por un error.");
                 }
+
                 throw e;
             }
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // MODIFICAR CLIENTE
-    // =========================================================
+    // ==========================================
 
     public void modificarCliente(
             String clienteId,
@@ -163,35 +139,9 @@ public class ClienteService {
             String estado
     ) {
 
-        // -----------------------------------------------------
-        // VALIDAR ID
-        // -----------------------------------------------------
+        Document actual = obtenerCliente(clienteId);
 
-        validarObjectId(
-                clienteId,
-                "El ID del cliente no es válido."
-        );
-
-
-        Document clienteActual =
-                clienteDAO.buscarPorId(
-                        clienteId
-                );
-
-
-        if (clienteActual == null) {
-
-            throw new IllegalArgumentException(
-                    "El cliente no existe."
-            );
-        }
-
-
-        // -----------------------------------------------------
-        // VALIDAR DATOS
-        // -----------------------------------------------------
-
-        validarDatos(
+        ValidacionesRegistro.datosEmpresa(
                 razonSocial,
                 cuit,
                 email,
@@ -203,307 +153,304 @@ public class ClienteService {
                 pais
         );
 
+        validarEstado(estado);
 
-        if (estado == null
-                || estado.isBlank()) {
+        // Si se intenta pasar de ACTIVO a INACTIVO,
+        // verificar primero facturas y envíos.
 
-            throw new IllegalArgumentException(
-                    "El estado es obligatorio."
+        if ("INACTIVO".equalsIgnoreCase(estado.trim())
+                && !"INACTIVO".equalsIgnoreCase(
+                        actual.getString("estado"))) {
+
+            validarBajaCliente(clienteId);
+        }
+
+        String cuitNormalizado =
+                ValidacionesRegistro.normalizarCuit(cuit);
+
+        verificarCuitDuplicado(
+                cuitNormalizado,
+                clienteId
+        );
+
+        Direccion direccion = new Direccion(
+                calle.trim(),
+                numero.trim(),
+                ciudad.trim(),
+                codigoPostal.trim().toUpperCase(Locale.ROOT)
+        );
+
+        Cliente cliente = new Cliente(
+                clienteId,
+                razonSocial.trim(),
+                cuitNormalizado,
+                email.trim(),
+                telefono.trim(),
+                direccion,
+                pais.trim(),
+                estado.trim().toUpperCase(Locale.ROOT)
+        );
+
+        clienteDAO.modificar(cliente);
+
+        AppLog.info(
+                ClienteService.class,
+                "Cliente modificado correctamente."
+        );
+    }
+
+    // ==========================================
+    // ELIMINAR CLIENTE (BAJA LÓGICA)
+    // ==========================================
+
+    public void eliminarCliente(String clienteId) {
+
+        cambiarEstadoCliente(
+                clienteId,
+                "INACTIVO"
+        );
+
+        AppLog.info(
+                ClienteService.class,
+                "Cliente desactivado correctamente."
+        );
+    }
+
+    // ==========================================
+    // REACTIVAR CLIENTE
+    // ==========================================
+
+    public void reactivarCliente(String clienteId) {
+
+        cambiarEstadoCliente(
+                clienteId,
+                "ACTIVO"
+        );
+
+        AppLog.info(
+                ClienteService.class,
+                "Cliente reactivado correctamente."
+        );
+    }
+
+    // ==========================================
+    // CAMBIAR ESTADO DEL CLIENTE
+    // ==========================================
+
+    public void cambiarEstadoCliente(
+            String clienteId,
+            String estado
+    ) {
+
+        Document actual = obtenerCliente(clienteId);
+
+        validarEstado(estado);
+
+        // La baja solo se permite si no existen
+        // facturas impagas ni envíos activos.
+
+        if ("INACTIVO".equalsIgnoreCase(estado.trim())
+                && !"INACTIVO".equalsIgnoreCase(
+                        actual.getString("estado"))) {
+
+            validarBajaCliente(clienteId);
+        }
+
+        Document direccion =
+                actual.get("direccion", Document.class);
+
+        if (direccion == null) {
+
+            throw new IllegalStateException(
+                    "El cliente no tiene una dirección válida."
             );
         }
 
+        // Se conservan los datos históricos.
+        // No se vuelve a validar el CUIT anterior.
 
-        // -----------------------------------------------------
-        // VALIDAR CUIT DUPLICADO
-        // -----------------------------------------------------
+        Cliente cliente = new Cliente(
+                clienteId,
+                actual.getString("razon_social"),
+                actual.getString("cuit"),
+                actual.getString("email"),
+                actual.getString("telefono"),
+                new Direccion(
+                        direccion.getString("calle"),
+                        direccion.getString("numero"),
+                        direccion.getString("ciudad"),
+                        direccion.getString("codigo_postal")
+                ),
+                actual.getString("pais"),
+                estado.trim().toUpperCase(Locale.ROOT)
+        );
 
-        Document clienteConCuit =
-                clienteDAO.buscarPorCuit(
-                        cuit.trim()
-                );
+        clienteDAO.modificar(cliente);
+    }
 
+    // ==========================================
+    // VALIDAR BAJA LÓGICA DEL CLIENTE
+    // ==========================================
 
-        if (clienteConCuit != null) {
+    private void validarBajaCliente(String clienteId) {
 
-            ObjectId idExistente =
-                    clienteConCuit.getObjectId(
-                            "_id"
-                    );
+        // Utilizamos las consultas existentes.
+        // No modificamos Facturación ni Neo4j.
 
+        ControllerMongoDB mongo = new ControllerMongoDB();
 
-            if (idExistente != null
-                    && !idExistente.toHexString()
-                    .equals(clienteId)) {
+        List<Document> facturas =
+                mongo.buscarFacturasPorCliente(clienteId);
+
+        if (facturas == null) {
+            throw new IllegalStateException(
+                    "No se pudieron consultar las facturas del cliente."
+            );
+        }
+
+        // Comprobar facturas impagas.
+
+        for (Document factura : facturas) {
+
+            String estadoFactura =
+                    factura.getString("estado");
+
+            // Solo una factura PAGADA permite continuar.
+            // Incluye como bloqueo las facturas pendientes,
+            // vencidas, parcialmente pagadas o sin estado.
+
+            if (estadoFactura == null
+                    || !"PAGADA".equalsIgnoreCase(
+                            estadoFactura.trim())) {
 
                 throw new IllegalArgumentException(
-                        "Ya existe otro cliente con ese CUIT."
+                        "No se puede desactivar el cliente "
+                                + "porque tiene facturas sin pagar. "
+                                + "Primero debe regularizar sus deudas."
                 );
             }
         }
 
+        // Comprobar envíos pendientes o en curso.
 
-        // -----------------------------------------------------
-        // DIRECCIÓN
-        // -----------------------------------------------------
+        List<Document> envios =
+                mongo.buscarEnviosPorCliente(clienteId);
 
-        Direccion direccion =
-                new Direccion(
-                        calle.trim(),
-                        numero.trim(),
-                        ciudad.trim(),
-                        codigoPostal.trim()
+        if (envios == null) {
+            throw new IllegalStateException(
+                    "No se pudieron consultar los envíos del cliente."
+            );
+        }
+
+        for (Document envio : envios) {
+
+            String estadoEnvio =
+                    envio.getString("estado");
+
+            // Únicamente aceptamos envíos finalizados.
+            // Un estado desconocido también bloquea la baja.
+
+            boolean finalizado =
+                    estadoEnvio != null
+                            && (
+                            "ENTREGADO".equalsIgnoreCase(
+                                    estadoEnvio.trim())
+                            || "CANCELADO".equalsIgnoreCase(
+                                    estadoEnvio.trim())
+                    );
+
+            if (!finalizado) {
+
+                throw new IllegalArgumentException(
+                        "No se puede desactivar el cliente "
+                                + "porque tiene envíos pendientes "
+                                + "o en curso. "
+                                + "Primero debe finalizar "
+                                + "sus operaciones."
                 );
+            }
+        }
+    }
 
+    // ==========================================
+    // LISTAR CLIENTES
+    // ==========================================
 
-        // -----------------------------------------------------
-        // CLIENTE MODIFICADO
-        // -----------------------------------------------------
+    public List<Document> listarClientes() {
 
-        Cliente cliente =
-                new Cliente(
-                        clienteId,
-                        razonSocial.trim(),
-                        cuit.trim(),
-                        email.trim(),
-                        telefono.trim(),
-                        direccion,
-                        pais.trim(),
-                        estado.trim()
-                );
+        return TablaConsola.mostrar(
+                "ClienteService.listarClientes",
+                clienteDAO.listarTodos()
+        );
+    }
 
+    // ==========================================
+    // BUSCAR CLIENTE POR ID
+    // ==========================================
 
-        // -----------------------------------------------------
-        // MODIFICAR
-        // -----------------------------------------------------
+    public Document buscarPorId(String clienteId) {
 
-        clienteDAO.modificar(
+        Document cliente = obtenerCliente(clienteId);
+
+        return TablaConsola.mostrar(
+                "ClienteService.buscarPorId",
                 cliente
         );
     }
 
+    // ==========================================
+    // BUSCAR CLIENTE POR CUIT
+    // ==========================================
 
-    // =========================================================
-    // ELIMINAR CLIENTE
-    // =========================================================
+    public Document buscarPorCuit(String cuit) {
 
+        // Permite buscar CUIT históricos ficticios.
 
-public void eliminarCliente(String clienteId) {
+        ValidacionesRegistro.obligatorio(cuit, "CUIT");
 
-    validarObjectId(clienteId, "El ID del cliente no es válido.");
+        String cuitNormalizado =
+                limpiarGuionesCuit(cuit);
 
-    Document cliente = clienteDAO.buscarPorId(clienteId);
+        Document encontrado = null;
 
-    if (cliente == null) {
-        throw new IllegalArgumentException("El cliente no existe.");
-    }
+        for (Document cliente : clienteDAO.listarTodos()) {
 
-    FacturaMongoDAO facturaDAO = new FacturaMongoDAO();
-    List<Document> facturas = facturaDAO.buscarPorCliente(clienteId);
+            String cuitGuardado =
+                    cliente.getString("cuit");
 
-    // No eliminar si tiene facturas sin pagar.
-    for (Document factura : facturas) {
-        if (!"PAGADA".equalsIgnoreCase(factura.getString("estado"))) {
-            throw new IllegalStateException(
-                    "No se puede eliminar el cliente porque tiene facturas sin pagar."
-            );
-        }
-    }
-
-    // No eliminar si tiene envíos activos.
-    ControllerNeo4j neo4j = new ControllerNeo4j();
-
-    for (Map<String, Object> envio : neo4j.listarEnvios()) {
-
-        if (!clienteId.equals(envio.get("clienteId"))) {
-            continue;
-        }
-
-        String estado = (String) envio.get("estado");
-
-        if (estado == null
-                || (!"ENTREGADO".equalsIgnoreCase(estado)
-                && !"FINALIZADO".equalsIgnoreCase(estado)
-                && !"CANCELADO".equalsIgnoreCase(estado))) {
-
-            throw new IllegalStateException(
-                    "No se puede eliminar el cliente porque tiene envíos sin finalizar."
-            );
-        }
-    }
-
-    CuentaCorrienteMongoDAO cuentaDAO = new CuentaCorrienteMongoDAO();
-    Document cuenta = cuentaDAO.buscarPorCliente(clienteId);
-
-    // Evitar eliminar dinero disponible.
-    if (cuenta != null) {
-        BigDecimal saldo = cuenta.get(
-                "saldo", org.bson.types.Decimal128.class
-        ).bigDecimalValue();
-
-        if (saldo.compareTo(BigDecimal.ZERO) != 0) {
-            throw new IllegalStateException(
-                    "No se puede eliminar el cliente porque su cuenta corriente "
-                    + "tiene un saldo distinto de cero."
-            );
-        }
-    }
-
-    UsuarioMongoDAO usuarioDAO = new UsuarioMongoDAO();
-    ConversacionMongoDAO conversacionDAO = new ConversacionMongoDAO();
-    MensajeMongoDAO mensajeDAO = new MensajeMongoDAO();
-    PagoMongoDAO pagoDAO = new PagoMongoDAO();
-
-    MovimientoCuentaCorrienteMongoDAO movimientoDAO =
-            new MovimientoCuentaCorrienteMongoDAO();
-
-    CierreMensualCuentaCorrienteMongoDAO cierreDAO =
-            new CierreMensualCuentaCorrienteMongoDAO();
-
-    CuentaCorrienteService cuentaService = new CuentaCorrienteService();
-
-    try (ClientSession session =
-                 MongoSingleton.getInstance().startSession()) {
-
-        session.startTransaction();
-
-        try {
-
-            // Eliminar las comunicaciones de los usuarios del cliente.
-            for (Document usuario : usuarioDAO.listarTodos()) {
-
-                ObjectId asociado = usuario.getObjectId("cliente_id");
-
-                if (asociado == null
-                        || !asociado.toHexString().equals(clienteId)) {
-                    continue;
-                }
-
-                String usuarioId = usuario.getObjectId("_id").toHexString();
-
-                for (Document conversacion :
-                        conversacionDAO.buscarPorUsuario(usuarioId)) {
-
-                    String conversacionId =
-                            conversacion.getObjectId("_id").toHexString();
-
-                    String tipo = conversacion.getString("tipo");
-
-                    if ("PRIVADA".equalsIgnoreCase(tipo)) {
-
-                        mensajeDAO.eliminarPorConversacion(
-                                session, conversacionId
-                        );
-
-                        conversacionDAO.eliminar(
-                                session, conversacionId
-                        );
-
-                    } else if ("GRUPAL".equalsIgnoreCase(tipo)) {
-
-                        List<String> participantes =
-                                conversacion.getList(
-                                        "participantes_ids", String.class
-                                );
-
-                        if (participantes != null
-                                && participantes.size() <= 1) {
-
-                            mensajeDAO.eliminarPorConversacion(
-                                    session, conversacionId
-                            );
-
-                            conversacionDAO.eliminar(
-                                    session, conversacionId
-                            );
-
-                        } else {
-
-                            conversacionDAO.quitarParticipante(
-                                    session, conversacionId, usuarioId
-                            );
-                        }
-                    }
-                }
-
-                mensajeDAO.eliminarPorRemitente(session, usuarioId);
+            if (cuitGuardado == null) {
+                continue;
             }
 
-            usuarioDAO.eliminarPorCliente(session, clienteId);
+            String cuitExistente =
+                    limpiarGuionesCuit(cuitGuardado);
 
-            // Eliminar pagos antes que las facturas.
-            for (Document factura : facturas) {
-                pagoDAO.eliminarPorFactura(
-                        session,
-                        factura.getObjectId("_id").toHexString()
-                );
+            if (cuitExistente.equals(cuitNormalizado)) {
+
+                encontrado = cliente;
+                break;
             }
-
-            facturaDAO.eliminarPorCliente(session, clienteId);
-
-            // Eliminar todos los registros de cuenta corriente.
-            if (cuenta != null) {
-
-                String cuentaId =
-                        cuenta.getObjectId("_id").toHexString();
-
-                movimientoDAO.eliminarPorCuenta(session, cuentaId);
-                cierreDAO.eliminarPorCuenta(session, cuentaId);
-                cuentaService.eliminarAperturas(session, cuentaId);
-                cuentaDAO.eliminar(session, cuentaId);
-            }
-
-            // Eliminar el cliente al final.
-            clienteDAO.eliminar(session, clienteId);
-
-            session.commitTransaction();
-
-            AppLog.info(
-                    ClienteService.class,
-                    "Cliente y datos asociados eliminados."
-            );
-
-        } catch (RuntimeException e) {
-
-            if (session.hasActiveTransaction()) {
-                session.abortTransaction();
-            }
-
-            throw e;
         }
-    }
-}
 
-
-
-    // =========================================================
-    // LISTAR CLIENTES
-    // =========================================================
-
-    public List<Document> listarClientes() {
-
-        return TablaConsola.mostrar("ClienteService.listarClientes", clienteDAO.listarTodos());
+        return TablaConsola.mostrar(
+                "ClienteService.buscarPorCuit",
+                encontrado
+        );
     }
 
+    // ==========================================
+    // OBTENER CLIENTE EXISTENTE
+    // ==========================================
 
-    // =========================================================
-    // BUSCAR CLIENTE POR ID
-    // =========================================================
-
-    public Document buscarPorId(
-            String clienteId
-    ) {
+    private Document obtenerCliente(String clienteId) {
 
         validarObjectId(
                 clienteId,
                 "El ID del cliente no es válido."
         );
 
-
         Document cliente =
-                clienteDAO.buscarPorId(
-                        clienteId
-                );
-
+                clienteDAO.buscarPorId(clienteId);
 
         if (cliente == null) {
 
@@ -512,135 +459,84 @@ public void eliminarCliente(String clienteId) {
             );
         }
 
-
-        return TablaConsola.mostrar("ClienteService.buscarPorId", cliente);
+        return cliente;
     }
 
+    // ==========================================
+    // VERIFICAR CUIT DUPLICADO
+    // ==========================================
 
-    // =========================================================
-    // BUSCAR CLIENTE POR CUIT
-    // =========================================================
-
-    public Document buscarPorCuit(
-            String cuit
+    private void verificarCuitDuplicado(
+            String cuitNormalizado,
+            String clienteId
     ) {
 
-        if (cuit == null
-                || cuit.trim().isEmpty()) {
+        for (Document cliente : clienteDAO.listarTodos()) {
+
+            String cuitGuardado =
+                    cliente.getString("cuit");
+
+            if (cuitGuardado == null) {
+                continue;
+            }
+
+            String cuitExistente =
+                    limpiarGuionesCuit(cuitGuardado);
+
+            if (!cuitExistente.equals(cuitNormalizado)) {
+                continue;
+            }
+
+            ObjectId id =
+                    cliente.getObjectId("_id");
+
+            if (clienteId != null
+                    && id != null
+                    && id.toHexString().equals(clienteId)) {
+
+                continue;
+            }
 
             throw new IllegalArgumentException(
-                    "El CUIT es obligatorio."
-            );
-        }
-
-
-        return TablaConsola.mostrar("ClienteService.buscarPorCuit", clienteDAO.buscarPorCuit(
-                cuit.trim()
-        ));
-    }
-
-
-    // =========================================================
-    // VALIDAR DATOS
-    // =========================================================
-
-    private void validarDatos(
-            String razonSocial,
-            String cuit,
-            String email,
-            String telefono,
-            String calle,
-            String numero,
-            String ciudad,
-            String codigoPostal,
-            String pais
-    ) {
-
-        if (razonSocial == null
-                || razonSocial.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "La razón social es obligatoria."
-            );
-        }
-
-
-        if (cuit == null
-                || cuit.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El CUIT es obligatorio."
-            );
-        }
-
-
-        if (email == null
-                || email.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El email es obligatorio."
-            );
-        }
-
-
-        if (telefono == null
-                || telefono.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El teléfono es obligatorio."
-            );
-        }
-
-
-        if (calle == null
-                || calle.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "La calle es obligatoria."
-            );
-        }
-
-
-        if (numero == null
-                || numero.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El número es obligatorio."
-            );
-        }
-
-
-        if (ciudad == null
-                || ciudad.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "La ciudad es obligatoria."
-            );
-        }
-
-
-        if (codigoPostal == null
-                || codigoPostal.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El código postal es obligatorio."
-            );
-        }
-
-
-        if (pais == null
-                || pais.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El país es obligatorio."
+                    "Ya existe otro cliente con ese CUIT."
             );
         }
     }
 
+    // ==========================================
+    // LIMPIAR GUIONES DE CUIT
+    // ==========================================
 
-    // =========================================================
+    private String limpiarGuionesCuit(String cuit) {
+
+        if (cuit == null) {
+            return "";
+        }
+
+        return cuit.trim()
+                .replace("-", "")
+                .replace(" ", "");
+    }
+
+    // ==========================================
+    // VALIDAR ESTADO
+    // ==========================================
+
+    private void validarEstado(String estado) {
+
+        if (estado == null
+                || (!"ACTIVO".equalsIgnoreCase(estado.trim())
+                && !"INACTIVO".equalsIgnoreCase(estado.trim()))) {
+
+            throw new IllegalArgumentException(
+                    "El estado debe ser ACTIVO o INACTIVO."
+            );
+        }
+    }
+
+    // ==========================================
     // VALIDAR OBJECT ID
-    // =========================================================
+    // ==========================================
 
     private void validarObjectId(
             String id,
@@ -651,9 +547,7 @@ public void eliminarCliente(String clienteId) {
                 || id.isBlank()
                 || !ObjectId.isValid(id)) {
 
-            throw new IllegalArgumentException(
-                    mensaje
-            );
+            throw new IllegalArgumentException(mensaje);
         }
     }
 }

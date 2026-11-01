@@ -288,7 +288,24 @@ public class FacturacionPanelController {
 
             for (Document cliente : clientes) {
 
+                // ======================================
+                // NUEVA VALIDACIÓN
+                // ======================================
+                // Los clientes INACTIVOS no aparecen
+                // al generar una factura nueva.
+                //
+                // Sus facturas anteriores se siguen
+                // mostrando en el historial.
+
+                String estadoCliente =
+                        cliente.getString("estado");
+
+                if (!"ACTIVO".equalsIgnoreCase(estadoCliente)) {
+                    continue;
+                }
+
                 ObjectId id = cliente.getObjectId("_id");
+
                 String razonSocial =
                         cliente.getString("razon_social");
 
@@ -939,6 +956,7 @@ public class FacturacionPanelController {
             // Se conserva si ya figura PAGADA.
             // En las demás facturas se recalcula
             // PENDIENTE o VENCIDA por la fecha.
+
             String estado =
                     "PAGADA".equalsIgnoreCase(
                             factura.getString("estado")

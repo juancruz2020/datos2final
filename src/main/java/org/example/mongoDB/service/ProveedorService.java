@@ -5,33 +5,42 @@ import org.example.consola.TablaConsola;
 
 import com.mongodb.client.ClientSession;
 import org.bson.Document;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+
 import org.example.conecciones.MongoSingleton;
 import org.example.logging.AppLog;
+
 import org.example.mongoDB.dao.ProveedorMongoDAO;
+import org.example.mongoDB.dao.FacturaProveedorMongoDAO;
+import org.example.mongoDB.dao.CuentaCorrienteMongoDAO;
+
 import org.example.mongoDB.model.Proveedor;
 import org.example.mongoDB.model.Direccion;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 public class ProveedorService {
 
     private final ProveedorMongoDAO proveedorDAO;
+    private final FacturaProveedorMongoDAO facturaDAO;
+    private final CuentaCorrienteMongoDAO cuentaDAO;
 
-    // =========================================================
+    // ==========================================
     // CONSTRUCTOR
-    // =========================================================
+    // ==========================================
 
     public ProveedorService() {
-
-        this.proveedorDAO =
-                new ProveedorMongoDAO();
+        this.proveedorDAO = new ProveedorMongoDAO();
+        this.facturaDAO = new FacturaProveedorMongoDAO();
+        this.cuentaDAO = new CuentaCorrienteMongoDAO();
     }
 
-
-    // =========================================================
+    // ==========================================
     // CREAR PROVEEDOR
-    // =========================================================
+    // ==========================================
 
     public void crearProveedor(
             String razonSocial,
@@ -45,7 +54,7 @@ public class ProveedorService {
             String pais
     ) {
 
-        validarDatos(
+        ValidacionesRegistro.datosEmpresa(
                 razonSocial,
                 cuit,
                 email,
@@ -57,76 +66,49 @@ public class ProveedorService {
                 pais
         );
 
-        // -----------------------------------------------------
-        // CUIT DUPLICADO
-        // -----------------------------------------------------
+        String cuitNormalizado =
+                ValidacionesRegistro.normalizarCuit(cuit);
 
-        Document existente =
-                proveedorDAO.buscarPorCuit(
-                        cuit.trim()
-                );
+        verificarCuitDuplicado(
+                cuitNormalizado,
+                null
+        );
 
-        if (existente != null) {
+        Direccion direccion = new Direccion(
+                calle.trim(),
+                numero.trim(),
+                ciudad.trim(),
+                codigoPostal.trim().toUpperCase(Locale.ROOT)
+        );
 
-            throw new IllegalArgumentException(
-                    "Ya existe un proveedor con ese CUIT."
-            );
-        }
-
-        // -----------------------------------------------------
-        // DIRECCIÓN
-        // -----------------------------------------------------
-
-        Direccion direccion =
-                new Direccion(
-                        calle.trim(),
-                        numero.trim(),
-                        ciudad.trim(),
-                        codigoPostal.trim()
-                );
-
-        // -----------------------------------------------------
-        // PROVEEDOR
-        // -----------------------------------------------------
-
-        Proveedor proveedor =
-                new Proveedor(
-                        null,
-                        razonSocial.trim(),
-                        cuit.trim(),
-                        email.trim(),
-                        telefono.trim(),
-                        direccion,
-                        pais.trim(),
-                        "ACTIVO"
-                );
-
-        // -----------------------------------------------------
-        // CREAR PROVEEDOR Y CUENTA CORRIENTE
-        // EN LA MISMA TRANSACCIÓN
-        // -----------------------------------------------------
+        Proveedor proveedor = new Proveedor(
+                null,
+                razonSocial.trim(),
+                cuitNormalizado,
+                email.trim(),
+                telefono.trim(),
+                direccion,
+                pais.trim(),
+                "ACTIVO"
+        );
 
         CuentaCorrienteService cuentaService =
                 new CuentaCorrienteService();
 
-        try (ClientSession session = MongoSingleton
-                .getInstance()
-                .startSession()) {
+        try (ClientSession session =
+                     MongoSingleton.getInstance().startSession()) {
 
             session.startTransaction();
 
             try {
 
-                // Guardar proveedor.
                 proveedorDAO.agregar(session, proveedor);
 
-                // Crear cuenta corriente con saldo inicial $0.
                 cuentaService.crearCuentaProveedor(
                         session,
                         proveedor.getId()
                 );
 
-                // Confirmar ambas operaciones.
                 session.commitTransaction();
 
                 AppLog.info(
@@ -137,7 +119,6 @@ public class ProveedorService {
             } catch (RuntimeException e) {
 
                 if (session.hasActiveTransaction()) {
-
                     session.abortTransaction();
 
                     AppLog.warning(
@@ -151,10 +132,9 @@ public class ProveedorService {
         }
     }
 
-
-    // =========================================================
+    // ==========================================
     // MODIFICAR PROVEEDOR
-    // =========================================================
+    // ==========================================
 
     public void modificarProveedor(
             String proveedorId,
@@ -170,32 +150,9 @@ public class ProveedorService {
             String estado
     ) {
 
-        // -----------------------------------------------------
-        // VALIDAR ID
-        // -----------------------------------------------------
+        Document actual = obtenerProveedor(proveedorId);
 
-        validarObjectId(
-                proveedorId,
-                "El ID del proveedor no es válido."
-        );
-
-        Document proveedorActual =
-                proveedorDAO.buscarPorId(
-                        proveedorId
-                );
-
-        if (proveedorActual == null) {
-
-            throw new IllegalArgumentException(
-                    "El proveedor no existe."
-            );
-        }
-
-        // -----------------------------------------------------
-        // VALIDAR DATOS
-        // -----------------------------------------------------
-
-        validarDatos(
+        ValidacionesRegistro.datosEmpresa(
                 razonSocial,
                 cuit,
                 email,
@@ -207,78 +164,43 @@ public class ProveedorService {
                 pais
         );
 
-        if (estado == null || estado.isBlank()) {
+        validarEstado(estado);
 
-            throw new IllegalArgumentException(
-                    "El estado es obligatorio."
-            );
+        // Si se intenta desactivar un proveedor activo,
+        // comprobar primero sus obligaciones pendientes.
+
+        if ("INACTIVO".equalsIgnoreCase(estado.trim())
+                && !"INACTIVO".equalsIgnoreCase(
+                        actual.getString("estado"))) {
+
+            validarBajaProveedor(proveedorId);
         }
 
-        if (!"ACTIVO".equalsIgnoreCase(estado.trim())
-                && !"INACTIVO".equalsIgnoreCase(estado.trim())) {
+        String cuitNormalizado =
+                ValidacionesRegistro.normalizarCuit(cuit);
 
-            throw new IllegalArgumentException(
-                    "El estado debe ser ACTIVO o INACTIVO."
-            );
-        }
+        verificarCuitDuplicado(
+                cuitNormalizado,
+                proveedorId
+        );
 
-        // -----------------------------------------------------
-        // VALIDAR CUIT DUPLICADO
-        // -----------------------------------------------------
+        Direccion direccion = new Direccion(
+                calle.trim(),
+                numero.trim(),
+                ciudad.trim(),
+                codigoPostal.trim().toUpperCase(Locale.ROOT)
+        );
 
-        Document proveedorConCuit =
-                proveedorDAO.buscarPorCuit(
-                        cuit.trim()
-                );
-
-        if (proveedorConCuit != null) {
-
-            ObjectId idExistente =
-                    proveedorConCuit.getObjectId(
-                            "_id"
-                    );
-
-            if (idExistente != null
-                    && !idExistente.toHexString()
-                    .equals(proveedorId)) {
-
-                throw new IllegalArgumentException(
-                        "Ya existe otro proveedor con ese CUIT."
-                );
-            }
-        }
-
-        // -----------------------------------------------------
-        // DIRECCIÓN
-        // -----------------------------------------------------
-
-        Direccion direccion =
-                new Direccion(
-                        calle.trim(),
-                        numero.trim(),
-                        ciudad.trim(),
-                        codigoPostal.trim()
-                );
-
-        // -----------------------------------------------------
-        // PROVEEDOR MODIFICADO
-        // -----------------------------------------------------
-
-        Proveedor proveedor =
-                new Proveedor(
-                        proveedorId,
-                        razonSocial.trim(),
-                        cuit.trim(),
-                        email.trim(),
-                        telefono.trim(),
-                        direccion,
-                        pais.trim(),
-                        estado.trim().toUpperCase()
-                );
-
-        // -----------------------------------------------------
-        // MODIFICAR
-        // -----------------------------------------------------
+        Proveedor proveedor = new Proveedor(
+                proveedorId,
+                razonSocial.trim(),
+                cuitNormalizado,
+                email.trim(),
+                telefono.trim(),
+                direccion,
+                pais.trim(),
+                estado.trim().toUpperCase(Locale.ROOT)
+        );
 
         proveedorDAO.modificar(proveedor);
 
@@ -288,43 +210,185 @@ public class ProveedorService {
         );
     }
 
-
-    // =========================================================
-    // ELIMINAR PROVEEDOR
-    // =========================================================
+    // ==========================================
+    // ELIMINAR PROVEEDOR (BAJA LÓGICA)
+    // ==========================================
 
     public void eliminarProveedor(String proveedorId) {
 
-        validarObjectId(
+        cambiarEstadoProveedor(
                 proveedorId,
-                "El ID del proveedor no es válido."
+                "INACTIVO"
         );
 
-        Document proveedor =
-                proveedorDAO.buscarPorId(proveedorId);
-
-        if (proveedor == null) {
-
-            throw new IllegalArgumentException(
-                    "El proveedor no existe."
-            );
-        }
-
-        // Todavía no se habilita la eliminación definitiva.
-        // Primero debemos integrar las cuentas corrientes
-        // y los usuarios asociados al proveedor para evitar
-        // dejar registros relacionados sin su proveedor.
-
-        throw new IllegalStateException(
-                "La eliminación de proveedores estará disponible "
-                        + "cuando se integren sus usuarios y cuentas corrientes."
+        AppLog.info(
+                ProveedorService.class,
+                "Proveedor desactivado correctamente."
         );
     }
 
+    // ==========================================
+    // REACTIVAR PROVEEDOR
+    // ==========================================
 
-    // =========================================================
+    public void reactivarProveedor(String proveedorId) {
+
+        cambiarEstadoProveedor(
+                proveedorId,
+                "ACTIVO"
+        );
+
+        AppLog.info(
+                ProveedorService.class,
+                "Proveedor reactivado correctamente."
+        );
+    }
+
+    // ==========================================
+    // CAMBIAR ESTADO DEL PROVEEDOR
+    // ==========================================
+
+    public void cambiarEstadoProveedor(
+            String proveedorId,
+            String estado
+    ) {
+
+        validarEstado(estado);
+
+        Document actual = obtenerProveedor(proveedorId);
+
+        // Solo validar las deudas cuando se
+        // pasa de ACTIVO a INACTIVO.
+
+        if ("INACTIVO".equalsIgnoreCase(estado.trim())
+                && !"INACTIVO".equalsIgnoreCase(
+                        actual.getString("estado"))) {
+
+            validarBajaProveedor(proveedorId);
+        }
+
+        Document direccion =
+                actual.get("direccion", Document.class);
+
+        if (direccion == null) {
+
+            throw new IllegalStateException(
+                    "El proveedor no tiene una dirección válida."
+            );
+        }
+
+        // Se conservan los datos históricos.
+        // No volvemos a validar los CUIT anteriores.
+
+        Proveedor proveedor = new Proveedor(
+                proveedorId,
+                actual.getString("razon_social"),
+                actual.getString("cuit"),
+                actual.getString("email"),
+                actual.getString("telefono"),
+                new Direccion(
+                        direccion.getString("calle"),
+                        direccion.getString("numero"),
+                        direccion.getString("ciudad"),
+                        direccion.getString("codigo_postal")
+                ),
+                actual.getString("pais"),
+                estado.trim().toUpperCase(Locale.ROOT)
+        );
+
+        proveedorDAO.modificar(proveedor);
+    }
+
+    // ==========================================
+    // VALIDAR BAJA LÓGICA DEL PROVEEDOR
+    // ==========================================
+
+    private void validarBajaProveedor(String proveedorId) {
+
+        // 1. Consultar las facturas del proveedor.
+
+        List<Document> facturas =
+                facturaDAO.buscarPorProveedor(proveedorId);
+
+        if (facturas == null) {
+
+            throw new IllegalStateException(
+                    "No se pudieron consultar las facturas del proveedor."
+            );
+        }
+
+        // Una factura solo se considera saldada
+        // cuando su estado es PAGADA.
+
+        for (Document factura : facturas) {
+
+            String estadoFactura =
+                    factura.getString("estado");
+
+            if (estadoFactura == null
+                    || !"PAGADA".equalsIgnoreCase(
+                            estadoFactura.trim())) {
+
+                throw new IllegalArgumentException(
+                        "No se puede desactivar el proveedor "
+                                + "porque tiene facturas pendientes de pago. "
+                                + "Primero debe regularizar sus deudas."
+                );
+            }
+        }
+
+        // 2. Consultar la cuenta corriente.
+
+        Document cuenta =
+                cuentaDAO.buscarPorProveedor(proveedorId);
+
+        if (cuenta == null) {
+
+            throw new IllegalStateException(
+                    "No se puede desactivar el proveedor "
+                            + "porque no se encontró su cuenta corriente."
+            );
+        }
+
+        // 3. Obtener el saldo actual.
+
+        Decimal128 saldoDecimal =
+                cuenta.get("saldo", Decimal128.class);
+
+        if (saldoDecimal == null) {
+
+            throw new IllegalStateException(
+                    "No se puede desactivar el proveedor "
+                            + "porque su cuenta corriente "
+                            + "no tiene un saldo válido."
+            );
+        }
+
+        BigDecimal saldo =
+                saldoDecimal.bigDecimalValue();
+
+        // Según FacturaProveedorService:
+        // Las facturas restan dinero al saldo.
+        // Por lo tanto, un saldo negativo indica deuda.
+
+        if (saldo.compareTo(BigDecimal.ZERO) < 0) {
+
+            throw new IllegalArgumentException(
+                    "No se puede desactivar el proveedor "
+                            + "porque tiene un saldo pendiente "
+                            + "en su cuenta corriente: $"
+                            + saldo.abs().toPlainString()
+                            + ". Primero debe regularizarlo."
+            );
+        }
+
+        // Si llegó hasta acá, no se encontraron
+        // facturas impagas ni deuda en cuenta corriente.
+    }
+
+    // ==========================================
     // LISTAR PROVEEDORES
-    // =========================================================
+    // ==========================================
 
     public List<Document> listarProveedores() {
 
@@ -334,12 +398,66 @@ public class ProveedorService {
         );
     }
 
-
-    // =========================================================
+    // ==========================================
     // BUSCAR PROVEEDOR POR ID
-    // =========================================================
+    // ==========================================
 
     public Document buscarPorId(String proveedorId) {
+
+        Document proveedor = obtenerProveedor(proveedorId);
+
+        return TablaConsola.mostrar(
+                "ProveedorService.buscarPorId",
+                proveedor
+        );
+    }
+
+    // ==========================================
+    // BUSCAR PROVEEDOR POR CUIT
+    // ==========================================
+
+    public Document buscarPorCuit(String cuit) {
+
+        // Permitir buscar CUIT históricos ficticios.
+        // No validar el dígito verificador en búsquedas.
+
+        ValidacionesRegistro.obligatorio(cuit, "CUIT");
+
+        String cuitNormalizado =
+                limpiarGuionesCuit(cuit);
+
+        Document encontrado = null;
+
+        for (Document proveedor : proveedorDAO.listarTodos()) {
+
+            String cuitGuardado =
+                    proveedor.getString("cuit");
+
+            if (cuitGuardado == null) {
+                continue;
+            }
+
+            String cuitExistente =
+                    limpiarGuionesCuit(cuitGuardado);
+
+            if (cuitExistente.equals(cuitNormalizado)) {
+
+                encontrado = proveedor;
+                break;
+            }
+        }
+
+        return TablaConsola.mostrar(
+                "ProveedorService.buscarPorCuit",
+                encontrado
+        );
+    }
+
+    // ==========================================
+    // OBTENER PROVEEDOR EXISTENTE
+    // ==========================================
+
+    private Document obtenerProveedor(String proveedorId) {
 
         validarObjectId(
                 proveedorId,
@@ -356,126 +474,84 @@ public class ProveedorService {
             );
         }
 
-        return TablaConsola.mostrar(
-                "ProveedorService.buscarPorId",
-                proveedor
-        );
+        return proveedor;
     }
 
+    // ==========================================
+    // VERIFICAR CUIT DUPLICADO
+    // ==========================================
 
-    // =========================================================
-    // BUSCAR PROVEEDOR POR CUIT
-    // =========================================================
-
-    public Document buscarPorCuit(String cuit) {
-
-        if (cuit == null || cuit.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El CUIT es obligatorio."
-            );
-        }
-
-        return TablaConsola.mostrar(
-                "ProveedorService.buscarPorCuit",
-                proveedorDAO.buscarPorCuit(cuit.trim())
-        );
-    }
-
-
-    // =========================================================
-    // VALIDAR DATOS
-    // =========================================================
-
-    private void validarDatos(
-            String razonSocial,
-            String cuit,
-            String email,
-            String telefono,
-            String calle,
-            String numero,
-            String ciudad,
-            String codigoPostal,
-            String pais
+    private void verificarCuitDuplicado(
+            String cuitNormalizado,
+            String proveedorId
     ) {
 
-        if (razonSocial == null
-                || razonSocial.trim().isEmpty()) {
+        for (Document proveedor : proveedorDAO.listarTodos()) {
+
+            String cuitGuardado =
+                    proveedor.getString("cuit");
+
+            if (cuitGuardado == null) {
+                continue;
+            }
+
+            String cuitExistente =
+                    limpiarGuionesCuit(cuitGuardado);
+
+            if (!cuitExistente.equals(cuitNormalizado)) {
+                continue;
+            }
+
+            ObjectId id =
+                    proveedor.getObjectId("_id");
+
+            if (proveedorId != null
+                    && id != null
+                    && id.toHexString().equals(proveedorId)) {
+
+                continue;
+            }
 
             throw new IllegalArgumentException(
-                    "La razón social es obligatoria."
-            );
-        }
-
-        if (cuit == null
-                || cuit.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El CUIT es obligatorio."
-            );
-        }
-
-        if (email == null
-                || email.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El email es obligatorio."
-            );
-        }
-
-        if (telefono == null
-                || telefono.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El teléfono es obligatorio."
-            );
-        }
-
-        if (calle == null
-                || calle.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "La calle es obligatoria."
-            );
-        }
-
-        if (numero == null
-                || numero.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El número es obligatorio."
-            );
-        }
-
-        if (ciudad == null
-                || ciudad.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "La ciudad es obligatoria."
-            );
-        }
-
-        if (codigoPostal == null
-                || codigoPostal.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El código postal es obligatorio."
-            );
-        }
-
-        if (pais == null
-                || pais.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "El país es obligatorio."
+                    "Ya existe otro proveedor con ese CUIT."
             );
         }
     }
 
+    // ==========================================
+    // LIMPIAR GUIONES DE CUIT
+    // ==========================================
 
-    // =========================================================
+    private String limpiarGuionesCuit(String cuit) {
+
+        if (cuit == null) {
+            return "";
+        }
+
+        return cuit.trim()
+                .replace("-", "")
+                .replace(" ", "");
+    }
+
+    // ==========================================
+    // VALIDAR ESTADO
+    // ==========================================
+
+    private void validarEstado(String estado) {
+
+        if (estado == null
+                || (!"ACTIVO".equalsIgnoreCase(estado.trim())
+                && !"INACTIVO".equalsIgnoreCase(estado.trim()))) {
+
+            throw new IllegalArgumentException(
+                    "El estado debe ser ACTIVO o INACTIVO."
+            );
+        }
+    }
+
+    // ==========================================
     // VALIDAR OBJECT ID
-    // =========================================================
+    // ==========================================
 
     private void validarObjectId(
             String id,
@@ -486,9 +562,7 @@ public class ProveedorService {
                 || id.isBlank()
                 || !ObjectId.isValid(id)) {
 
-            throw new IllegalArgumentException(
-                    mensaje
-            );
+            throw new IllegalArgumentException(mensaje);
         }
     }
 }

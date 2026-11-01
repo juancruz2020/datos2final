@@ -13,7 +13,7 @@ public class ReportesPanel extends JPanel {
     private final JComboBox<String> comboTipo;
     private final JComboBox<String> comboEstado;
     private final JComboBox<String> comboPais;
-    private final JComboBox<String> comboFormato;
+    private final JTextField txtFormato;
 
     private final JLabel lblCliente;
     private final JLabel lblEstado;
@@ -156,7 +156,7 @@ public class ReportesPanel extends JPanel {
         formulario.add(comboEstado, gbc);
 
         // =========================================================
-        // PAIS
+        // PAÍS
         // =========================================================
 
         lblPais = new JLabel("País:");
@@ -175,7 +175,7 @@ public class ReportesPanel extends JPanel {
         formulario.add(comboPais, gbc);
 
         // =========================================================
-        // FORMATO PDF FIJO, SIN FLECHITAS
+        // FORMATO FIJO: PDF
         // =========================================================
 
         gbc.gridx = 0;
@@ -184,40 +184,19 @@ public class ReportesPanel extends JPanel {
 
         formulario.add(new JLabel("Formato:"), gbc);
 
-        comboFormato = new JComboBox<>(
-                new String[]{"PDF"}
-        );
+        txtFormato = new JTextField("PDF");
 
-        comboFormato.setEditable(true);
-
-        JTextField campoFormato =
-                (JTextField) comboFormato.getEditor()
-                        .getEditorComponent();
-
-        campoFormato.setEditable(false);
-        campoFormato.setFocusable(false);
-
-        comboFormato.setUI(
-                new javax.swing.plaf.basic.BasicComboBoxUI() {
-                    @Override
-                    protected JButton createArrowButton() {
-                        JButton boton = new JButton();
-                        boton.setVisible(false);
-                        boton.setPreferredSize(
-                                new Dimension(0, 0)
-                        );
-                        return boton;
-                    }
-                }
-        );
+        // Impide que el usuario escriba o modifique el formato.
+        txtFormato.setEditable(false);
+        txtFormato.setFocusable(false);
 
         gbc.gridx = 1;
         gbc.weightx = 1;
 
-        formulario.add(comboFormato, gbc);
+        formulario.add(txtFormato, gbc);
 
         // =========================================================
-        // GENERAR
+        // GENERAR REPORTE
         // =========================================================
 
         btnGenerar = new JButton("Generar reporte");
@@ -289,7 +268,7 @@ public class ReportesPanel extends JPanel {
     }
 
     // =========================================================
-    // MOSTRAR FILTROS SEGUN EL TIPO DE REPORTE
+    // MOSTRAR FILTROS SEGÚN EL TIPO DE REPORTE
     // =========================================================
 
     public void actualizarFiltros() {
@@ -315,19 +294,7 @@ public class ReportesPanel extends JPanel {
         lblPais.setVisible(porPais);
         comboPais.setVisible(porPais);
 
-        // Los siguientes reportes no necesitan
-        // filtros adicionales:
-        //
-        // - Envíos demorados
-        // - Incidentes abiertos
-        // - Promedio de incidentes por país
-        // - Promedio de incidentes por estado
-        // - Promedio de incidentes por cliente
-        // - Ranking de rutas con más incidentes
-        // - Estado de sensores
-        // - Tiempos mínimos y máximos por cliente
-        // - Tiempo promedio de entrega
-        // - Costos por tipo de transporte
+        // Los demás reportes no requieren filtros adicionales.
 
         revalidate();
         repaint();
@@ -357,7 +324,6 @@ public class ReportesPanel extends JPanel {
         return comboPais;
     }
 
-
     public JButton getBtnGenerar() {
         return btnGenerar;
     }
@@ -366,10 +332,7 @@ public class ReportesPanel extends JPanel {
         return btnActualizar;
     }
 
-
     public DefaultTableModel getModeloTabla() {
         return modeloTabla;
     }
-
-
 }

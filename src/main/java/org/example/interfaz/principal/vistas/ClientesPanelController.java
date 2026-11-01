@@ -1,6 +1,8 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.example.mongoDB.controller.ControllerMongoDB;
+import org.example.mongoDB.service.ClienteService;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -21,13 +23,15 @@ public class ClientesPanelController {
     private final ClientesPanel view;
     private final ControllerNeo4j neo4j;
     private final List<String> clientesIds;
+
     private String clienteEditandoId;
 
-    // =========================
+    // ==========================================
     // CONSTRUCTOR
-    // =========================
+    // ==========================================
 
     public ClientesPanelController(ClientesPanel view) {
+
         this.view = view;
         this.neo4j = new ControllerNeo4j();
         this.clientesIds = new ArrayList<>();
@@ -39,42 +43,74 @@ public class ClientesPanelController {
         cargarRankingVolumen();
     }
 
-    // =========================
+    // ==========================================
     // EVENTOS
-    // =========================
+    // ==========================================
 
     private void configurarEventos() {
+
         view.getBtnActualizar().addActionListener(e -> {
             cargarClientes();
             cargarRankingEnvios();
             cargarRankingVolumen();
         });
-        view.getBtnMostrarFormulario().addActionListener(e -> prepararNuevoCliente());
-        view.getBtnEditar().addActionListener(e -> editarClienteSeleccionado());
-        view.getBtnEliminar().addActionListener(e -> eliminarClienteSeleccionado());
-        view.getBtnCancelar().addActionListener(e -> cancelar());
-        view.getBtnAgregar().addActionListener(e -> guardarCliente());
+
+        view.getBtnMostrarFormulario()
+                .addActionListener(e -> prepararNuevoCliente());
+
+        view.getBtnEditar()
+                .addActionListener(e -> editarClienteSeleccionado());
+
+        view.getBtnEliminar()
+                .addActionListener(e -> cambiarEstadoClienteSeleccionado());
+
+        view.getBtnCancelar()
+                .addActionListener(e -> cancelar());
+
+        view.getBtnAgregar()
+                .addActionListener(e -> guardarCliente());
+
+        // El botón cambia según el estado del cliente seleccionado.
+        view.getTablaClientes()
+                .getSelectionModel()
+                .addListSelectionListener(e -> {
+
+                    if (!e.getValueIsAdjusting()) {
+                        actualizarBotonEstado();
+                    }
+                });
     }
 
-    // =========================
+    // ==========================================
     // CARGAR CLIENTES
-    // =========================
+    // ==========================================
 
     private void cargarClientes() {
+
         try {
+
             List<Document> clientes = mongo.listarClientes();
+
             DefaultTableModel modelo =
-                    (DefaultTableModel) view.getTablaClientes().getModel();
+                    (DefaultTableModel)
+                            view.getTablaClientes().getModel();
 
             modelo.setRowCount(0);
             clientesIds.clear();
 
             for (Document cliente : clientes) {
-                ObjectId id = cliente.getObjectId("_id");
-                clientesIds.add(id != null ? id.toHexString() : null);
 
-                Document direccion = cliente.get("direccion", Document.class);
+                ObjectId id = cliente.getObjectId("_id");
+
+                clientesIds.add(
+                        id != null ? id.toHexString() : null
+                );
+
+                Document direccion =
+                        cliente.get("direccion", Document.class);
+
                 String ciudad = "";
+
                 if (direccion != null) {
                     ciudad = direccion.getString("ciudad");
                 }
@@ -91,194 +127,399 @@ public class ClientesPanelController {
                 });
             }
 
-            view.getLblEstado().setText("Clientes registrados: " + clientes.size());
+            view.getLblEstado().setText(
+                    "Clientes registrados: " + clientes.size()
+            );
+
+            actualizarBotonEstado();
+
         } catch (Exception e) {
-            mostrarError("No se pudieron cargar los clientes.", e);
+
+            mostrarError(
+                    "No se pudieron cargar los clientes.",
+                    e
+            );
         }
     }
 
-    // =========================
+    // ==========================================
+    // ACTUALIZAR BOTÓN ACTIVO / INACTIVO
+    // ==========================================
+
+    private void actualizarBotonEstado() {
+
+        int fila = view.getTablaClientes().getSelectedRow();
+
+        if (fila < 0) {
+
+            view.getBtnEliminar().setText("Desactivar");
+            return;
+        }
+
+        int filaModelo =
+                view.getTablaClientes().convertRowIndexToModel(fila);
+
+        String estado = String.valueOf(
+                view.getTablaClientes()
+                        .getModel()
+                        .getValueAt(filaModelo, 7)
+        );
+
+        if ("INACTIVO".equalsIgnoreCase(estado)) {
+
+            view.getBtnEliminar().setText("Reactivar");
+
+        } else {
+
+            view.getBtnEliminar().setText("Desactivar");
+        }
+    }
+
+    // ==========================================
     // RANKING DE ENVIOS
-    // =========================
+    // ==========================================
 
     private void cargarRankingEnvios() {
+
         try {
+
             Map<String, Integer> cantidades = new HashMap<>();
             Map<String, String> nombresNeo = new HashMap<>();
 
             for (Map<String, Object> envio : neo4j.listarEnvios()) {
+
                 Object clienteId = envio.get("clienteId");
+
                 if (clienteId != null) {
-                    cantidades.merge(clienteId.toString(), 1, Integer::sum);
+
+                    cantidades.merge(
+                            clienteId.toString(), 1, Integer::sum
+                    );
+
                     Object nombre = envio.get("cliente");
-                    if (nombre != null && !nombre.toString().isBlank()) {
-                        nombresNeo.put(clienteId.toString(), nombre.toString());
+
+                    if (nombre != null
+                            && !nombre.toString().isBlank()) {
+
+                        nombresNeo.put(
+                                clienteId.toString(),
+                                nombre.toString()
+                        );
                     }
                 }
             }
 
             List<Document> clientes = mongo.listarClientes();
+
             Map<String, String> nombres = new HashMap<>();
+
             for (Document cliente : clientes) {
+
                 Object id = cliente.get("_id");
+
                 if (id != null) {
-                    nombres.put(id.toString(), cliente.getString("razon_social"));
+
+                    nombres.put(
+                            id.toString(),
+                            cliente.getString("razon_social")
+                    );
                 }
             }
 
             List<Map.Entry<String, Integer>> ranking =
                     new ArrayList<>(cantidades.entrySet());
-            ranking.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
+
+            ranking.sort(
+                    (a, b) -> Integer.compare(
+                            b.getValue(), a.getValue()
+                    )
+            );
 
             DefaultTableModel modelo =
-                    (DefaultTableModel) view.getTablaRankingEnvios().getModel();
+                    (DefaultTableModel)
+                            view.getTablaRankingEnvios().getModel();
+
             modelo.setRowCount(0);
 
             int posicion = 1;
+
             for (Map.Entry<String, Integer> entrada : ranking) {
+
                 modelo.addRow(new Object[]{
                         posicion++,
                         nombresNeo.getOrDefault(
                                 entrada.getKey(),
-                                nombres.getOrDefault(entrada.getKey(), entrada.getKey())
+                                nombres.getOrDefault(
+                                        entrada.getKey(),
+                                        entrada.getKey()
+                                )
                         ),
                         entrada.getValue()
                 });
             }
+
         } catch (Exception e) {
-            mostrarError("No se pudo cargar el ranking de clientes.", e);
+
+            mostrarError(
+                    "No se pudo cargar el ranking de clientes.",
+                    e
+            );
         }
     }
 
-    // =========================
+    // ==========================================
     // RANKING DE VOLUMEN ENVIADO
-    // =========================
+    // ==========================================
 
     private void cargarRankingVolumen() {
+
         try {
+
             Map<String, Double> volumenes = new HashMap<>();
             Map<String, String> nombresNeo = new HashMap<>();
 
-            Map<String, Double> capacidadPorContenedor = new HashMap<>();
-            for (Document contenedor : new ContenedorMongoDAO().listarTodos()) {
+            Map<String, Double> capacidadPorContenedor =
+                    new HashMap<>();
+
+            for (Document contenedor :
+                    new ContenedorMongoDAO().listarTodos()) {
+
                 String id = idTexto(contenedor.get("_id"));
+
                 Object capacidad = contenedor.get("capacidad");
-                if (id != null && capacidad instanceof Number numero) {
-                    capacidadPorContenedor.put(id, numero.doubleValue());
+
+                if (id != null
+                        && capacidad instanceof Number numero) {
+
+                    capacidadPorContenedor.put(
+                            id,
+                            numero.doubleValue()
+                    );
                 }
             }
 
             for (Map<String, Object> envio : neo4j.listarEnvios()) {
+
                 Object cliente = envio.get("clienteId");
-                if (cliente == null) continue;
+
+                if (cliente == null) {
+                    continue;
+                }
 
                 String clienteId = cliente.toString();
+
                 volumenes.putIfAbsent(clienteId, 0.0);
+
                 Object nombre = envio.get("cliente");
-                if (nombre != null && !nombre.toString().isBlank()) {
-                    nombresNeo.put(clienteId, nombre.toString());
+
+                if (nombre != null
+                        && !nombre.toString().isBlank()) {
+
+                    nombresNeo.put(
+                            clienteId,
+                            nombre.toString()
+                    );
                 }
 
                 Object ids = envio.get("contenedoresIds");
+
                 if (ids instanceof Iterable<?> contenedores) {
+
                     for (Object contenedorId : contenedores) {
+
                         if (contenedorId != null) {
-                            double capacidad = capacidadPorContenedor.getOrDefault(
-                                    contenedorId.toString(), 0.0);
-                            volumenes.merge(clienteId, capacidad, Double::sum);
+
+                            double capacidad =
+                                    capacidadPorContenedor.getOrDefault(
+                                            contenedorId.toString(),
+                                            0.0
+                                    );
+
+                            volumenes.merge(
+                                    clienteId,
+                                    capacidad,
+                                    Double::sum
+                            );
                         }
                     }
                 }
             }
 
             List<Document> clientes = mongo.listarClientes();
+
             Map<String, String> nombresMongo = new HashMap<>();
+
             for (Document cliente : clientes) {
+
                 String id = idTexto(cliente.get("_id"));
+
                 if (id != null) {
-                    nombresMongo.put(id, cliente.getString("razon_social"));
+
+                    nombresMongo.put(
+                            id,
+                            cliente.getString("razon_social")
+                    );
                 }
             }
 
-            List<Map.Entry<String, Double>> ranking = new ArrayList<>(volumenes.entrySet());
-            ranking.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+            List<Map.Entry<String, Double>> ranking =
+                    new ArrayList<>(volumenes.entrySet());
+
+            ranking.sort(
+                    (a, b) -> Double.compare(
+                            b.getValue(),
+                            a.getValue()
+                    )
+            );
 
             DefaultTableModel modelo =
-                    (DefaultTableModel) view.getTablaRankingVolumen().getModel();
+                    (DefaultTableModel)
+                            view.getTablaRankingVolumen().getModel();
+
             modelo.setRowCount(0);
 
             int posicion = 1;
-            java.text.NumberFormat formato = java.text.NumberFormat.getNumberInstance(
-                    java.util.Locale.forLanguageTag("es-AR"));
+
+            java.text.NumberFormat formato =
+                    java.text.NumberFormat.getNumberInstance(
+                            java.util.Locale.forLanguageTag("es-AR")
+                    );
+
             formato.setMaximumFractionDigits(2);
             formato.setMinimumFractionDigits(0);
+
             for (Map.Entry<String, Double> entrada : ranking) {
+
                 String clienteId = entrada.getKey();
+
                 modelo.addRow(new Object[]{
                         posicion++,
-                        nombresNeo.getOrDefault(clienteId,
-                                nombresMongo.getOrDefault(clienteId, clienteId)),
+                        nombresNeo.getOrDefault(
+                                clienteId,
+                                nombresMongo.getOrDefault(
+                                        clienteId,
+                                        clienteId
+                                )
+                        ),
                         formato.format(entrada.getValue())
                 });
             }
+
         } catch (Exception e) {
-            mostrarError("No se pudo cargar el ranking de volumen por cliente.", e);
+
+            mostrarError(
+                    "No se pudo cargar el ranking de volumen por cliente.",
+                    e
+            );
         }
     }
 
+    // ==========================================
+    // CONVERTIR ID A TEXTO
+    // ==========================================
+
     private String idTexto(Object id) {
+
         if (id instanceof ObjectId objectId) {
             return objectId.toHexString();
         }
+
         return id == null ? null : id.toString();
     }
 
-    // =========================
+    // ==========================================
     // PREPARAR NUEVO CLIENTE
-    // =========================
+    // ==========================================
 
     private void prepararNuevoCliente() {
+
         clienteEditandoId = null;
+
         view.limpiarFormulario();
         view.getBtnAgregar().setText("Guardar cliente");
         view.mostrarFormulario();
     }
 
-    // =========================
+    // ==========================================
     // EDITAR CLIENTE
-    // =========================
+    // ==========================================
 
     private void editarClienteSeleccionado() {
+
         int fila = view.getTablaClientes().getSelectedRow();
+
         if (fila < 0) {
+
             JOptionPane.showMessageDialog(
-                    view, "Seleccioná un cliente para editar.",
-                    "Clientes", JOptionPane.WARNING_MESSAGE
+                    view,
+                    "Seleccioná un cliente para editar.",
+                    "Clientes",
+                    JOptionPane.WARNING_MESSAGE
             );
+
             return;
         }
 
         try {
-            int filaModelo = view.getTablaClientes().convertRowIndexToModel(fila);
-            clienteEditandoId = clientesIds.get(filaModelo);
-            Document cliente = mongo.consultarClientePorId(clienteEditandoId);
-            if (cliente == null) {
-                throw new IllegalStateException("No se encontró el cliente seleccionado.");
-            }
-            Document direccion = cliente.get("direccion", Document.class);
 
-            view.getTxtRazonSocial().setText(cliente.getString("razon_social"));
-            view.getTxtCuit().setText(cliente.getString("cuit"));
-            view.getTxtEmail().setText(cliente.getString("email"));
-            view.getTxtTelefono().setText(cliente.getString("telefono"));
-            view.getTxtPais().setText(cliente.getString("pais"));
+            int filaModelo =
+                    view.getTablaClientes().convertRowIndexToModel(fila);
+
+            clienteEditandoId = clientesIds.get(filaModelo);
+
+            Document cliente =
+                    mongo.consultarClientePorId(clienteEditandoId);
+
+            if (cliente == null) {
+
+                throw new IllegalStateException(
+                        "No se encontró el cliente seleccionado."
+                );
+            }
+
+            Document direccion =
+                    cliente.get("direccion", Document.class);
+
+            view.getTxtRazonSocial().setText(
+                    cliente.getString("razon_social")
+            );
+
+            view.getTxtCuit().setText(
+                    cliente.getString("cuit")
+            );
+
+            view.getTxtEmail().setText(
+                    cliente.getString("email")
+            );
+
+            view.getTxtTelefono().setText(
+                    cliente.getString("telefono")
+            );
+
+            view.getTxtPais().setText(
+                    cliente.getString("pais")
+            );
 
             if (direccion != null) {
-                view.getTxtCalle().setText(direccion.getString("calle"));
-                view.getTxtNumero().setText(direccion.getString("numero"));
-                view.getTxtCiudad().setText(direccion.getString("ciudad"));
-                view.getTxtCodigoPostal().setText(direccion.getString("codigo_postal"));
+
+                view.getTxtCalle().setText(
+                        direccion.getString("calle")
+                );
+
+                view.getTxtNumero().setText(
+                        direccion.getString("numero")
+                );
+
+                view.getTxtCiudad().setText(
+                        direccion.getString("ciudad")
+                );
+
+                view.getTxtCodigoPostal().setText(
+                        direccion.getString("codigo_postal")
+                );
+
             } else {
+
                 view.getTxtCalle().setText("");
                 view.getTxtNumero().setText("");
                 view.getTxtCiudad().setText("");
@@ -287,62 +528,117 @@ public class ClientesPanelController {
 
             view.getBtnAgregar().setText("Guardar cambios");
             view.mostrarFormulario();
+
         } catch (Exception e) {
-            mostrarError("No se pudo cargar el cliente.", e);
+
+            mostrarError(
+                    "No se pudo cargar el cliente.",
+                    e
+            );
         }
     }
 
-    // =========================
+    // ==========================================
     // GUARDAR CLIENTE
-    // =========================
+    // ==========================================
 
     private void guardarCliente() {
-        String razonSocial = view.getTxtRazonSocial().getText().trim();
-        String cuit = view.getTxtCuit().getText().trim();
-        String email = view.getTxtEmail().getText().trim();
-        String telefono = view.getTxtTelefono().getText().trim();
-        String calle = view.getTxtCalle().getText().trim();
-        String numero = view.getTxtNumero().getText().trim();
-        String ciudad = view.getTxtCiudad().getText().trim();
-        String codigoPostal = view.getTxtCodigoPostal().getText().trim();
-        String pais = view.getTxtPais().getText().trim();
+
+        String razonSocial =
+                view.getTxtRazonSocial().getText().trim();
+
+        String cuit =
+                view.getTxtCuit().getText().trim();
+
+        String email =
+                view.getTxtEmail().getText().trim();
+
+        String telefono =
+                view.getTxtTelefono().getText().trim();
+
+        String calle =
+                view.getTxtCalle().getText().trim();
+
+        String numero =
+                view.getTxtNumero().getText().trim();
+
+        String ciudad =
+                view.getTxtCiudad().getText().trim();
+
+        String codigoPostal =
+                view.getTxtCodigoPostal().getText().trim();
+
+        String pais =
+                view.getTxtPais().getText().trim();
 
         try {
+
             if (clienteEditandoId == null) {
+
                 mongo.crearCliente(
-                        razonSocial, cuit, email, telefono,
-                        calle, numero, ciudad, codigoPostal, pais
+                        razonSocial,
+                        cuit,
+                        email,
+                        telefono,
+                        calle,
+                        numero,
+                        ciudad,
+                        codigoPostal,
+                        pais
                 );
+
                 JOptionPane.showMessageDialog(
-                        view, "Cliente agregado correctamente.",
-                        "Clientes", JOptionPane.INFORMATION_MESSAGE
+                        view,
+                        "Cliente agregado correctamente.",
+                        "Clientes",
+                        JOptionPane.INFORMATION_MESSAGE
                 );
+
             } else {
-                Document actual = mongo.consultarClientePorId(clienteEditandoId);
+
+                Document actual =
+                        mongo.consultarClientePorId(clienteEditandoId);
+
                 if (actual == null) {
-                    throw new IllegalStateException("No se encontró el cliente para modificar.");
+
+                    throw new IllegalStateException(
+                            "No se encontró el cliente para modificar."
+                    );
                 }
+
                 String estado = actual.getString("estado");
+
                 if (estado == null || estado.isBlank()) {
                     estado = "ACTIVO";
                 }
 
                 mongo.modificarCliente(
-                        clienteEditandoId, razonSocial, cuit, email, telefono,
-                        calle, numero, ciudad, codigoPostal, pais, estado
+                        clienteEditandoId,
+                        razonSocial,
+                        cuit,
+                        email,
+                        telefono,
+                        calle,
+                        numero,
+                        ciudad,
+                        codigoPostal,
+                        pais,
+                        estado
                 );
+
                 JOptionPane.showMessageDialog(
-                        view, "Cliente modificado correctamente.",
-                        "Clientes", JOptionPane.INFORMATION_MESSAGE
+                        view,
+                        "Cliente modificado correctamente.",
+                        "Clientes",
+                        JOptionPane.INFORMATION_MESSAGE
                 );
             }
 
-            clienteEditandoId = null;
-            view.limpiarFormulario();
-            view.getBtnAgregar().setText("Guardar cliente");
-            view.ocultarFormulario();
+            cancelar();
             cargarClientes();
+
         } catch (Exception e) {
+
             mostrarError(
                     clienteEditandoId == null
                             ? "No se pudo agregar el cliente."
@@ -352,69 +648,152 @@ public class ClientesPanelController {
         }
     }
 
-    // =========================
-    // ELIMINAR CLIENTE
-    // =========================
+    // ==========================================
+    // ACTIVAR / DESACTIVAR CLIENTE
+    // ==========================================
 
-    private void eliminarClienteSeleccionado() {
+    private void cambiarEstadoClienteSeleccionado() {
+
         int fila = view.getTablaClientes().getSelectedRow();
+
         if (fila < 0) {
+
             JOptionPane.showMessageDialog(
-                    view, "Seleccioná un cliente para eliminar.",
-                    "Clientes", JOptionPane.WARNING_MESSAGE
+                    view,
+                    "Seleccioná un cliente.",
+                    "Clientes",
+                    JOptionPane.WARNING_MESSAGE
             );
-            return;
-        }
 
-        int filaModelo = view.getTablaClientes().convertRowIndexToModel(fila);
-        String clienteId = clientesIds.get(filaModelo);
-        String razonSocial = String.valueOf(
-                view.getTablaClientes().getModel().getValueAt(filaModelo, 1)
-        );
-
-        int opcion = JOptionPane.showConfirmDialog(
-                view,
-                "¿Seguro que querés eliminar al cliente \"" + razonSocial + "\"?",
-                "Eliminar cliente",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
-
-        if (opcion != JOptionPane.YES_OPTION) {
             return;
         }
 
         try {
-            mongo.eliminarCliente(clienteId);
-            JOptionPane.showMessageDialog(
-                    view, "Cliente eliminado correctamente.",
-                    "Clientes", JOptionPane.INFORMATION_MESSAGE
+
+            int filaModelo =
+                    view.getTablaClientes().convertRowIndexToModel(fila);
+
+            String clienteId = clientesIds.get(filaModelo);
+
+            if (clienteId == null) {
+
+                throw new IllegalStateException(
+                        "El cliente seleccionado no tiene un ID válido."
+                );
+            }
+
+            Document cliente =
+                    mongo.consultarClientePorId(clienteId);
+
+            if (cliente == null) {
+
+                throw new IllegalStateException(
+                        "No se encontró el cliente seleccionado."
+                );
+            }
+
+            String estadoActual = cliente.getString("estado");
+
+            boolean estaInactivo =
+                    "INACTIVO".equalsIgnoreCase(estadoActual);
+
+            String nuevoEstado =
+                    estaInactivo ? "ACTIVO" : "INACTIVO";
+
+            String accion =
+                    estaInactivo ? "reactivar" : "desactivar";
+
+            String razonSocial =
+                    cliente.getString("razon_social");
+
+            int opcion = JOptionPane.showConfirmDialog(
+                    view,
+                    "¿Querés " + accion + " al cliente \""
+                            + razonSocial + "\"?\n\n"
+                            + "Se conservarán sus facturas, pagos, "
+                            + "cuenta corriente e historial.",
+                    estaInactivo
+                            ? "Reactivar cliente"
+                            : "Desactivar cliente",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
             );
+
+            if (opcion != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            // ==========================================
+            // CAMBIO CORREGIDO
+            // ==========================================
+            // Cambiamos solamente el estado.
+            // No se vuelven a validar los CUIT históricos.
+            //
+            // ClienteService verifica automáticamente
+            // las facturas impagas y los envíos activos
+            // antes de permitir la desactivación.
+
+            ClienteService clienteService =
+                    new ClienteService();
+
+            clienteService.cambiarEstadoCliente(
+                    clienteId,
+                    nuevoEstado
+            );
+
+            // ==========================================
+            // CONFIRMACIÓN
+            // ==========================================
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    estaInactivo
+                            ? "Cliente reactivado correctamente."
+                            : "Cliente desactivado correctamente.",
+                    "Clientes",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
             clienteEditandoId = null;
+
             view.limpiarFormulario();
             view.ocultarFormulario();
+
             cargarClientes();
+
         } catch (Exception e) {
-            mostrarError("No se pudo eliminar el cliente.", e);
+
+            mostrarError(
+                    "No se pudo cambiar el estado del cliente.",
+                    e
+            );
         }
     }
 
-    // =========================
+    // ==========================================
     // CANCELAR
-    // =========================
+    // ==========================================
 
     private void cancelar() {
+
         clienteEditandoId = null;
+
         view.limpiarFormulario();
+
         view.getBtnAgregar().setText("Guardar cliente");
+
         view.ocultarFormulario();
     }
 
-    // =========================
-    // ERROR
-    // =========================
+    // ==========================================
+    // MOSTRAR ERROR
+    // ==========================================
 
-    private void mostrarError(String mensaje, Exception e) {
+    private void mostrarError(
+            String mensaje,
+            Exception e
+    ) {
+
         JOptionPane.showMessageDialog(
                 view,
                 mensaje + "\n\n" + e.getMessage(),

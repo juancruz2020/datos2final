@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1830" viewBox="0 0 2400 1830">
+<rect width="100%" height="100%" fill="white"/>
+<rect x="80" y="64" width="12" height="95" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="120" y="60" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="52" font-weight="700" fill="#18304e">Monitoreo · Entidades y referencias entre motores</text>
+<text x="120" y="132" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#50647a">Vista conceptual: maestros MongoDB, referencias por identificador y proyecciones físicas en Cassandra.</text>
+<text x="2043.046875" y="190" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#50647a">DATOS2FINAL · 01/11/2026</text>
+<rect x="80" y="250" width="900" height="330" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="251" width="898" height="68" rx="14" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<rect x="81" y="290" width="898" height="29" rx="0" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<text x="102" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">contenedores · MongoDB</text>
+<text x="104" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">_id: ObjectId</text>
+<text x="104" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">codigo_internacional, tipo, estado: String</text>
+<text x="104" y="430" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">capacidad: Double</text>
+<text x="104" y="473" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">envio_asignado: String (opcional)</text>
+<rect x="1420" y="250" width="900" height="330" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="1421" y="251" width="898" height="68" rx="14" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<rect x="1421" y="290" width="898" height="29" rx="0" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<text x="1442" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">sensores · MongoDB</text>
+<text x="1444" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">_id: ObjectId · codigo: String</text>
+<text x="1444" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">contenedor_id: ObjectId</text>
+<text x="1444" y="430" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">tipo, fabricante, estado: String</text>
+<text x="1444" y="473" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">fecha_instalacion: Date</text>
+<polyline points="1420,405 980,405" fill="none" stroke="#087d78" stroke-width="4" stroke-dasharray="11 9"/>
+<polygon points="980,405 999.0,414.0 999.0,396.0" fill="#087d78"/>
+<rect x="1051.5" y="353" width="297.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1063.5" y="360" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#087d78">contenedor_id → _id</text>
+<text x="1102.0" y="450" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="25" font-weight="400" fill="#50647a">Referencia lógica</text>
+<rect x="560" y="820" width="1280" height="360" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="561" y="821" width="1278" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="561" y="860" width="1278" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="582" y="839" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">Lectura IoT · registro conceptual</text>
+<text x="584" y="914" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">sensor_id, contenedor_id: texto de los ObjectId MongoDB</text>
+<text x="584" y="957" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">fecha_dia: date · fecha_hora: timestamp</text>
+<text x="584" y="1000" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">temperatura, humedad, vibracion, bateria: decimal</text>
+<text x="584" y="1043" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">latitud, longitud: decimal · pais, region: text</text>
+<text x="584" y="1086" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Una lectura produce dos registros y actualiza dos agregados.</text>
+<polyline points="530,580 530,690 850,690 850,820" fill="none" stroke="#087d78" stroke-width="4" stroke-dasharray="11 9"/>
+<polygon points="850,820 859.0,801.0 841.0,801.0" fill="#087d78"/>
+<rect x="611.5" y="643" width="297.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="623.5" y="650" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#087d78">_id → contenedor_id</text>
+<polyline points="1870,580 1870,690 1550,690 1550,820" fill="none" stroke="#087d78" stroke-width="4" stroke-dasharray="11 9"/>
+<polygon points="1550,820 1559.0,801.0 1541.0,801.0" fill="#087d78"/>
+<rect x="1511.5" y="643" width="237.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1523.5" y="650" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#087d78">_id → sensor_id</text>
+<rect x="80" y="1350" width="1040" height="270" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="1351" width="1038" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="81" y="1390" width="1038" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="102" y="1369" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">lecturas_sensor · Cassandra</text>
+<text x="104" y="1444" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">PK: ((sensor_id, fecha_dia), fecha_hora)</text>
+<text x="104" y="1487" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Registro completo de monitoreo.</text>
+<text x="104" y="1530" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Historial por sensor, día y hora.</text>
+<rect x="1280" y="1350" width="1040" height="270" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="1281" y="1351" width="1038" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="1281" y="1390" width="1038" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="1302" y="1369" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">posiciones_sensor · Cassandra</text>
+<text x="1304" y="1444" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">PK: ((sensor_id), fecha_hora)</text>
+<text x="1304" y="1487" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Proyección GPS: coordenadas, país y región.</text>
+<text x="1304" y="1530" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Conserva sensor_id y contenedor_id.</text>
+<polyline points="850,1180 850,1260 600,1260 600,1350" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="600,1350 609.0,1331.0 591.0,1331.0" fill="#70869a"/>
+<rect x="487.0" y="1213" width="266.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="499.0" y="1220" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">Registro completo</text>
+<polyline points="1550,1180 1550,1260 1800,1260 1800,1350" fill="none" stroke="#70869a" stroke-width="4" stroke-dasharray="none"/>
+<polygon points="1800,1350 1809.0,1331.0 1791.0,1331.0" fill="#70869a"/>
+<rect x="1671.5" y="1213" width="237.0" height="43" rx="5" fill="white" stroke="white" stroke-width="2"/>
+<text x="1683.5" y="1220" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="700" fill="#18304e">Proyección GPS</text>
+<text x="80" y="1670" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Las flechas discontinuas indican referencias lógicas; no hay claves foráneas entre motores.</text>
+<text x="80" y="1715" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">El servicio exige IDs no vacíos; no comprueba su existencia ni la asociación sensor–contenedor en MongoDB.</text>
+<text x="80" y="1760" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">País y región son dimensiones de métricas, sin tablas maestras propias en Cassandra. Ver ChebotkoCassandra.</text>
+</svg>

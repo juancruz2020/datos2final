@@ -66,7 +66,8 @@ public final class ValidacionesRegistro {
 
     public static void telefono(String valor) {
 
-        if (valor == null || !valor.matches("^[0-9]{10}$")) {
+        if (valor == null
+                || !valor.trim().matches("^[0-9]{10}$")) {
 
             throw new IllegalArgumentException(
                     "El teléfono debe contener exactamente "
@@ -81,14 +82,40 @@ public final class ValidacionesRegistro {
     // ==========================================
 
     public static void cuit(String valor) {
+        normalizarCuit(valor);
+    }
 
-        if (valor == null || !valor.matches("^[0-9]{11}$")) {
+    // ==========================================
+    // NORMALIZAR Y VALIDAR CUIT / CUIL
+    // ==========================================
+
+    public static String normalizarCuit(String valor) {
+
+        if (valor == null || valor.isBlank()) {
 
             throw new IllegalArgumentException(
-                    "El CUIT/CUIL debe contener exactamente "
-                            + "11 números, sin guiones."
+                    "El CUIT/CUIL es obligatorio."
             );
         }
+
+        String cuit = valor.trim();
+
+        // Acepta 11 números con o sin guiones.
+
+        if (!cuit.matches("^[0-9]{11}$")
+                && !cuit.matches(
+                        "^[0-9]{2}-[0-9]{8}-[0-9]$"
+                )) {
+
+            throw new IllegalArgumentException(
+                    "El CUIT/CUIL debe tener 11 números, "
+                            + "con o sin guiones."
+            );
+        }
+
+        // Eliminar guiones para validar y guardar.
+
+        String numeros = cuit.replace("-", "");
 
         int[] pesos = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
 
@@ -96,7 +123,7 @@ public final class ValidacionesRegistro {
 
         for (int i = 0; i < 10; i++) {
 
-            suma += (valor.charAt(i) - '0') * pesos[i];
+            suma += (numeros.charAt(i) - '0') * pesos[i];
         }
 
         int digito = 11 - (suma % 11);
@@ -105,14 +132,19 @@ public final class ValidacionesRegistro {
             digito = 0;
         }
 
+        // Un resultado de 10 no corresponde a
+        // un dígito verificador válido.
+
         if (digito == 10
-                || digito != valor.charAt(10) - '0') {
+                || digito != numeros.charAt(10) - '0') {
 
             throw new IllegalArgumentException(
                     "El CUIT/CUIL no es válido. "
                             + "Revisá el dígito verificador."
             );
         }
+
+        return numeros;
     }
 
     // ==========================================
@@ -139,7 +171,7 @@ public final class ValidacionesRegistro {
     public static void numeroDomicilio(String valor) {
 
         if (valor == null
-                || !valor.matches("^[0-9]{1,6}$")) {
+                || !valor.trim().matches("^[0-9]{1,6}$")) {
 
             throw new IllegalArgumentException(
                     "El número de domicilio debe contener "
@@ -155,10 +187,11 @@ public final class ValidacionesRegistro {
     public static void codigoPostal(String valor) {
 
         if (valor == null
-                || !valor.trim().toUpperCase(Locale.ROOT)
-                .matches(
-                        "^(?:[0-9]{4}|[A-Z][0-9]{4}[A-Z]{3})$"
-                )) {
+                || !valor.trim()
+                        .toUpperCase(Locale.ROOT)
+                        .matches(
+                                "^(?:[0-9]{4}|[A-Z][0-9]{4}[A-Z]{3})$"
+                        )) {
 
             throw new IllegalArgumentException(
                     "El código postal debe tener 4 números "

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1910" viewBox="0 0 2400 1910">
+<rect width="100%" height="100%" fill="white"/>
+<rect x="80" y="64" width="12" height="95" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="120" y="60" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="52" font-weight="700" fill="#18304e">Cassandra · Modelo físico orientado a consultas</text>
+<text x="120" y="132" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#50647a">Keyspace logistica · K = partición · C↓ = clustering DESC · columnas sin marca = datos.</text>
+<text x="2043.046875" y="190" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="22" font-weight="400" fill="#50647a">DATOS2FINAL · 01/11/2026</text>
+<rect x="80" y="250" width="1080" height="650" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="251" width="1078" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="81" y="290" width="1078" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="102" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">lecturas_sensor</text>
+<text x="104" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">K    sensor_id: text</text>
+<text x="104" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">K    fecha_dia: date</text>
+<text x="104" y="430" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">C↓  fecha_hora: timestamp</text>
+<text x="104" y="473" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">contenedor_id: text</text>
+<text x="104" y="516" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">temperatura, humedad, vibracion: decimal</text>
+<text x="104" y="559" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">latitud, longitud, bateria: decimal</text>
+<text x="104" y="602" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">pais, region: text</text>
+<text x="104" y="645" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Q1: historial por sensor y día; intervalo horario</text>
+<text x="104" y="688" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Q2: temperatura y batería por sensor y día</text>
+<rect x="1240" y="250" width="1080" height="650" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="1241" y="251" width="1078" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="1241" y="290" width="1078" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="1262" y="269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">posiciones_sensor</text>
+<text x="1264" y="344" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">K    sensor_id: text</text>
+<text x="1264" y="387" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">C↓  fecha_hora: timestamp</text>
+<text x="1264" y="430" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">contenedor_id: text</text>
+<text x="1264" y="473" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">latitud, longitud: decimal</text>
+<text x="1264" y="516" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">pais, region: text</text>
+<text x="1264" y="559" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Q3: GPS por sensor en [inicio UTC, día siguiente)</text>
+<text x="1264" y="602" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">La partición abarca todos los días del sensor.</text>
+<text x="1264" y="645" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">La tabla no incluye fecha_dia.</text>
+<rect x="80" y="960" width="1080" height="430" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="961" width="1078" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="81" y="1000" width="1078" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="102" y="979" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">metricas_iot_region_dia</text>
+<text x="104" y="1054" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">K    region: text</text>
+<text x="104" y="1097" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">C↓  fecha_dia: date</text>
+<text x="104" y="1140" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">temperatura_min, temperatura_max: decimal</text>
+<text x="104" y="1183" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">humedad_promedio: decimal</text>
+<text x="104" y="1226" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">cantidad_lecturas: bigint</text>
+<text x="104" y="1269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Q4: métricas por región y rango de días</text>
+<rect x="1240" y="960" width="1080" height="430" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="1241" y="961" width="1078" height="68" rx="14" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<rect x="1241" y="1000" width="1078" height="29" rx="0" fill="#235c9e" stroke="#235c9e" stroke-width="2"/>
+<text x="1262" y="979" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">metricas_iot_pais_dia</text>
+<text x="1264" y="1054" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">K    pais: text</text>
+<text x="1264" y="1097" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">C↓  fecha_dia: date</text>
+<text x="1264" y="1140" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">humedad_promedio: decimal</text>
+<text x="1264" y="1183" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">temperatura_promedio: decimal</text>
+<text x="1264" y="1226" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">cantidad_lecturas: bigint</text>
+<text x="1264" y="1269" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Q5: métricas por país y rango de días</text>
+<rect x="80" y="1450" width="720" height="300" rx="16" fill="#f7f9fc" stroke="#b8c6d3" stroke-width="2"/>
+<rect x="81" y="1451" width="718" height="68" rx="14" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<rect x="81" y="1490" width="718" height="29" rx="0" fill="#087d78" stroke="#087d78" stroke-width="2"/>
+<text x="102" y="1469" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="31" font-weight="700" fill="white">alertas</text>
+<text x="104" y="1544" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">K    id: text</text>
+<text x="104" y="1587" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">nombre, descripcion: text</text>
+<text x="104" y="1630" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Q6: listar catálogo de tipos de alerta</text>
+<text x="104" y="1673" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="28" font-weight="400" fill="#18304e">Catálogo independiente del monitoreo.</text>
+<text x="870" y="1460" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="30" font-weight="700" fill="#235c9e">ESCRITURA DEL MONITOREO</text>
+<text x="870" y="1520" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Un batch LOGGED agrupa lectura, posición y las dos métricas.</text>
+<text x="870" y="1565" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Los agregados se calculan con lecturas previas al batch.</text>
+<text x="870" y="1610" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Sin aislamiento para ese cálculo: pueden perderse actualizaciones</text>
+<text x="870" y="1655" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">concurrentes o contarse dos veces las lecturas reinsertadas.</text>
+<text x="80" y="1805" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="27" font-weight="400" fill="#18304e">Sin claves foráneas, índices secundarios ni TTL en el DDL. Las vistas también ejecutan SELECT sin filtro.</text>
+<text x="80" y="1850" dominant-baseline="text-before-edge" font-family="Arial, DejaVu Sans, sans-serif" font-size="25" font-weight="400" fill="#50647a">Fuentes: CrearTablasMonitoreo, CrearTablaAlertas, ConsultasCassandraMonitoreo y AlertasCassandraDAO.</text>
+</svg>

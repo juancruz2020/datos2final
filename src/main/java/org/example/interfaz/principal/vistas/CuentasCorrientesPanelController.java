@@ -13,6 +13,7 @@ import org.bson.types.ObjectId;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -38,6 +39,7 @@ public class CuentasCorrientesPanelController {
     private final MovimientoCuentaCorrienteMongoDAO movimientoDAO;
 
     private final List<String> cuentasIds;
+    private final List<Boolean> cuentasInactivas;
 
     private final boolean proveedor;
     private final String proveedorId;
@@ -60,6 +62,7 @@ public class CuentasCorrientesPanelController {
         movimientoDAO = new MovimientoCuentaCorrienteMongoDAO();
 
         cuentasIds = new ArrayList<>();
+        cuentasInactivas = new ArrayList<>();
 
         if (!permisosService.puedeAccederVista(
                 usuarioId,
@@ -81,6 +84,7 @@ public class CuentasCorrientesPanelController {
             view.getCmbTipoCuenta().setEnabled(false);
         }
 
+        configurarTabla();
         configurarEventos();
         actualizarBotones();
         cargarCuentas();
@@ -120,6 +124,93 @@ public class CuentasCorrientesPanelController {
             actualizarBotones();
             cargarCuentas();
         });
+
+        view.getTablaCuentas()
+                .getSelectionModel()
+                .addListSelectionListener(e -> {
+
+                    if (!e.getValueIsAdjusting()) {
+                        actualizarBotones();
+                    }
+                });
+    }
+
+    // =========================================
+    // CONFIGURAR COLORES DE LA TABLA
+    // =========================================
+
+    private void configurarTabla() {
+
+        DefaultTableCellRenderer renderer =
+                new DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable tabla,
+                            Object valor,
+                            boolean seleccionado,
+                            boolean tieneFoco,
+                            int fila,
+                            int columna
+                    ) {
+
+                        Component componente =
+                                super.getTableCellRendererComponent(
+                                        tabla,
+                                        valor,
+                                        seleccionado,
+                                        tieneFoco,
+                                        fila,
+                                        columna
+                                );
+
+                        int filaModelo =
+                                tabla.convertRowIndexToModel(fila);
+
+                        boolean inactiva =
+                                filaModelo >= 0
+                                && filaModelo < cuentasInactivas.size()
+                                && cuentasInactivas.get(filaModelo);
+
+                        if (seleccionado) {
+
+                            componente.setBackground(
+                                    tabla.getSelectionBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getSelectionForeground()
+                            );
+
+                        } else if (inactiva) {
+
+                            componente.setBackground(
+                                    new Color(235, 235, 235)
+                            );
+
+                            componente.setForeground(
+                                    new Color(130, 130, 130)
+                            );
+
+                        } else {
+
+                            componente.setBackground(
+                                    tabla.getBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getForeground()
+                            );
+                        }
+
+                        return componente;
+                    }
+                };
+
+        view.getTablaCuentas().setDefaultRenderer(
+                Object.class,
+                renderer
+        );
     }
 
     // =========================================
@@ -159,8 +250,87 @@ public class CuentasCorrientesPanelController {
         view.getBtnVerMovimientos().setVisible(true);
         view.getBtnVerCierres().setVisible(true);
 
+        boolean cuentaActiva = !cuentaSeleccionadaInactiva();
+
+        view.getBtnRegistrarDebito().setEnabled(
+                puedeModificar
+                        && !mostrandoProveedores
+                        && cuentaActiva
+        );
+
+        view.getBtnRegistrarCredito().setEnabled(
+                puedeModificar
+                        && !mostrandoProveedores
+                        && cuentaActiva
+        );
+
+        view.getBtnGenerarCierre().setEnabled(
+                puedeModificar && cuentaActiva
+        );
+
         view.revalidate();
         view.repaint();
+    }
+
+    // =========================================
+    // VERIFICAR CUENTA INACTIVA SELECCIONADA
+    // =========================================
+
+    private boolean cuentaSeleccionadaInactiva() {
+
+        int filaVista =
+                view.getTablaCuentas().getSelectedRow();
+
+        if (filaVista < 0) {
+            return false;
+        }
+
+        int filaModelo =
+                view.getTablaCuentas()
+                        .convertRowIndexToModel(filaVista);
+
+        if (filaModelo < 0
+                || filaModelo >= cuentasInactivas.size()) {
+            return false;
+        }
+
+        return cuentasInactivas.get(filaModelo);
+    }
+
+    // =========================================
+    // VERIFICAR ESTADO DEL TITULAR
+    // =========================================
+
+    private boolean titularInactivo(
+            ObjectId id,
+            boolean esProveedor
+    ) {
+
+        if (id == null) {
+            throw new IllegalStateException(
+                    "La cuenta no tiene un titular válido."
+            );
+        }
+
+        Document titular = esProveedor
+                ? mongo.buscarProveedorPorId(id.toHexString())
+                : mongo.consultarClientePorId(id.toHexString());
+
+        if (titular == null) {
+            throw new IllegalStateException(
+                    "No se encontró el titular de la cuenta."
+            );
+        }
+
+        String estado = titular.getString("estado");
+
+        if (estado == null || estado.isBlank()) {
+            throw new IllegalStateException(
+                    "No se pudo verificar el estado del titular."
+            );
+        }
+
+        return !"ACTIVO".equalsIgnoreCase(estado.trim());
     }
 
     // =========================================
@@ -170,10 +340,12 @@ public class CuentasCorrientesPanelController {
     private void cargarCuentas() {
 
         DefaultTableModel modelo =
-                (DefaultTableModel) view.getTablaCuentas().getModel();
+                (DefaultTableModel)
+                        view.getTablaCuentas().getModel();
 
         modelo.setRowCount(0);
         cuentasIds.clear();
+        cuentasInactivas.clear();
 
         try {
 
@@ -193,10 +365,14 @@ public class CuentasCorrientesPanelController {
                     .getColumnModel()
                     .getColumn(0)
                     .setHeaderValue(
-                            mostrandoProveedores ? "Proveedor" : "Cliente"
+                            mostrandoProveedores
+                                    ? "Proveedor"
+                                    : "Cliente"
                     );
 
-            view.getTablaCuentas().getTableHeader().repaint();
+            view.getTablaCuentas()
+                    .getTableHeader()
+                    .repaint();
 
             for (Document cuenta : cuentas) {
 
@@ -214,6 +390,7 @@ public class CuentasCorrientesPanelController {
                 }
 
                 String nombre;
+                boolean inactiva;
 
                 if (mostrandoProveedores) {
 
@@ -221,13 +398,20 @@ public class CuentasCorrientesPanelController {
                         continue;
                     }
 
-                    if (proveedor && !cuentaProveedorId
-                            .toHexString()
-                            .equals(proveedorId)) {
+                    if (proveedor
+                            && !cuentaProveedorId.toHexString()
+                                    .equals(proveedorId)) {
                         continue;
                     }
 
-                    nombre = obtenerNombreProveedor(cuentaProveedorId);
+                    nombre = obtenerNombreProveedor(
+                            cuentaProveedorId
+                    );
+
+                    inactiva = titularInactivo(
+                            cuentaProveedorId,
+                            true
+                    );
 
                 } else {
 
@@ -235,7 +419,14 @@ public class CuentasCorrientesPanelController {
                         continue;
                     }
 
-                    nombre = obtenerNombreCliente(clienteId);
+                    nombre = obtenerNombreCliente(
+                            clienteId
+                    );
+
+                    inactiva = titularInactivo(
+                            clienteId,
+                            false
+                    );
                 }
 
                 modelo.addRow(new Object[]{
@@ -247,6 +438,7 @@ public class CuentasCorrientesPanelController {
                 });
 
                 cuentasIds.add(cuentaId.toHexString());
+                cuentasInactivas.add(inactiva);
             }
 
             view.getLblEstado().setText(
@@ -255,6 +447,10 @@ public class CuentasCorrientesPanelController {
                             : "Cuentas de clientes: ")
                             + cuentasIds.size()
             );
+
+            view.getTablaCuentas().clearSelection();
+            actualizarBotones();
+            view.getTablaCuentas().repaint();
 
         } catch (Exception e) {
 
@@ -273,8 +469,8 @@ public class CuentasCorrientesPanelController {
 
         try {
 
-            // No se permite registrar movimientos
-            // de proveedores desde Cuentas Corrientes.
+            // No se permiten movimientos de proveedores
+            // desde la pantalla Cuentas Corrientes.
 
             if (view.mostrandoProveedores() || proveedor) {
                 throw new SecurityException(
@@ -308,10 +504,23 @@ public class CuentasCorrientesPanelController {
                 );
             }
 
-            String nombre = obtenerNombreCliente(clienteId);
+            // Comprobar el estado real en MongoDB,
+            // aunque la tabla no se haya actualizado.
+
+            if (titularInactivo(clienteId, false)) {
+                throw new IllegalStateException(
+                        "No se pueden registrar movimientos "
+                                + "porque el cliente está INACTIVO."
+                );
+            }
+
+            String nombre =
+                    obtenerNombreCliente(clienteId);
 
             String nombreMovimiento =
-                    "DEBITO".equals(tipo) ? "débito" : "crédito";
+                    "DEBITO".equals(tipo)
+                            ? "débito"
+                            : "crédito";
 
             JTextField txtImporte = new JTextField(20);
             JTextField txtDescripcion = new JTextField(20);
@@ -348,6 +557,15 @@ public class CuentasCorrientesPanelController {
 
             if (opcion != JOptionPane.OK_OPTION) {
                 return;
+            }
+
+            // Verificar nuevamente antes de registrar.
+
+            if (titularInactivo(clienteId, false)) {
+                throw new IllegalStateException(
+                        "No se puede registrar el movimiento "
+                                + "porque el cliente está INACTIVO."
+                );
             }
 
             String importeTexto = txtImporte
@@ -391,7 +609,8 @@ public class CuentasCorrientesPanelController {
                 return;
             }
 
-            if (descripcion.isEmpty() || referencia.isEmpty()) {
+            if (descripcion.isEmpty()
+                    || referencia.isEmpty()) {
 
                 JOptionPane.showMessageDialog(
                         view,
@@ -475,7 +694,8 @@ public class CuentasCorrientesPanelController {
                     );
                 }
 
-                movimientos = movimientoDAO.buscarPorCuenta(cuentaId);
+                movimientos =
+                        movimientoDAO.buscarPorCuenta(cuentaId);
 
             } else {
 
@@ -488,9 +708,10 @@ public class CuentasCorrientesPanelController {
                     );
                 }
 
-                movimientos = cuentaService.consultarHistorial(
-                        clienteId.toHexString()
-                );
+                movimientos =
+                        cuentaService.consultarHistorial(
+                                clienteId.toHexString()
+                        );
             }
 
             DefaultTableModel modelo = new DefaultTableModel(
@@ -505,7 +726,10 @@ public class CuentasCorrientesPanelController {
             ) {
 
                 @Override
-                public boolean isCellEditable(int row, int column) {
+                public boolean isCellEditable(
+                        int row,
+                        int column
+                ) {
                     return false;
                 }
             };
@@ -522,13 +746,16 @@ public class CuentasCorrientesPanelController {
 
                     if ("DEBITO".equals(tipo)) {
                         tipo = "FACTURA";
+
                     } else if ("CREDITO".equals(tipo)) {
                         tipo = "PAGO";
                     }
                 }
 
                 modelo.addRow(new Object[]{
-                        formatearFecha(movimiento.getDate("fecha")),
+                        formatearFecha(
+                                movimiento.getDate("fecha")
+                        ),
                         tipo,
                         movimiento.getString("descripcion"),
                         movimiento.getString("referencia_id"),
@@ -588,7 +815,10 @@ public class CuentasCorrientesPanelController {
             ) {
 
                 @Override
-                public boolean isCellEditable(int row, int column) {
+                public boolean isCellEditable(
+                        int row,
+                        int column
+                ) {
                     return false;
                 }
             };
@@ -640,9 +870,6 @@ public class CuentasCorrientesPanelController {
 
         try {
 
-            // Solo ADMIN y OPERADOR.
-            // Los proveedores únicamente consultan.
-
             permisosService.exigirAdminUOperador(usuarioId);
 
             String cuentaId = obtenerCuentaSeleccionada();
@@ -663,12 +890,27 @@ public class CuentasCorrientesPanelController {
                     view.mostrandoProveedores();
 
             ObjectId titularId = cuenta.getObjectId(
-                    mostrandoProveedores ? "proveedor_id" : "cliente_id"
+                    mostrandoProveedores
+                            ? "proveedor_id"
+                            : "cliente_id"
             );
 
             if (titularId == null) {
                 throw new IllegalStateException(
                         "La cuenta no tiene un titular asociado."
+                );
+            }
+
+            // Bloquear nuevos cierres de cuentas inactivas.
+
+            if (titularInactivo(
+                    titularId,
+                    mostrandoProveedores
+            )) {
+
+                throw new IllegalStateException(
+                        "No se puede generar un cierre mensual "
+                                + "porque el titular está INACTIVO."
                 );
             }
 
@@ -681,10 +923,18 @@ public class CuentasCorrientesPanelController {
 
             JComboBox<String> cmbMes = new JComboBox<>(
                     new String[]{
-                            "Enero", "Febrero", "Marzo",
-                            "Abril", "Mayo", "Junio",
-                            "Julio", "Agosto", "Septiembre",
-                            "Octubre", "Noviembre", "Diciembre"
+                            "Enero",
+                            "Febrero",
+                            "Marzo",
+                            "Abril",
+                            "Mayo",
+                            "Junio",
+                            "Julio",
+                            "Agosto",
+                            "Septiembre",
+                            "Octubre",
+                            "Noviembre",
+                            "Diciembre"
                     }
             );
 
@@ -727,6 +977,19 @@ public class CuentasCorrientesPanelController {
 
             if (opcion != JOptionPane.OK_OPTION) {
                 return;
+            }
+
+            // Verificar nuevamente antes de cerrar.
+
+            if (titularInactivo(
+                    titularId,
+                    mostrandoProveedores
+            )) {
+
+                throw new IllegalStateException(
+                        "No se puede generar el cierre porque "
+                                + "el titular está INACTIVO."
+                );
             }
 
             int mes = cmbMes.getSelectedIndex() + 1;
@@ -849,7 +1112,8 @@ public class CuentasCorrientesPanelController {
 
     private String obtenerCuentaSeleccionada() {
 
-        int filaVista = view.getTablaCuentas().getSelectedRow();
+        int filaVista =
+                view.getTablaCuentas().getSelectedRow();
 
         if (filaVista == -1) {
 
@@ -863,10 +1127,12 @@ public class CuentasCorrientesPanelController {
             return null;
         }
 
-        int filaModelo = view.getTablaCuentas()
-                .convertRowIndexToModel(filaVista);
+        int filaModelo =
+                view.getTablaCuentas()
+                        .convertRowIndexToModel(filaVista);
 
-        if (filaModelo < 0 || filaModelo >= cuentasIds.size()) {
+        if (filaModelo < 0
+                || filaModelo >= cuentasIds.size()) {
             return null;
         }
 
@@ -891,7 +1157,8 @@ public class CuentasCorrientesPanelController {
 
             if (cliente != null) {
 
-                String nombre = cliente.getString("razon_social");
+                String nombre =
+                        cliente.getString("razon_social");
 
                 if (nombre != null && !nombre.isBlank()) {
                     return nombre;
@@ -917,13 +1184,15 @@ public class CuentasCorrientesPanelController {
 
         try {
 
-            Document proveedor = mongo.buscarProveedorPorId(
-                    proveedorId.toHexString()
-            );
+            Document proveedor =
+                    mongo.buscarProveedorPorId(
+                            proveedorId.toHexString()
+                    );
 
             if (proveedor != null) {
 
-                String nombre = proveedor.getString("razon_social");
+                String nombre =
+                        proveedor.getString("razon_social");
 
                 if (nombre != null && !nombre.isBlank()) {
                     return nombre;
