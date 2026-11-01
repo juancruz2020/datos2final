@@ -11,6 +11,9 @@ import org.example.mongoDB.dao.ContenedorMongoDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.Color;
+import java.awt.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -37,10 +40,94 @@ public class ClientesPanelController {
         this.clientesIds = new ArrayList<>();
         this.clienteEditandoId = null;
 
+        configurarColoresTabla();
         configurarEventos();
         cargarClientes();
         cargarRankingEnvios();
         cargarRankingVolumen();
+    }
+
+    // ==========================================
+    // COLORES DE CLIENTES ACTIVOS E INACTIVOS
+    // ==========================================
+
+    private void configurarColoresTabla() {
+
+        DefaultTableCellRenderer renderer =
+                new DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable tabla,
+                            Object valor,
+                            boolean seleccionado,
+                            boolean tieneFoco,
+                            int fila,
+                            int columna
+                    ) {
+
+                        Component componente =
+                                super.getTableCellRendererComponent(
+                                        tabla,
+                                        valor,
+                                        seleccionado,
+                                        tieneFoco,
+                                        fila,
+                                        columna
+                                );
+
+                        int filaModelo =
+                                tabla.convertRowIndexToModel(fila);
+
+                        String estado = String.valueOf(
+                                tabla.getModel().getValueAt(
+                                        filaModelo,
+                                        7
+                                )
+                        );
+
+                        boolean inactivo =
+                                "INACTIVO".equalsIgnoreCase(estado);
+
+                        if (seleccionado) {
+
+                            componente.setBackground(
+                                    tabla.getSelectionBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getSelectionForeground()
+                            );
+
+                        } else if (inactivo) {
+
+                            componente.setBackground(
+                                    new Color(235, 235, 235)
+                            );
+
+                            componente.setForeground(
+                                    new Color(130, 130, 130)
+                            );
+
+                        } else {
+
+                            componente.setBackground(
+                                    tabla.getBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getForeground()
+                            );
+                        }
+
+                        return componente;
+                    }
+                };
+
+        view.getTablaClientes().setDefaultRenderer(
+                Object.class,
+                renderer
+        );
     }
 
     // ==========================================
@@ -130,6 +217,8 @@ public class ClientesPanelController {
             view.getLblEstado().setText(
                     "Clientes registrados: " + clientes.size()
             );
+
+            view.getTablaClientes().repaint();
 
             actualizarBotonEstado();
 
@@ -723,15 +812,10 @@ public class ClientesPanelController {
                 return;
             }
 
-            // ==========================================
-            // CAMBIO CORREGIDO
-            // ==========================================
             // Cambiamos solamente el estado.
             // No se vuelven a validar los CUIT históricos.
-            //
-            // ClienteService verifica automáticamente
-            // las facturas impagas y los envíos activos
-            // antes de permitir la desactivación.
+            // ClienteService verifica facturas impagas
+            // y envíos activos antes de desactivar.
 
             ClienteService clienteService =
                     new ClienteService();
@@ -740,10 +824,6 @@ public class ClientesPanelController {
                     clienteId,
                     nuevoEstado
             );
-
-            // ==========================================
-            // CONFIRMACIÓN
-            // ==========================================
 
             JOptionPane.showMessageDialog(
                     view,

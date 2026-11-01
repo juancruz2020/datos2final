@@ -13,6 +13,9 @@ import org.example.pdf.factura.FacturaPDFController;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -49,6 +52,10 @@ public class FacturacionPanelController {
     private final List<String> idsFacturas =
             new ArrayList<>();
 
+    // Guarda el estado del cliente de cada factura.
+    private final List<Boolean> clientesInactivos =
+            new ArrayList<>();
+
     private String rolActual;
     private String clienteIdActual;
 
@@ -71,10 +78,91 @@ public class FacturacionPanelController {
 
         cargarUsuarioActual();
         configurarEstados();
+        configurarColoresTabla();
         configurarEventos();
         configurarPermisos();
         cargarClientes();
         cargarFacturas();
+    }
+
+    // ==========================================
+    // CONFIGURAR COLORES DE LA TABLA
+    // ==========================================
+
+    private void configurarColoresTabla() {
+
+        DefaultTableCellRenderer renderer =
+                new DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable tabla,
+                            Object valor,
+                            boolean seleccionado,
+                            boolean tieneFoco,
+                            int fila,
+                            int columna
+                    ) {
+
+                        Component componente =
+                                super.getTableCellRendererComponent(
+                                        tabla,
+                                        valor,
+                                        seleccionado,
+                                        tieneFoco,
+                                        fila,
+                                        columna
+                                );
+
+                        int filaModelo =
+                                tabla.convertRowIndexToModel(fila);
+
+                        boolean inactivo =
+                                filaModelo >= 0
+                                && filaModelo < clientesInactivos.size()
+                                && clientesInactivos.get(filaModelo);
+
+                        if (seleccionado) {
+
+                            componente.setBackground(
+                                    tabla.getSelectionBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getSelectionForeground()
+                            );
+
+                        } else if (inactivo) {
+
+                            // Mismos colores que en Pagos
+                            // y Cuentas Corrientes.
+                            componente.setBackground(
+                                    new Color(235, 235, 235)
+                            );
+
+                            componente.setForeground(
+                                    new Color(130, 130, 130)
+                            );
+
+                        } else {
+
+                            componente.setBackground(
+                                    tabla.getBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getForeground()
+                            );
+                        }
+
+                        return componente;
+                    }
+                };
+
+        view.getTablaFacturas().setDefaultRenderer(
+                Object.class,
+                renderer
+        );
     }
 
     // ==========================================
@@ -288,14 +376,9 @@ public class FacturacionPanelController {
 
             for (Document cliente : clientes) {
 
-                // ======================================
-                // NUEVA VALIDACIÓN
-                // ======================================
-                // Los clientes INACTIVOS no aparecen
+                // Los clientes inactivos no aparecen
                 // al generar una factura nueva.
-                //
-                // Sus facturas anteriores se siguen
-                // mostrando en el historial.
+                // Sus facturas anteriores se mantienen.
 
                 String estadoCliente =
                         cliente.getString("estado");
@@ -351,6 +434,7 @@ public class FacturacionPanelController {
 
             modelo.setRowCount(0);
             idsFacturas.clear();
+            clientesInactivos.clear();
 
             SimpleDateFormat formato = crearFormatoFecha();
 
@@ -358,6 +442,34 @@ public class FacturacionPanelController {
 
                 ObjectId clienteId =
                         factura.getObjectId("cliente_id");
+
+                // ======================================
+                // VERIFICAR ESTADO DEL CLIENTE
+                // ======================================
+
+                boolean inactivo = false;
+
+                if (clienteId != null) {
+
+                    Document cliente =
+                            mongo.consultarClientePorId(
+                                    clienteId.toHexString()
+                            );
+
+                    if (cliente != null) {
+
+                        inactivo =
+                                "INACTIVO".equalsIgnoreCase(
+                                        cliente.getString("estado")
+                                );
+                    }
+                }
+
+                clientesInactivos.add(inactivo);
+
+                // ======================================
+                // DATOS ORIGINALES DE LA FACTURA
+                // ======================================
 
                 String nombreCliente =
                         obtenerNombreCliente(clienteId);
@@ -400,6 +512,8 @@ public class FacturacionPanelController {
             view.getLblEstado().setText(
                     "Facturas registradas: " + facturas.size()
             );
+
+            view.getTablaFacturas().repaint();
 
             actualizarBotones();
 

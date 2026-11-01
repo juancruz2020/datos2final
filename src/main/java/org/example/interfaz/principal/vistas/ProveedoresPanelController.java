@@ -9,6 +9,9 @@ import org.example.mongoDB.service.ProveedorService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.Color;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,8 +44,93 @@ public class ProveedoresPanelController {
 
         permisosService.exigirAdmin(usuarioId);
 
+        configurarColoresTabla();
         configurarEventos();
         cargarProveedores();
+    }
+
+    // =========================================
+    // COLORES DE PROVEEDORES ACTIVOS E INACTIVOS
+    // =========================================
+
+    private void configurarColoresTabla() {
+
+        DefaultTableCellRenderer renderer =
+                new DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable tabla,
+                            Object valor,
+                            boolean seleccionado,
+                            boolean tieneFoco,
+                            int fila,
+                            int columna
+                    ) {
+
+                        Component componente =
+                                super.getTableCellRendererComponent(
+                                        tabla,
+                                        valor,
+                                        seleccionado,
+                                        tieneFoco,
+                                        fila,
+                                        columna
+                                );
+
+                        int filaModelo =
+                                tabla.convertRowIndexToModel(fila);
+
+                        String estado = String.valueOf(
+                                tabla.getModel().getValueAt(
+                                        filaModelo,
+                                        7
+                                )
+                        );
+
+                        boolean inactivo =
+                                "INACTIVO".equalsIgnoreCase(estado);
+
+                        if (seleccionado) {
+
+                            componente.setBackground(
+                                    tabla.getSelectionBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getSelectionForeground()
+                            );
+
+                        } else if (inactivo) {
+
+                            // Mismos colores que en Clientes.
+                            componente.setBackground(
+                                    new Color(235, 235, 235)
+                            );
+
+                            componente.setForeground(
+                                    new Color(130, 130, 130)
+                            );
+
+                        } else {
+
+                            componente.setBackground(
+                                    tabla.getBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getForeground()
+                            );
+                        }
+
+                        return componente;
+                    }
+                };
+
+        view.getTablaProveedores().setDefaultRenderer(
+                Object.class,
+                renderer
+        );
     }
 
     // =========================================
@@ -132,6 +220,8 @@ public class ProveedoresPanelController {
                     "Proveedores registrados: "
                             + proveedoresIds.size()
             );
+
+            view.getTablaProveedores().repaint();
 
             actualizarBotonEstado();
 
