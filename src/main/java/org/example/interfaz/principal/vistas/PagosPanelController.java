@@ -506,15 +506,11 @@ public class PagosPanelController {
             JTextField txtImporte =
                     new JTextField(20);
 
-            JComboBox<String> cmbMetodo =
-                    new JComboBox<>(
-                            new String[]{
-                                    "TRANSFERENCIA",
-                                    "EFECTIVO",
-                                    "TARJETA",
-                                    "CHEQUE"
-                            }
-                    );
+            // ======================================
+            // ÚNICO MÉTODO DE PAGO: TRANSFERENCIA
+            // ======================================
+            // Ya no se ofrece un desplegable para
+            // elegir efectivo, tarjeta o cheque.
 
             JPanel formulario = new JPanel(
                     new GridLayout(0, 2, 10, 10)
@@ -540,7 +536,9 @@ public class PagosPanelController {
                     new JLabel("Método de pago:")
             );
 
-            formulario.add(cmbMetodo);
+            formulario.add(
+                    new JLabel("TRANSFERENCIA")
+            );
 
             int opcion = JOptionPane.showConfirmDialog(
                     view,
@@ -563,7 +561,7 @@ public class PagosPanelController {
                     usuarioId,
                     facturaId,
                     importe,
-                    (String) cmbMetodo.getSelectedItem()
+                    "TRANSFERENCIA"
             );
 
             JOptionPane.showMessageDialog(

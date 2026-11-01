@@ -134,8 +134,6 @@ public class FacturacionPanelController {
 
                         } else if (inactivo) {
 
-                            // Mismos colores que en Pagos
-                            // y Cuentas Corrientes.
                             componente.setBackground(
                                     new Color(235, 235, 235)
                             );
@@ -889,15 +887,8 @@ public class FacturacionPanelController {
             }
 
             // ======================================
-            // SELECCIONAR MEDIO DE PAGO
+            // ÚNICO MEDIO DE PAGO: TRANSFERENCIA
             // ======================================
-
-            JComboBox<String> cmbMedioPago =
-                    new JComboBox<>(new String[]{
-                            "TRANSFERENCIA",
-                            "EFECTIVO",
-                            "TARJETA"
-                    });
 
             JPanel formulario = new JPanel(
                     new GridLayout(2, 2, 8, 8)
@@ -917,7 +908,9 @@ public class FacturacionPanelController {
                     new JLabel("Medio de pago:")
             );
 
-            formulario.add(cmbMedioPago);
+            formulario.add(
+                    new JLabel("TRANSFERENCIA")
+            );
 
             int respuesta = JOptionPane.showConfirmDialog(
                     view,
@@ -931,9 +924,6 @@ public class FacturacionPanelController {
                 return;
             }
 
-            String medioPago =
-                    (String) cmbMedioPago.getSelectedItem();
-
             // ======================================
             // REGISTRAR Y DESCONTAR
             // ======================================
@@ -941,7 +931,7 @@ public class FacturacionPanelController {
             pagoFacturaService.registrarPago(
                     facturaId,
                     importeTotal,
-                    medioPago
+                    "TRANSFERENCIA"
             );
 
             cargarFacturas();
