@@ -13,6 +13,7 @@ import org.example.mongoDB.service.PermisosService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -31,6 +32,10 @@ public class PagosPanelController {
     private final PermisosService permisosService;
 
     private final List<String> facturasIds = new ArrayList<>();
+
+    // Guarda si el proveedor de cada factura está inactivo.
+    private final List<Boolean> proveedoresInactivos =
+            new ArrayList<>();
 
     // =========================================
     // CONSTRUCTOR
@@ -60,8 +65,88 @@ public class PagosPanelController {
         view.getBtnRegistrarFactura().setVisible(admin);
         view.getBtnRegistrarPago().setVisible(admin);
 
+        configurarColoresTabla();
         configurarEventos();
         cargarFacturas();
+    }
+
+    // =========================================
+    // CONFIGURAR COLORES DE LA TABLA
+    // =========================================
+
+    private void configurarColoresTabla() {
+
+        DefaultTableCellRenderer renderer =
+                new DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                            JTable tabla,
+                            Object valor,
+                            boolean seleccionado,
+                            boolean tieneFoco,
+                            int fila,
+                            int columna
+                    ) {
+
+                        Component componente =
+                                super.getTableCellRendererComponent(
+                                        tabla,
+                                        valor,
+                                        seleccionado,
+                                        tieneFoco,
+                                        fila,
+                                        columna
+                                );
+
+                        int filaModelo =
+                                tabla.convertRowIndexToModel(fila);
+
+                        boolean inactivo =
+                                filaModelo >= 0
+                                && filaModelo < proveedoresInactivos.size()
+                                && proveedoresInactivos.get(filaModelo);
+
+                        if (seleccionado) {
+
+                            componente.setBackground(
+                                    tabla.getSelectionBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getSelectionForeground()
+                            );
+
+                        } else if (inactivo) {
+
+                            // Mismos colores que Cuentas Corrientes.
+                            componente.setBackground(
+                                    new Color(235, 235, 235)
+                            );
+
+                            componente.setForeground(
+                                    new Color(130, 130, 130)
+                            );
+
+                        } else {
+
+                            componente.setBackground(
+                                    tabla.getBackground()
+                            );
+
+                            componente.setForeground(
+                                    tabla.getForeground()
+                            );
+                        }
+
+                        return componente;
+                    }
+                };
+
+        view.getTablaFacturas().setDefaultRenderer(
+                Object.class,
+                renderer
+        );
     }
 
     // =========================================
@@ -100,6 +185,7 @@ public class PagosPanelController {
 
         modelo.setRowCount(0);
         facturasIds.clear();
+        proveedoresInactivos.clear();
 
         try {
 
@@ -115,10 +201,44 @@ public class PagosPanelController {
                     continue;
                 }
 
+                // ======================================
+                // VERIFICAR ESTADO DEL PROVEEDOR
+                // ======================================
+
+                ObjectId proveedorId =
+                        factura.getObjectId("proveedor_id");
+
+                boolean inactivo = false;
+
+                if (proveedorId != null) {
+
+                    Document proveedor =
+                            mongo.buscarProveedorPorId(
+                                    proveedorId.toHexString()
+                            );
+
+                    if (proveedor != null) {
+
+                        inactivo =
+                                "INACTIVO".equalsIgnoreCase(
+                                        proveedor.getString("estado")
+                                );
+                    }
+                }
+
+                // Cada posición coincide con la fila
+                // de la tabla y con el ID de la factura.
+
+                proveedoresInactivos.add(inactivo);
+
+                // ======================================
+                // AGREGAR FACTURA A LA TABLA
+                // ======================================
+
                 modelo.addRow(new Object[]{
                         factura.getString("numero_factura"),
                         obtenerNombreProveedor(
-                                factura.getObjectId("proveedor_id")
+                                proveedorId
                         ),
                         factura.getString("concepto"),
                         formatearFecha(
@@ -133,12 +253,16 @@ public class PagosPanelController {
                         factura.getString("estado")
                 });
 
-                facturasIds.add(facturaId.toHexString());
+                facturasIds.add(
+                        facturaId.toHexString()
+                );
             }
 
             view.getLblEstado().setText(
                     "Facturas registradas: " + facturasIds.size()
             );
+
+            view.getTablaFacturas().repaint();
 
         } catch (Exception e) {
 
@@ -153,154 +277,196 @@ public class PagosPanelController {
     // REGISTRAR FACTURA RECIBIDA
     // =========================================
 
-        private void registrarFactura() {
+    private void registrarFactura() {
 
         try {
 
-                permisosService.exigirAdmin(usuarioId);
+            permisosService.exigirAdmin(usuarioId);
 
-                List<Document> proveedores = mongo.listarProveedores();
+            List<Document> proveedores =
+                    mongo.listarProveedores();
 
-                if (proveedores.isEmpty()) {
+            JComboBox<String> cmbProveedor =
+                    new JComboBox<>();
+
+            List<String> proveedoresIds =
+                    new ArrayList<>();
+
+            // ======================================
+            // SOLO PROVEEDORES ACTIVOS
+            // ======================================
+            // Los proveedores inactivos no aparecen
+            // en el desplegable de facturas nuevas.
+
+            for (Document proveedor : proveedores) {
+
+                String estadoProveedor =
+                        proveedor.getString("estado");
+
+                if (!"ACTIVO".equalsIgnoreCase(
+                        estadoProveedor
+                )) {
+                    continue;
+                }
+
+                ObjectId id =
+                        proveedor.getObjectId("_id");
+
+                if (id == null) {
+                    continue;
+                }
+
+                String razonSocial =
+                        proveedor.getString("razon_social");
+
+                if (razonSocial == null
+                        || razonSocial.isBlank()) {
+                    continue;
+                }
+
+                cmbProveedor.addItem(razonSocial);
+
+                proveedoresIds.add(
+                        id.toHexString()
+                );
+            }
+
+            if (proveedoresIds.isEmpty()) {
 
                 JOptionPane.showMessageDialog(
                         view,
-                        "Primero debés registrar un proveedor.",
+                        "No hay proveedores activos disponibles.\n"
+                                + "Registrá o reactivá un proveedor "
+                                + "para generar una factura.",
                         "Pagos",
                         JOptionPane.WARNING_MESSAGE
                 );
 
                 return;
-                }
+            }
 
-                JComboBox<String> cmbProveedor = new JComboBox<>();
-                List<String> proveedoresIds = new ArrayList<>();
+            JTextField txtConcepto =
+                    new JTextField(20);
 
-                for (Document proveedor : proveedores) {
+            JTextField txtImporte =
+                    new JTextField(20);
 
-                ObjectId id = proveedor.getObjectId("_id");
+            JSpinner spFechaEmision =
+                    new JSpinner(
+                            new SpinnerDateModel()
+                    );
 
-                if (id == null) {
-                        continue;
-                }
+            JSpinner spFechaVencimiento =
+                    new JSpinner(
+                            new SpinnerDateModel()
+                    );
 
-                cmbProveedor.addItem(
-                        proveedor.getString("razon_social")
-                );
+            spFechaEmision.setEditor(
+                    new JSpinner.DateEditor(
+                            spFechaEmision,
+                            "dd/MM/yyyy"
+                    )
+            );
 
-                proveedoresIds.add(id.toHexString());
-                }
+            spFechaVencimiento.setEditor(
+                    new JSpinner.DateEditor(
+                            spFechaVencimiento,
+                            "dd/MM/yyyy"
+                    )
+            );
 
-                if (proveedoresIds.isEmpty()) {
-                throw new IllegalStateException(
-                        "No hay proveedores válidos."
-                );
-                }
+            JPanel formulario = new JPanel(
+                    new GridLayout(0, 2, 10, 10)
+            );
 
-                JTextField txtConcepto = new JTextField(20);
-                JTextField txtImporte = new JTextField(20);
+            formulario.add(new JLabel("Proveedor:"));
+            formulario.add(cmbProveedor);
 
-                JSpinner spFechaEmision = new JSpinner(
-                        new SpinnerDateModel()
-                );
+            formulario.add(new JLabel("Concepto:"));
+            formulario.add(txtConcepto);
 
-                JSpinner spFechaVencimiento = new JSpinner(
-                        new SpinnerDateModel()
-                );
+            formulario.add(new JLabel("Fecha de emisión:"));
+            formulario.add(spFechaEmision);
 
-                spFechaEmision.setEditor(
-                        new JSpinner.DateEditor(
-                                spFechaEmision,
-                                "dd/MM/yyyy"
-                        )
-                );
+            formulario.add(new JLabel("Fecha de vencimiento:"));
+            formulario.add(spFechaVencimiento);
 
-                spFechaVencimiento.setEditor(
-                        new JSpinner.DateEditor(
-                                spFechaVencimiento,
-                                "dd/MM/yyyy"
-                        )
-                );
+            formulario.add(new JLabel("Importe total:"));
+            formulario.add(txtImporte);
 
-                JPanel formulario = new JPanel(
-                        new GridLayout(0, 2, 10, 10)
-                );
+            int opcion = JOptionPane.showConfirmDialog(
+                    view,
+                    formulario,
+                    "Registrar factura de proveedor",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE
+            );
 
-                formulario.add(new JLabel("Proveedor:"));
-                formulario.add(cmbProveedor);
-
-                formulario.add(new JLabel("Concepto:"));
-                formulario.add(txtConcepto);
-
-                formulario.add(new JLabel("Fecha de emisión:"));
-                formulario.add(spFechaEmision);
-
-                formulario.add(new JLabel("Fecha de vencimiento:"));
-                formulario.add(spFechaVencimiento);
-
-                formulario.add(new JLabel("Importe total:"));
-                formulario.add(txtImporte);
-
-                int opcion = JOptionPane.showConfirmDialog(
-                        view,
-                        formulario,
-                        "Registrar factura de proveedor",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE
-                );
-
-                if (opcion != JOptionPane.OK_OPTION) {
+            if (opcion != JOptionPane.OK_OPTION) {
                 return;
-                }
+            }
 
-                String concepto = txtConcepto.getText().trim();
+            String concepto =
+                    txtConcepto.getText().trim();
 
-                BigDecimal importe = convertirImporte(
-                        txtImporte.getText()
-                );
+            BigDecimal importe =
+                    convertirImporte(
+                            txtImporte.getText()
+                    );
 
-                int indice = cmbProveedor.getSelectedIndex();
+            int indice =
+                    cmbProveedor.getSelectedIndex();
 
-                if (indice < 0) {
+            if (indice < 0) {
+
                 throw new IllegalArgumentException(
                         "Seleccioná un proveedor."
                 );
-                }
+            }
 
-                String proveedorId = proveedoresIds.get(indice);
+            String proveedorId =
+                    proveedoresIds.get(indice);
 
-                Date emision = (Date) spFechaEmision.getValue();
-                Date vencimiento = (Date) spFechaVencimiento.getValue();
+            Date emision =
+                    (Date) spFechaEmision.getValue();
 
-                FacturaProveedor factura = facturaService.registrarFactura(
-                        usuarioId,
-                        proveedorId,
-                        concepto,
-                        emision,
-                        vencimiento,
-                        importe
-                );
+            Date vencimiento =
+                    (Date) spFechaVencimiento.getValue();
 
-                JOptionPane.showMessageDialog(
-                        view,
-                        "Factura registrada correctamente.\n"
-                                + "Número: " + factura.getNumeroFactura()
-                                + "\nSe generó la deuda en la cuenta corriente del proveedor.",
-                        "Pagos",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+            // El servicio comprueba nuevamente
+            // que el proveedor esté activo.
 
-                cargarFacturas();
+            FacturaProveedor factura =
+                    facturaService.registrarFactura(
+                            usuarioId,
+                            proveedorId,
+                            concepto,
+                            emision,
+                            vencimiento,
+                            importe
+                    );
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Factura registrada correctamente.\n"
+                            + "Número: "
+                            + factura.getNumeroFactura()
+                            + "\nSe generó la deuda en la cuenta "
+                            + "corriente del proveedor.",
+                    "Pagos",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            cargarFacturas();
 
         } catch (Exception e) {
 
-                mostrarError(
-                        "No se pudo registrar la factura.",
-                        e
-                );
+            mostrarError(
+                    "No se pudo registrar la factura.",
+                    e
+            );
         }
-        }
-
+    }
 
     // =========================================
     // REGISTRAR PAGO
@@ -312,13 +478,15 @@ public class PagosPanelController {
 
             permisosService.exigirAdmin(usuarioId);
 
-            String facturaId = obtenerFacturaSeleccionada();
+            String facturaId =
+                    obtenerFacturaSeleccionada();
 
             if (facturaId == null) {
                 return;
             }
 
-            Document factura = buscarFacturaSeleccionada(facturaId);
+            Document factura =
+                    buscarFacturaSeleccionada(facturaId);
 
             if (factura == null) {
                 throw new IllegalStateException(
@@ -329,35 +497,49 @@ public class PagosPanelController {
             if ("PAGADA".equals(
                     factura.getString("estado")
             )) {
+
                 throw new IllegalStateException(
                         "Esta factura ya está pagada."
                 );
             }
 
-            JTextField txtImporte = new JTextField(20);
+            JTextField txtImporte =
+                    new JTextField(20);
 
-            JComboBox<String> cmbMetodo = new JComboBox<>(
-                    new String[]{
-                            "TRANSFERENCIA",
-                            "EFECTIVO",
-                            "TARJETA",
-                            "CHEQUE"
-                    }
-            );
+            JComboBox<String> cmbMetodo =
+                    new JComboBox<>(
+                            new String[]{
+                                    "TRANSFERENCIA",
+                                    "EFECTIVO",
+                                    "TARJETA",
+                                    "CHEQUE"
+                            }
+                    );
 
             JPanel formulario = new JPanel(
                     new GridLayout(0, 2, 10, 10)
             );
 
-            formulario.add(new JLabel("Factura:"));
-            formulario.add(new JLabel(
-                    factura.getString("numero_factura")
-            ));
+            formulario.add(
+                    new JLabel("Factura:")
+            );
 
-            formulario.add(new JLabel("Importe a pagar:"));
+            formulario.add(
+                    new JLabel(
+                            factura.getString("numero_factura")
+                    )
+            );
+
+            formulario.add(
+                    new JLabel("Importe a pagar:")
+            );
+
             formulario.add(txtImporte);
 
-            formulario.add(new JLabel("Método de pago:"));
+            formulario.add(
+                    new JLabel("Método de pago:")
+            );
+
             formulario.add(cmbMetodo);
 
             int opcion = JOptionPane.showConfirmDialog(
@@ -365,16 +547,17 @@ public class PagosPanelController {
                     formulario,
                     "Registrar pago a proveedor",
                     JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.PLAIN_MESSAGE
+                    JOptionPane.QUESTION_MESSAGE
             );
 
             if (opcion != JOptionPane.OK_OPTION) {
                 return;
             }
 
-            BigDecimal importe = convertirImporte(
-                    txtImporte.getText()
-            );
+            BigDecimal importe =
+                    convertirImporte(
+                            txtImporte.getText()
+                    );
 
             pagoService.registrarPago(
                     usuarioId,
@@ -410,7 +593,8 @@ public class PagosPanelController {
 
         try {
 
-            String facturaId = obtenerFacturaSeleccionada();
+            String facturaId =
+                    obtenerFacturaSeleccionada();
 
             if (facturaId == null) {
                 return;
@@ -422,34 +606,45 @@ public class PagosPanelController {
                             facturaId
                     );
 
-            DefaultTableModel modelo = new DefaultTableModel(
-                    new Object[]{
-                            "Fecha",
-                            "Importe",
-                            "Método de pago"
-                    },
-                    0
-            ) {
+            DefaultTableModel modelo =
+                    new DefaultTableModel(
+                            new Object[]{
+                                    "Fecha",
+                                    "Importe",
+                                    "Método de pago"
+                            },
+                            0
+                    ) {
 
-                @Override
-                public boolean isCellEditable(int fila, int columna) {
-                    return false;
-                }
-            };
+                        @Override
+                        public boolean isCellEditable(
+                                int fila,
+                                int columna
+                        ) {
+                            return false;
+                        }
+                    };
 
             for (Document pago : pagos) {
 
                 modelo.addRow(new Object[]{
-                        formatearFecha(pago.getDate("fecha")),
-                        obtenerImporte(pago.get("importe")),
+                        formatearFecha(
+                                pago.getDate("fecha")
+                        ),
+                        obtenerImporte(
+                                pago.get("importe")
+                        ),
                         pago.getString("metodo_pago")
                 });
             }
 
-            JTable tabla = new JTable(modelo);
+            JTable tabla =
+                    new JTable(modelo);
+
             tabla.setRowHeight(28);
 
-            JScrollPane scroll = new JScrollPane(tabla);
+            JScrollPane scroll =
+                    new JScrollPane(tabla);
 
             scroll.setPreferredSize(
                     new Dimension(650, 300)
@@ -477,7 +672,8 @@ public class PagosPanelController {
 
     private String obtenerFacturaSeleccionada() {
 
-        int filaVista = view.getTablaFacturas().getSelectedRow();
+        int filaVista =
+                view.getTablaFacturas().getSelectedRow();
 
         if (filaVista == -1) {
 
@@ -491,10 +687,12 @@ public class PagosPanelController {
             return null;
         }
 
-        int filaModelo = view.getTablaFacturas()
-                .convertRowIndexToModel(filaVista);
+        int filaModelo =
+                view.getTablaFacturas()
+                        .convertRowIndexToModel(filaVista);
 
-        if (filaModelo < 0 || filaModelo >= facturasIds.size()) {
+        if (filaModelo < 0
+                || filaModelo >= facturasIds.size()) {
             return null;
         }
 
@@ -505,15 +703,19 @@ public class PagosPanelController {
     // BUSCAR FACTURA
     // =========================================
 
-    private Document buscarFacturaSeleccionada(String facturaId) {
+    private Document buscarFacturaSeleccionada(
+            String facturaId
+    ) {
 
         for (Document factura :
                 facturaService.listarFacturas(usuarioId)) {
 
-            ObjectId id = factura.getObjectId("_id");
+            ObjectId id =
+                    factura.getObjectId("_id");
 
             if (id != null
                     && id.toHexString().equals(facturaId)) {
+
                 return factura;
             }
         }
@@ -525,21 +727,25 @@ public class PagosPanelController {
     // NOMBRE DEL PROVEEDOR
     // =========================================
 
-    private String obtenerNombreProveedor(ObjectId proveedorId) {
+    private String obtenerNombreProveedor(
+            ObjectId proveedorId
+    ) {
 
         if (proveedorId == null) {
             return "";
         }
 
-        Document proveedor = mongo.buscarProveedorPorId(
-                proveedorId.toHexString()
-        );
+        Document proveedor =
+                mongo.buscarProveedorPorId(
+                        proveedorId.toHexString()
+                );
 
         if (proveedor == null) {
             return proveedorId.toHexString();
         }
 
-        String nombre = proveedor.getString("razon_social");
+        String nombre =
+                proveedor.getString("razon_social");
 
         return nombre == null || nombre.isBlank()
                 ? proveedorId.toHexString()
@@ -550,15 +756,19 @@ public class PagosPanelController {
     // FORMATEAR Y VALIDAR
     // =========================================
 
-    private BigDecimal convertirImporte(String texto) {
+    private BigDecimal convertirImporte(
+            String texto
+    ) {
 
         try {
 
-            BigDecimal importe = new BigDecimal(
-                    texto.trim().replace(",", ".")
-            );
+            BigDecimal importe =
+                    new BigDecimal(
+                            texto.trim().replace(",", ".")
+                    );
 
             if (importe.compareTo(BigDecimal.ZERO) <= 0) {
+
                 throw new IllegalArgumentException(
                         "El importe debe ser mayor que cero."
                 );
@@ -600,7 +810,10 @@ public class PagosPanelController {
         ).format(fecha);
     }
 
-    private void mostrarError(String mensaje, Exception e) {
+    private void mostrarError(
+            String mensaje,
+            Exception e
+    ) {
 
         JOptionPane.showMessageDialog(
                 view,
