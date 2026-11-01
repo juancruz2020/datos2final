@@ -52,7 +52,6 @@ public class FacturacionPanelController {
     private final List<String> idsFacturas =
             new ArrayList<>();
 
-    // Guarda el estado del cliente de cada factura.
     private final List<Boolean> clientesInactivos =
             new ArrayList<>();
 
@@ -374,12 +373,11 @@ public class FacturacionPanelController {
 
             for (Document cliente : clientes) {
 
-                // Los clientes inactivos no aparecen
-                // al generar una factura nueva.
-                // Sus facturas anteriores se mantienen.
-
                 String estadoCliente =
                         cliente.getString("estado");
+
+                // No mostrar clientes inactivos
+                // al generar facturas nuevas.
 
                 if (!"ACTIVO".equalsIgnoreCase(estadoCliente)) {
                     continue;
@@ -441,10 +439,6 @@ public class FacturacionPanelController {
                 ObjectId clienteId =
                         factura.getObjectId("cliente_id");
 
-                // ======================================
-                // VERIFICAR ESTADO DEL CLIENTE
-                // ======================================
-
                 boolean inactivo = false;
 
                 if (clienteId != null) {
@@ -464,10 +458,6 @@ public class FacturacionPanelController {
                 }
 
                 clientesInactivos.add(inactivo);
-
-                // ======================================
-                // DATOS ORIGINALES DE LA FACTURA
-                // ======================================
 
                 String nombreCliente =
                         obtenerNombreCliente(clienteId);
@@ -824,7 +814,7 @@ public class FacturacionPanelController {
     }
 
     // ==========================================
-    // PAGAR FACTURA COMPLETA
+    // PAGAR SALDO PENDIENTE DE FACTURA
     // ==========================================
 
     private void pagarFactura() {
@@ -864,6 +854,12 @@ public class FacturacionPanelController {
             Document factura =
                     mongo.buscarFacturaPorId(facturaId);
 
+            if (factura == null) {
+                throw new IllegalArgumentException(
+                        "No se encontró la factura seleccionada."
+                );
+            }
+
             if ("PAGADA".equalsIgnoreCase(
                     factura.getString("estado"))) {
 
@@ -873,21 +869,26 @@ public class FacturacionPanelController {
             }
 
             // ======================================
-            // IMPORTE FIJO DE LA FACTURA
+            // CALCULAR IMPORTE PENDIENTE
             // ======================================
 
-            BigDecimal importeTotal = convertirImporte(
-                    factura.get("importe_total")
-            );
+            // Antes se utilizaba importe_total.
+            // Ahora consultamos cuánto falta pagar
+            // después de descontar pagos anteriores.
 
-            if (importeTotal.compareTo(BigDecimal.ZERO) <= 0) {
+            BigDecimal importePendiente =
+                    pagoFacturaService.obtenerSaldoPendiente(
+                            facturaId
+                    );
+
+            if (importePendiente.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException(
-                        "El importe de la factura no es válido."
+                        "Esta factura no tiene saldo pendiente."
                 );
             }
 
             // ======================================
-            // ÚNICO MEDIO DE PAGO: TRANSFERENCIA
+            // CONFIRMAR PAGO POR TRANSFERENCIA
             // ======================================
 
             JPanel formulario = new JPanel(
@@ -895,12 +896,12 @@ public class FacturacionPanelController {
             );
 
             formulario.add(
-                    new JLabel("Importe total a pagar:")
+                    new JLabel("Saldo pendiente a pagar:")
             );
 
             formulario.add(
                     new JLabel(
-                            "$ " + importeTotal.toPlainString()
+                            "$ " + importePendiente.toPlainString()
                     )
             );
 
@@ -915,7 +916,7 @@ public class FacturacionPanelController {
             int respuesta = JOptionPane.showConfirmDialog(
                     view,
                     formulario,
-                    "Confirmar pago completo",
+                    "Confirmar pago del saldo pendiente",
                     JOptionPane.OK_CANCEL_OPTION,
                     JOptionPane.QUESTION_MESSAGE
             );
@@ -925,12 +926,12 @@ public class FacturacionPanelController {
             }
 
             // ======================================
-            // REGISTRAR Y DESCONTAR
+            // REGISTRAR ÚNICAMENTE EL SALDO RESTANTE
             // ======================================
 
             pagoFacturaService.registrarPago(
                     facturaId,
-                    importeTotal,
+                    importePendiente,
                     "TRANSFERENCIA"
             );
 
@@ -940,7 +941,8 @@ public class FacturacionPanelController {
                     view,
                     "Factura pagada correctamente.\n"
                             + "Importe descontado: $"
-                            + importeTotal.toPlainString(),
+                            + importePendiente.toPlainString()
+                            + "\nMedio de pago: TRANSFERENCIA",
                     "Pago realizado",
                     JOptionPane.INFORMATION_MESSAGE
             );

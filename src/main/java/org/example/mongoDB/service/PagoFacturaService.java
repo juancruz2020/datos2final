@@ -46,7 +46,56 @@ public class PagoFacturaService {
     }
 
     // ==========================================
-    // REGISTRAR PAGO COMPLETO
+    // CONSULTAR SALDO PENDIENTE
+    // ==========================================
+
+    public BigDecimal obtenerSaldoPendiente(String facturaId) {
+
+        validarFacturaId(facturaId);
+
+        ObjectId idFactura = new ObjectId(facturaId);
+
+        Document factura = facturas.find(
+                eq("_id", idFactura)
+        ).first();
+
+        if (factura == null) {
+            throw new IllegalArgumentException(
+                    "La factura no existe."
+            );
+        }
+
+        BigDecimal total = importeDecimal(
+                factura.get("importe_total")
+        );
+
+        BigDecimal pagado = BigDecimal.ZERO;
+
+        for (Document pago : pagos.find(
+                eq("factura_id", idFactura)
+        )) {
+
+            BigDecimal monto = importeDecimal(
+                    pago.get("monto")
+            );
+
+            pagado = pagado.add(monto);
+        }
+
+        BigDecimal pendiente = total.subtract(pagado);
+
+        if (pendiente.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalStateException(
+                    "Los pagos registrados superan "
+                            + "el importe total de la factura."
+            );
+        }
+
+        return pendiente;
+    }
+
+    // ==========================================
+    // REGISTRAR PAGO DEL SALDO PENDIENTE
     // ==========================================
 
     public void registrarPago(
@@ -55,13 +104,7 @@ public class PagoFacturaService {
             String medioPago
     ) {
 
-        if (facturaId == null
-                || !ObjectId.isValid(facturaId)) {
-
-            throw new IllegalArgumentException(
-                    "La factura seleccionada no es válida."
-            );
-        }
+        validarFacturaId(facturaId);
 
         if (importe == null
                 || importe.compareTo(BigDecimal.ZERO) <= 0) {
@@ -71,10 +114,13 @@ public class PagoFacturaService {
             );
         }
 
-        if (medioPago == null || medioPago.isBlank()) {
+        // Único medio permitido para pagos nuevos.
+
+        if (!"TRANSFERENCIA".equalsIgnoreCase(medioPago)) {
 
             throw new IllegalArgumentException(
-                    "Seleccioná un medio de pago."
+                    "El único medio de pago permitido "
+                            + "es TRANSFERENCIA."
             );
         }
 
@@ -121,7 +167,7 @@ public class PagoFacturaService {
                 }
 
                 // ==================================
-                // OBTENER IMPORTE TOTAL
+                // IMPORTE TOTAL DE LA FACTURA
                 // ==================================
 
                 BigDecimal total = importeDecimal(
@@ -129,35 +175,61 @@ public class PagoFacturaService {
                 );
 
                 // ==================================
-                // NO PERMITIR IMPORTES DIFERENTES
+                // SUMAR LOS PAGOS EXISTENTES
                 // ==================================
 
-                if (importe.compareTo(total) != 0) {
+                BigDecimal totalPagado = BigDecimal.ZERO;
 
-                    throw new IllegalArgumentException(
-                            "La factura debe pagarse completa.\n"
-                                    + "Importe obligatorio: $"
-                                    + total.toPlainString()
+                for (Document pagoAnterior : pagos.find(
+                        session,
+                        eq("factura_id", idFactura)
+                )) {
+
+                    BigDecimal montoAnterior = importeDecimal(
+                            pagoAnterior.get("monto")
+                    );
+
+                    totalPagado = totalPagado.add(montoAnterior);
+                }
+
+                // ==================================
+                // CALCULAR SALDO PENDIENTE
+                // ==================================
+
+                BigDecimal saldoPendiente =
+                        total.subtract(totalPagado);
+
+                if (saldoPendiente.compareTo(BigDecimal.ZERO) < 0) {
+
+                    throw new IllegalStateException(
+                            "Los pagos registrados superan "
+                                    + "el importe total de la factura."
+                    );
+                }
+
+                if (saldoPendiente.compareTo(BigDecimal.ZERO) == 0) {
+
+                    throw new IllegalStateException(
+                            "Esta factura ya tiene registrado "
+                                    + "el pago de su importe total."
                     );
                 }
 
                 // ==================================
-                // CONTROLAR PAGOS ANTERIORES
+                // EXIGIR EL SALDO COMPLETO
                 // ==================================
 
-                // No permitimos volver a cobrar una
-                // factura que ya tenga pagos registrados,
-                // aunque todavía figure PENDIENTE.
+                // Mantenemos la regla de pago completo,
+                // pero ahora sobre el saldo pendiente,
+                // no sobre el total original.
 
-                if (pagos.find(
-                        session,
-                        eq("factura_id", idFactura)
-                ).first() != null) {
+                if (importe.compareTo(saldoPendiente) != 0) {
 
                     throw new IllegalArgumentException(
-                            "Esta factura tiene pagos registrados anteriormente.\n"
-                                    + "Revisá su historial antes de cobrarla "
-                                    + "para evitar descuentos duplicados."
+                            "Debés pagar el saldo pendiente "
+                                    + "de la factura.\n"
+                                    + "Importe obligatorio: $"
+                                    + saldoPendiente.toPlainString()
                     );
                 }
 
@@ -169,12 +241,12 @@ public class PagoFacturaService {
                         null,
                         facturaId,
                         new Date(),
-                        total,
-                        medioPago.trim()
+                        saldoPendiente,
+                        "TRANSFERENCIA"
                 );
 
                 // ==================================
-                // GUARDAR PAGO EN TRANSACCIÓN
+                // GUARDAR PAGO
                 // ==================================
 
                 pagoDAO.agregar(session, pago);
@@ -183,19 +255,15 @@ public class PagoFacturaService {
                 // DESCONTAR CUENTA CORRIENTE
                 // ==================================
 
-                // Este método controla:
-                // - Existencia de la cuenta
-                // - Cierres mensuales
-                // - Saldo disponible
-                //
-                // Si falla, se cancela también
-                // la inserción del pago.
+                // Solo se descuenta lo que faltaba pagar.
+                // No se vuelven a descontar los pagos
+                // que ya estaban registrados.
 
                 cuentaService.descontarPagoFactura(
                         session,
                         clienteId.toHexString(),
                         pago.getId(),
-                        total
+                        saldoPendiente
                 );
 
                 // ==================================
@@ -209,23 +277,44 @@ public class PagoFacturaService {
                 );
 
                 // ==================================
-                // CONFIRMAR TODOS LOS CAMBIOS
+                // CONFIRMAR TRANSACCIÓN
                 // ==================================
 
                 session.commitTransaction();
-                AppLog.info(PagoFacturaService.class,
-                        "Pago de factura confirmado.");
+
+                AppLog.info(
+                        PagoFacturaService.class,
+                        "Pago de saldo pendiente confirmado."
+                );
 
             } catch (RuntimeException e) {
 
                 if (session.hasActiveTransaction()) {
                     session.abortTransaction();
-                    AppLog.warning(PagoFacturaService.class,
-                            "Pago de factura revertido.");
+
+                    AppLog.warning(
+                            PagoFacturaService.class,
+                            "Pago de factura revertido."
+                    );
                 }
 
                 throw e;
             }
+        }
+    }
+
+    // ==========================================
+    // VALIDAR ID
+    // ==========================================
+
+    private void validarFacturaId(String facturaId) {
+
+        if (facturaId == null
+                || !ObjectId.isValid(facturaId)) {
+
+            throw new IllegalArgumentException(
+                    "La factura seleccionada no es válida."
+            );
         }
     }
 
@@ -248,7 +337,7 @@ public class PagoFacturaService {
         }
 
         throw new IllegalStateException(
-                "La factura tiene un importe inválido."
+                "La factura o el pago tienen un importe inválido."
         );
     }
 }
