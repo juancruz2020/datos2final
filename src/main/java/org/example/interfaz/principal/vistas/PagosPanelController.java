@@ -119,7 +119,6 @@ public class PagosPanelController {
 
                         } else if (inactivo) {
 
-                            // Mismos colores que Cuentas Corrientes.
                             componente.setBackground(
                                     new Color(235, 235, 235)
                             );
@@ -226,10 +225,17 @@ public class PagosPanelController {
                     }
                 }
 
-                // Cada posición coincide con la fila
-                // de la tabla y con el ID de la factura.
-
                 proveedoresInactivos.add(inactivo);
+
+                // ======================================
+                // CALCULAR SALDO PENDIENTE
+                // ======================================
+
+                BigDecimal saldoPendiente =
+                        calcularSaldoPendiente(
+                                factura,
+                                facturaId.toHexString()
+                        );
 
                 // ======================================
                 // AGREGAR FACTURA A LA TABLA
@@ -250,6 +256,15 @@ public class PagosPanelController {
                         obtenerImporte(
                                 factura.get("importe_total")
                         ),
+
+                        // NUEVA COLUMNA
+                        saldoPendiente
+                                .setScale(
+                                        2,
+                                        java.math.RoundingMode.HALF_UP
+                                )
+                                .toPlainString(),
+
                         factura.getString("estado")
                 });
 
@@ -274,6 +289,81 @@ public class PagosPanelController {
     }
 
     // =========================================
+    // NUEVO: CALCULAR SALDO PENDIENTE
+    // =========================================
+
+    private BigDecimal calcularSaldoPendiente(
+            Document factura,
+            String facturaId
+    ) {
+
+        BigDecimal importeTotal =
+                convertirImporteMongo(
+                        factura.get("importe_total")
+                );
+
+        // Consultamos todos los pagos realizados
+        // para esta factura de proveedor.
+
+        List<Document> pagos =
+                pagoService.listarPorFactura(
+                        usuarioId,
+                        facturaId
+                );
+
+        BigDecimal totalPagado = BigDecimal.ZERO;
+
+        for (Document pago : pagos) {
+
+            BigDecimal importePago =
+                    convertirImporteMongo(
+                            pago.get("importe")
+                    );
+
+            totalPagado = totalPagado.add(importePago);
+        }
+
+        // Importe original menos pagos acumulados.
+
+        BigDecimal saldoPendiente =
+                importeTotal.subtract(totalPagado);
+
+        if (saldoPendiente.compareTo(BigDecimal.ZERO) < 0) {
+
+            throw new IllegalStateException(
+                    "Los pagos registrados superan el importe "
+                            + "total de la factura "
+                            + factura.getString("numero_factura")
+            );
+        }
+
+        return saldoPendiente;
+    }
+
+    // =========================================
+    // NUEVO: CONVERTIR IMPORTE DE MONGODB
+    // =========================================
+
+    private BigDecimal convertirImporteMongo(Object valor) {
+
+        if (valor instanceof Decimal128 decimal) {
+            return decimal.bigDecimalValue();
+        }
+
+        if (valor instanceof BigDecimal decimal) {
+            return decimal;
+        }
+
+        if (valor instanceof Number numero) {
+            return new BigDecimal(numero.toString());
+        }
+
+        throw new IllegalStateException(
+                "Se encontró un importe inválido en MongoDB."
+        );
+    }
+
+    // =========================================
     // REGISTRAR FACTURA RECIBIDA
     // =========================================
 
@@ -295,8 +385,6 @@ public class PagosPanelController {
             // ======================================
             // SOLO PROVEEDORES ACTIVOS
             // ======================================
-            // Los proveedores inactivos no aparecen
-            // en el desplegable de facturas nuevas.
 
             for (Document proveedor : proveedores) {
 
@@ -433,9 +521,6 @@ public class PagosPanelController {
             Date vencimiento =
                     (Date) spFechaVencimiento.getValue();
 
-            // El servicio comprueba nuevamente
-            // que el proveedor esté activo.
-
             FacturaProveedor factura =
                     facturaService.registrarFactura(
                             usuarioId,
@@ -509,8 +594,6 @@ public class PagosPanelController {
             // ======================================
             // ÚNICO MÉTODO DE PAGO: TRANSFERENCIA
             // ======================================
-            // Ya no se ofrece un desplegable para
-            // elegir efectivo, tarjeta o cheque.
 
             JPanel formulario = new JPanel(
                     new GridLayout(0, 2, 10, 10)
@@ -571,6 +654,8 @@ public class PagosPanelController {
                     "Pagos",
                     JOptionPane.INFORMATION_MESSAGE
             );
+
+            // Recargar saldos y estados.
 
             cargarFacturas();
 

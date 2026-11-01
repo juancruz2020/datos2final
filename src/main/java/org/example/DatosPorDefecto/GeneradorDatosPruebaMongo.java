@@ -1257,7 +1257,7 @@ public class GeneradorDatosPruebaMongo {
                 factura3.getId(),
                 new Date(),
                 new BigDecimal("180000.00"),
-                "TARJETA"
+                "TRANSFERENCIA"
         );
 
         Pago pago4 = new Pago(
@@ -1273,7 +1273,7 @@ public class GeneradorDatosPruebaMongo {
                 factura5.getId(),
                 new Date(),
                 new BigDecimal("95000.00"),
-                "EFECTIVO"
+                "TRANSFERENCIA"
         );
 
         // Los cinco pagos se insertan

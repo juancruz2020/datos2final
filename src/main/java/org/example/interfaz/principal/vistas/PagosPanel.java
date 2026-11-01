@@ -131,6 +131,7 @@ public class PagosPanel extends JPanel {
                         "Emisión",
                         "Vencimiento",
                         "Importe total",
+                        "Saldo pendiente",
                         "Estado"
                 },
                 0
