@@ -1,6 +1,10 @@
--- DDL reproducido de CassandraSingleton y CrearTablasMonitoreo (20/10/2026).
--- IDs text. Sin datos de prueba. No ejecutado durante la revisión documental.
--- IF NOT EXISTS no migra tablas ya existentes.
+-- Script CQL ejecutable: reproduce keyspace y tablas que crean
+-- CassandraSingleton, CrearTablasMonitoreo y CrearTablaAlertas.
+-- Coincide con los tipos, nombres y claves de DatosDePruebaCassandra e
+-- InsertarCassandraMonitoreo. IF NOT EXISTS no migra tablas ya existentes.
+-- La aplicación genera 60 lecturas aleatorias entre 2026-09-01 y 2026-10-06,
+-- con IDs reales de sensores/contenedores MongoDB. Por eso esta fila fija es
+-- una muestra ejecutable del mismo formato y no reemplaza aquella carga.
 CREATE KEYSPACE IF NOT EXISTS logistica
 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
@@ -71,3 +75,35 @@ id text PRIMARY KEY,
 nombre text,
 descripcion text
 );
+
+-- Muestra de lectura y sus proyecciones (repetible por clave primaria).
+-- En la carga integrada, sustituir los IDs de ejemplo por ObjectId de MongoDB.
+INSERT INTO logistica.lecturas_sensor (
+    sensor_id, fecha_dia, fecha_hora, contenedor_id,
+    temperatura, humedad, vibracion, latitud, longitud, bateria, pais, region
+) VALUES (
+    'SENSOR-PRUEBA-001', '2026-09-01', '2026-09-01T12:00:00Z',
+    'CONTENEDOR-PRUEBA-001', 22.50, 60.00, 0.40, -34.60, -58.38,
+    85.00, 'Argentina', 'Buenos Aires'
+);
+
+INSERT INTO logistica.posiciones_sensor (
+    sensor_id, fecha_hora, contenedor_id, latitud, longitud, pais, region
+) VALUES (
+    'SENSOR-PRUEBA-001', '2026-09-01T12:00:00Z', 'CONTENEDOR-PRUEBA-001',
+    -34.60, -58.38, 'Argentina', 'Buenos Aires'
+);
+
+INSERT INTO logistica.metricas_iot_region_dia (
+    region, fecha_dia, temperatura_min, temperatura_max,
+    humedad_promedio, cantidad_lecturas
+) VALUES ('Buenos Aires', '2026-09-01', 22.50, 22.50, 60.00, 1);
+
+INSERT INTO logistica.metricas_iot_pais_dia (
+    pais, fecha_dia, humedad_promedio, temperatura_promedio, cantidad_lecturas
+) VALUES ('Argentina', '2026-09-01', 60.00, 22.50, 1);
+
+-- El catálogo real lo deriva DatosPruebaAlertasCassandra desde incidentes
+-- abiertos y sensores inactivos de MongoDB. Esta fila solo ilustra la forma.
+INSERT INTO logistica.alertas (id, nombre, descripcion)
+VALUES ('ALERTA-PRUEBA-001', 'Sensor inactivo', 'Alerta de ejemplo.');

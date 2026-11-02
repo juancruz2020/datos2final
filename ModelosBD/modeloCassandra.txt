@@ -30,7 +30,8 @@ posiciones_sensor
 alertas
   id text, nombre text, descripcion text
   PRIMARY KEY (id)
-  Catálogo de tipos de alerta. IDs de texto deterministas para la carga de prueba.
+  Catálogo derivado de incidentes abiertos y sensores INACTIVO de MongoDB.
+  El id es el ObjectId MongoDB convertido a text; las filas no son tipos fijos.
 
 REFERENCIAS E INTEGRIDAD
 Los IDs son String desde Java. En la carga de prueba se reciben los ObjectId de MongoDB
@@ -38,6 +39,8 @@ convertidos a texto. Cassandra no declara claves foráneas a sensores o contened
 fecha_dia es parte de la partición de lecturas y no es un identificador independiente de lectura.
 No hay tablas Sensor, Contenedor, Región ni País en Cassandra: los dos primeros
 se mantienen en MongoDB y los dos últimos son dimensiones text en las lecturas.
+Scriptcassandra.txt incluye una lectura fija de ejemplo y sus tres proyecciones;
+DatosDePruebaCassandra genera 60 lecturas aleatorias con sensores y contenedores MongoDB.
 
 INDICES Y DISTRIBUCION
 No hay índices secundarios en el DDL actual.
