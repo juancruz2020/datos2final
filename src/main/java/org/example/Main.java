@@ -29,7 +29,7 @@ public class Main {
             // elimina los datos actuales de todos los motores.
             AppLog.warning(Main.class,
                     "El inicio ejecutará el reseteo de datos de prueba.");
-            EliminarDatos.eliminarDatosDePrueba();
+            //EliminarDatos.eliminarDatosDePrueba();
 
             DatosPruebaTotal datos =
                     new DatosPruebaTotal();

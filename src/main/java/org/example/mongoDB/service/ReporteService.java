@@ -11,6 +11,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import org.example.mongoDB.dao.FacturaMongoDAO;
+import org.example.mongoDB.dao.ClienteMongoDAO;
 import org.example.mongoDB.dao.ReporteMongoDAO;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
@@ -27,7 +28,7 @@ import java.util.Locale;
 public class ReporteService {
 
     // =========================================================
-    // PRECIO FIJO DE CADA REPORTE
+    // PRECIO FIJO DE CADA REPORTE PARA CLIENTES
     // =========================================================
 
     private static final BigDecimal PRECIO_REPORTE =
@@ -37,6 +38,7 @@ public class ReporteService {
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
     private final FacturaMongoDAO facturaDAO;
+    private final ClienteMongoDAO clienteDAO;
 
     // =========================================================
     // CONSTRUCTOR
@@ -48,6 +50,7 @@ public class ReporteService {
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
         this.facturaDAO = new FacturaMongoDAO();
+        this.clienteDAO = new ClienteMongoDAO();
     }
 
     // =========================================================
@@ -59,10 +62,6 @@ public class ReporteService {
             String tipo,
             String formato
     ) {
-
-        // -----------------------------------------------------
-        // VALIDAR USUARIO
-        // -----------------------------------------------------
 
         validarObjectId(
                 usuarioId,
@@ -134,26 +133,63 @@ public class ReporteService {
         }
 
         // -----------------------------------------------------
-        // IDENTIFICAR CLIENTE
+        // ADMINISTRADOR: REPORTE GRATUITO
         // -----------------------------------------------------
 
-        String clienteId = null;
+        if ("ADMINISTRADOR".equals(nombreRol)) {
 
-        if ("CLIENTE".equals(nombreRol)) {
+            Reporte reporte = new Reporte(
+                    null,
+                    usuarioId,
+                    tipo.trim(),
+                    new Date(),
+                    formato.trim(),
+                    "GENERADO"
+            );
 
-            ObjectId idCliente = usuario.getObjectId("cliente_id");
+            reporteDAO.agregar(reporte);
 
-            if (idCliente == null) {
-                throw new SecurityException(
-                        "El usuario no tiene un cliente asociado."
-                );
-            }
+            AppLog.info(
+                    ReporteService.class,
+                    "Reporte de administrador registrado sin facturación."
+            );
 
-            clienteId = idCliente.toHexString();
+            return;
         }
 
         // -----------------------------------------------------
-        // CREAR REPORTE
+        // CLIENTE: IDENTIFICAR CLIENTE ASOCIADO
+        // -----------------------------------------------------
+
+        ObjectId idCliente = usuario.getObjectId("cliente_id");
+
+        if (idCliente == null) {
+            throw new SecurityException(
+                    "El usuario no tiene un cliente asociado."
+            );
+        }
+
+        String clienteId = idCliente.toHexString();
+
+        Document cliente = clienteDAO.buscarPorId(clienteId);
+
+        if (cliente == null) {
+            throw new IllegalArgumentException(
+                    "El cliente asociado no existe."
+            );
+        }
+
+        if (!"ACTIVO".equalsIgnoreCase(
+                cliente.getString("estado")
+        )) {
+
+            throw new IllegalStateException(
+                    "No se puede facturar un reporte a un cliente inactivo."
+            );
+        }
+
+        // -----------------------------------------------------
+        // CLIENTE: REPORTE FACTURABLE POR $5000
         // -----------------------------------------------------
 
         Date fechaActual = new Date();
@@ -166,26 +202,6 @@ public class ReporteService {
                 formato.trim(),
                 "GENERADO"
         );
-
-        // -----------------------------------------------------
-        // ADMINISTRADOR: REPORTE INTERNO
-        // -----------------------------------------------------
-
-        if ("ADMINISTRADOR".equals(nombreRol)) {
-
-            reporteDAO.agregar(reporte);
-
-            AppLog.info(
-                    ReporteService.class,
-                    "Reporte interno registrado."
-            );
-
-            return;
-        }
-
-        // -----------------------------------------------------
-        // CLIENTE: REPORTE FACTURABLE
-        // -----------------------------------------------------
 
         Calendar calendario = Calendar.getInstance();
         calendario.setTime(fechaActual);
@@ -203,7 +219,7 @@ public class ReporteService {
         );
 
         // -----------------------------------------------------
-        // GUARDAR REPORTE Y FACTURA EN TRANSACCIÓN
+        // GUARDAR REPORTE Y FACTURA EN UNA TRANSACCIÓN
         // -----------------------------------------------------
 
         try (ClientSession session =
@@ -228,7 +244,7 @@ public class ReporteService {
 
                 AppLog.info(
                         ReporteService.class,
-                        "Reporte facturable registrado por $"
+                        "Reporte de cliente registrado con factura de $"
                                 + PRECIO_REPORTE.toPlainString()
                 );
 

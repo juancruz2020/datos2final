@@ -89,63 +89,32 @@ public final class ValidacionesRegistro {
     // NORMALIZAR Y VALIDAR CUIT / CUIL
     // ==========================================
 
+
     public static String normalizarCuit(String valor) {
 
         if (valor == null || valor.isBlank()) {
-
             throw new IllegalArgumentException(
                     "El CUIT/CUIL es obligatorio."
             );
         }
 
-        String cuit = valor.trim();
+        // Permitir números con o sin guiones.
+        String numeros = valor.trim()
+                .replace("-", "")
+                .replace(" ", "");
 
-        // Acepta 11 números con o sin guiones.
-
-        if (!cuit.matches("^[0-9]{11}$")
-                && !cuit.matches(
-                        "^[0-9]{2}-[0-9]{8}-[0-9]$"
-                )) {
-
+        // Únicamente se exige que contenga números.
+        if (numeros.isEmpty() || !numeros.matches("[0-9]+")) {
             throw new IllegalArgumentException(
-                    "El CUIT/CUIL debe tener 11 números, "
+                    "El CUIT/CUIL debe contener solamente números, "
                             + "con o sin guiones."
             );
         }
 
-        // Eliminar guiones para validar y guardar.
-
-        String numeros = cuit.replace("-", "");
-
-        int[] pesos = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
-
-        int suma = 0;
-
-        for (int i = 0; i < 10; i++) {
-
-            suma += (numeros.charAt(i) - '0') * pesos[i];
-        }
-
-        int digito = 11 - (suma % 11);
-
-        if (digito == 11) {
-            digito = 0;
-        }
-
-        // Un resultado de 10 no corresponde a
-        // un dígito verificador válido.
-
-        if (digito == 10
-                || digito != numeros.charAt(10) - '0') {
-
-            throw new IllegalArgumentException(
-                    "El CUIT/CUIL no es válido. "
-                            + "Revisá el dígito verificador."
-            );
-        }
-
+        // No validar cantidad de dígitos ni dígito verificador.
         return numeros;
     }
+
 
     // ==========================================
     // CAMPOS OBLIGATORIOS

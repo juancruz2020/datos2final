@@ -7,11 +7,15 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.mongoDB.dao.RolMongoDAO;
 import org.example.mongoDB.dao.UsuarioMongoDAO;
+import org.example.mongoDB.service.ReporteService;
 import org.example.pdf.PDFOpener;
+import org.example.pdf.factura.FacturaPDFController;
 import org.example.pdf.reporte.ReportePDFService;
 
 import javax.swing.*;
 import java.io.File;
+import java.math.BigDecimal;
+import java.util.Calendar;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,6 +35,8 @@ public class ReportesPanelController {
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
     private final ReportePDFService pdfService;
+    private final ReporteService reporteService;
+    private final FacturaPDFController facturaPDFController;
 
     private final List<String> clientesIds = new ArrayList<>();
     private final Map<String, String> nombresUsuarios = new HashMap<>();
@@ -52,6 +58,8 @@ public class ReportesPanelController {
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
         this.pdfService = new ReportePDFService();
+        this.reporteService = new ReporteService();
+        this.facturaPDFController = new FacturaPDFController();
 
         configurarEventos();
 
@@ -73,6 +81,7 @@ public class ReportesPanelController {
     // =========================================================
 
     private void configurarEventos() {
+
         vista.getBtnGenerar().addActionListener(
                 e -> generarReporte()
         );
@@ -316,6 +325,39 @@ public class ReportesPanelController {
                 );
             }
 
+            // =================================================
+            // SOLO CLIENTES: CONFIRMAR EL COSTO DEL REPORTE
+            // =================================================
+
+            boolean esCliente = "CLIENTE".equals(rolActual);
+
+            if (esCliente) {
+
+                String nombreCliente =
+                        (String) vista.getComboCliente().getSelectedItem();
+
+                int confirmacion = JOptionPane.showConfirmDialog(
+                        vista,
+                        "La generación de este reporte tiene un costo "
+                                + "de $5.000.\n\n"
+                                + "Se registrará una factura PENDIENTE "
+                                + "a nombre de:\n"
+                                + nombreCliente
+                                + "\n\n¿Deseás continuar?",
+                        "Confirmar reporte y facturación",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (confirmacion != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
+            // El ADMINISTRADOR continúa directamente
+            // a generar el PDF, sin confirmación de pago
+            // y sin seleccionar a quién facturar.
+
             File archivo;
             String tipo;
 
@@ -337,7 +379,7 @@ public class ReportesPanelController {
 
                 String clienteId = clientesIds.get(indiceCliente);
 
-                if (rolActual.equals("CLIENTE")
+                if (esCliente
                         && !clienteId.equals(clienteIdActual)) {
                     throw new SecurityException(
                             "No podés generar reportes de otro cliente."
@@ -369,7 +411,7 @@ public class ReportesPanelController {
                     );
                 }
 
-                if (rolActual.equals("ADMINISTRADOR")) {
+                if (!esCliente) {
                     archivo = pdfService.generarEnviosPorEstado(
                             estado
                     );
@@ -401,7 +443,7 @@ public class ReportesPanelController {
                     );
                 }
 
-                if (rolActual.equals("ADMINISTRADOR")) {
+                if (!esCliente) {
                     archivo = pdfService.generarEnviosPorPais(pais);
                 } else {
                     String nombreCliente =
@@ -422,7 +464,7 @@ public class ReportesPanelController {
 
             } else if ("Envíos demorados".equals(tipoSeleccionado)) {
 
-                if (rolActual.equals("ADMINISTRADOR")) {
+                if (!esCliente) {
                     archivo = pdfService.generarEnviosDemorados();
                 } else {
                     String nombreCliente =
@@ -442,7 +484,7 @@ public class ReportesPanelController {
 
             } else if ("Incidentes abiertos".equals(tipoSeleccionado)) {
 
-                if (rolActual.equals("ADMINISTRADOR")) {
+                if (!esCliente) {
                     archivo = pdfService.generarIncidentesAbiertos();
                 } else {
                     String nombreCliente =
@@ -476,7 +518,7 @@ public class ReportesPanelController {
                     agrupacion = "CLIENTE";
                 }
 
-                if (rolActual.equals("ADMINISTRADOR")) {
+                if (!esCliente) {
 
                     archivo = pdfService.generarPromedioIncidentes(
                             agrupacion
@@ -504,7 +546,7 @@ public class ReportesPanelController {
                     "Ranking de rutas con más incidentes".equals(tipoSeleccionado)
             ) {
 
-                if (rolActual.equals("ADMINISTRADOR")) {
+                if (!esCliente) {
                     archivo = pdfService.generarRankingRutasIncidentes();
                 } else {
                     String nombreCliente =
@@ -526,7 +568,7 @@ public class ReportesPanelController {
                     "Tiempos mínimos y máximos por cliente".equals(tipoSeleccionado)
             ) {
 
-                String clienteId = rolActual.equals("CLIENTE")
+                String clienteId = esCliente
                         ? clienteIdActual
                         : null;
 
@@ -544,7 +586,7 @@ public class ReportesPanelController {
                     "Tiempo promedio de entrega".equals(tipoSeleccionado)
             ) {
 
-                String clienteId = rolActual.equals("CLIENTE")
+                String clienteId = esCliente
                         ? clienteIdActual
                         : null;
 
@@ -555,18 +597,18 @@ public class ReportesPanelController {
                 tipo = "TIEMPO_PROMEDIO_ENTREGA";
 
             // =================================================
-            // COSTOS POR TIPO DE TRANSPORTE - NUEVO
+            // COSTOS POR TIPO DE TRANSPORTE
             // =================================================
 
             } else if (
                     "Costos por tipo de transporte".equals(tipoSeleccionado)
             ) {
 
-                String clienteId = rolActual.equals("CLIENTE")
+                String clienteId = esCliente
                         ? clienteIdActual
                         : null;
 
-                String nombreCliente = rolActual.equals("CLIENTE")
+                String nombreCliente = esCliente
                         ? (String) vista.getComboCliente().getSelectedItem()
                         : null;
 
@@ -583,7 +625,7 @@ public class ReportesPanelController {
 
             } else if ("Estado de sensores".equals(tipoSeleccionado)) {
 
-                if (!rolActual.equals("ADMINISTRADOR")) {
+                if (esCliente) {
                     throw new SecurityException(
                             "No tenés permisos para generar el reporte de sensores."
                     );
@@ -600,7 +642,7 @@ public class ReportesPanelController {
             }
 
             // =================================================
-            // VERIFICAR QUE SE GENERO EL PDF
+            // VERIFICAR QUE SE GENERÓ EL PDF DEL REPORTE
             // =================================================
 
             if (archivo == null || !archivo.isFile()) {
@@ -613,7 +655,11 @@ public class ReportesPanelController {
             // REGISTRAR REPORTE EN MONGODB
             // =================================================
 
-            mongo.crearReporte(
+            // El servicio determina qué rol debe facturar.
+            // ADMINISTRADOR: solo reporte.
+            // CLIENTE: reporte + factura de $5.000.
+
+            reporteService.crearReporte(
                     usuarioId,
                     tipo,
                     "PDF"
@@ -621,16 +667,74 @@ public class ReportesPanelController {
 
             cargarReportes();
 
-            JOptionPane.showMessageDialog(
-                    vista,
-                    "Reporte generado correctamente.\n\n"
-                            + archivo.getAbsolutePath(),
-                    "Reporte generado",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            // =================================================
+            // CLIENTE: GENERAR PDF DE LA FACTURA
+            // =================================================
+
+            if (esCliente) {
+
+                boolean facturaPdfGenerada = false;
+                String errorFacturaPdf = null;
+
+                try {
+
+                    Date fechaEmisionFactura = new Date();
+
+                    Calendar calendario = Calendar.getInstance();
+                    calendario.setTime(fechaEmisionFactura);
+                    calendario.add(Calendar.DAY_OF_MONTH, 30);
+
+                    facturaPDFController.generarFactura(
+                            clienteIdActual,
+                            fechaEmisionFactura,
+                            calendario.getTime(),
+                            new BigDecimal("5000.00"),
+                            "PENDIENTE"
+                    );
+
+                    facturaPdfGenerada = true;
+
+                } catch (Exception errorPdf) {
+                    errorFacturaPdf = errorPdf.getMessage();
+                }
+
+                JOptionPane.showMessageDialog(
+                        vista,
+                        "Reporte generado correctamente.\n"
+                                + "Se registró una factura de $5.000 "
+                                + "para tu cliente.\n\n"
+                                + "Reporte: "
+                                + archivo.getAbsolutePath()
+                                + (facturaPdfGenerada
+                                ? "\n\nTambién se generó el PDF de la factura."
+                                : "\n\nATENCIÓN: La factura está registrada "
+                                + "en MongoDB, pero no se pudo generar "
+                                + "su PDF.\n"
+                                + errorFacturaPdf
+                                + "\nNo vuelvas a generar el reporte "
+                                + "para reintentar la factura."),
+                        "Reporte generado",
+                        facturaPdfGenerada
+                                ? JOptionPane.INFORMATION_MESSAGE
+                                : JOptionPane.WARNING_MESSAGE
+                );
+
+            } else {
+
+                // ADMINISTRADOR:
+                // No se genera factura ni se cobra nada.
+
+                JOptionPane.showMessageDialog(
+                        vista,
+                        "Reporte generado correctamente.\n\n"
+                                + archivo.getAbsolutePath(),
+                        "Reporte generado",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
 
             // =================================================
-            // ABRIR PDF
+            // ABRIR PDF DEL REPORTE
             // =================================================
 
             try {
