@@ -1,3 +1,4 @@
+
 package org.example.interfaz.principal.vistas;
 
 import org.example.mongoDB.controller.ControllerMongoDB;
@@ -24,13 +25,13 @@ public class IncidentesPanelController {
     private final String usuarioId;
     private final UsuarioMongoDAO usuarioDAO;
     private final RolMongoDAO rolDAO;
+
     private String rolActual;
     private String clienteIdActual;
+
     private final Set<String> idsEnviosCliente = new HashSet<>();
 
-
     private String incidenteIdEdicion;
-
 
     // =========================================================
     // CONSTRUCTOR
@@ -41,31 +42,22 @@ public class IncidentesPanelController {
             String usuarioId
     ) {
 
-        this.vista =
-                vista;
-
+        this.vista = vista;
         this.usuarioId = usuarioId;
+
         this.usuarioDAO = new UsuarioMongoDAO();
         this.rolDAO = new RolMongoDAO();
 
-
-
-        this.incidenteIdEdicion =
-                null;
-
+        this.incidenteIdEdicion = null;
 
         cargarUsuarioActual();
-
         configurarEventos();
-
         cargarEnvios();
-
         cargarIncidentes();
 
         vista.modoRegistrar();
         configurarPermisos();
     }
-
 
     // =========================================================
     // USUARIO AUTENTICADO Y PERMISOS
@@ -82,22 +74,29 @@ public class IncidentesPanelController {
         Document usuario = usuarioDAO.buscarPorId(usuarioId);
 
         if (usuario == null) {
-            throw new SecurityException("El usuario autenticado no existe.");
+            throw new SecurityException(
+                    "El usuario autenticado no existe."
+            );
         }
 
         ObjectId rolId = usuario.getObjectId("rol_id");
 
         if (rolId == null) {
-            throw new SecurityException("El usuario no tiene un rol asignado.");
+            throw new SecurityException(
+                    "El usuario no tiene un rol asignado."
+            );
         }
 
         Document rol = rolDAO.buscarPorId(rolId.toHexString());
 
         if (rol == null) {
-            throw new SecurityException("No se encontró el rol del usuario.");
+            throw new SecurityException(
+                    "No se encontró el rol del usuario."
+            );
         }
 
         String descripcion = rol.getString("descripcion");
+
         rolActual = descripcion == null
                 ? ""
                 : descripcion.trim().toUpperCase(Locale.ROOT);
@@ -105,65 +104,127 @@ public class IncidentesPanelController {
         if (!"ADMINISTRADOR".equals(rolActual)
                 && !"OPERADOR".equals(rolActual)
                 && !"CLIENTE".equals(rolActual)) {
-            throw new SecurityException("Rol sin permisos definidos para Riesgos.");
+
+            throw new SecurityException(
+                    "Rol sin permisos definidos para Riesgos."
+            );
         }
 
         ObjectId clienteId = usuario.getObjectId("cliente_id");
-        clienteIdActual = clienteId == null ? null : clienteId.toHexString();
+
+        clienteIdActual = clienteId == null
+                ? null
+                : clienteId.toHexString();
 
         if ("CLIENTE".equals(rolActual)
-                && (clienteIdActual == null || clienteIdActual.isBlank())) {
-            throw new SecurityException("Tu usuario no tiene un cliente asociado.");
+                && (clienteIdActual == null
+                || clienteIdActual.isBlank())) {
+
+            throw new SecurityException(
+                    "Tu usuario no tiene un cliente asociado."
+            );
         }
     }
 
+    // =========================================================
+    // CONFIGURAR PERMISOS
+    // =========================================================
+
     private void configurarPermisos() {
 
-        boolean puedeEditar = !"CLIENTE".equals(rolActual);
+        boolean puedeEditar =
+                "ADMINISTRADOR".equals(rolActual)
+                        || "OPERADOR".equals(rolActual);
+
+        boolean puedeEliminar =
+                "ADMINISTRADOR".equals(rolActual);
+
+        // Administradores y operadores pueden registrar
+        // y modificar incidentes.
+
+        vista.getBtnRegistrar().setVisible(puedeEditar);
+        vista.getBtnRegistrar().setEnabled(puedeEditar);
 
         vista.getBtnEditar().setVisible(puedeEditar);
         vista.getBtnEditar().setEnabled(puedeEditar);
-        boolean puedeEliminar = "ADMINISTRADOR".equals(rolActual);
+
+        // Solo el administrador puede eliminar.
+
         vista.getBtnEliminar().setVisible(puedeEliminar);
         vista.getBtnEliminar().setEnabled(puedeEliminar);
+
+        // Los clientes solo pueden consultar incidentes.
+        // No pueden completar ni modificar el formulario.
+
+        vista.getComboEnvio().setEnabled(puedeEditar);
+        vista.getTxtTipo().setEditable(puedeEditar);
+        vista.getTxtSeveridad().setEditable(puedeEditar);
+        vista.getTxtDescripcion().setEditable(puedeEditar);
+
+        // Se mantiene el estado deshabilitado
+        // como estaba en la clase original.
+        vista.getComboEstado().setEnabled(false);
     }
+
+    // =========================================================
+    // VALIDAR PERMISO DE EDICIÓN
+    // =========================================================
 
     private void validarPermisoEdicion() {
 
         cargarUsuarioActual();
 
-        if ("CLIENTE".equals(rolActual)) {
+        if (!"ADMINISTRADOR".equals(rolActual)
+                && !"OPERADOR".equals(rolActual)) {
+
             throw new SecurityException(
-                    "El rol CLIENTE solo puede registrar y consultar incidentes propios."
+                    "El rol CLIENTE solo puede consultar sus propios incidentes."
             );
         }
     }
+
+    // =========================================================
+    // VALIDAR PERMISO DE ELIMINACIÓN
+    // =========================================================
 
     private void validarPermisoEliminar() {
 
         cargarUsuarioActual();
 
         if (!"ADMINISTRADOR".equals(rolActual)) {
+
             throw new SecurityException(
                     "Solo el ADMINISTRADOR puede eliminar incidentes."
             );
         }
     }
 
+    // =========================================================
+    // VALIDAR ENVÍO PROPIO
+    // =========================================================
+
     private void validarEnvioPropio(String envioId) {
 
         cargarUsuarioActual();
 
         if (envioId == null || envioId.isBlank()) {
-            throw new IllegalArgumentException("Seleccioná un envío.");
+            throw new IllegalArgumentException(
+                    "Seleccioná un envío."
+            );
         }
 
         if ("CLIENTE".equals(rolActual)) {
+
             boolean pertenece = false;
 
-            // Comprobar nuevamente el vínculo desde el origen de datos.
-            for (Document envio : mongo.buscarEnviosPorCliente(clienteIdActual)) {
+            // Comprobar nuevamente el vínculo
+            // desde el origen de datos.
+
+            for (Document envio :
+                    mongo.buscarEnviosPorCliente(clienteIdActual)) {
+
                 Object id = envio.get("_id");
+
                 if (id != null && envioId.equals(id.toString())) {
                     pertenece = true;
                     break;
@@ -172,7 +233,7 @@ public class IncidentesPanelController {
 
             if (!pertenece) {
                 throw new SecurityException(
-                        "No tenés permisos para registrar incidentes en ese envío."
+                        "No tenés permisos para acceder a ese envío."
                 );
             }
         }
@@ -184,39 +245,28 @@ public class IncidentesPanelController {
 
     private void configurarEventos() {
 
-        // -----------------------------------------------------
         // REGISTRAR / GUARDAR CAMBIOS
-        // -----------------------------------------------------
 
         vista.getBtnRegistrar()
                 .addActionListener(
                         e -> guardar()
                 );
 
-
-        // -----------------------------------------------------
         // EDITAR
-        // -----------------------------------------------------
 
         vista.getBtnEditar()
                 .addActionListener(
                         e -> editarIncidenteSeleccionado()
                 );
 
-
-        // -----------------------------------------------------
         // ELIMINAR
-        // -----------------------------------------------------
 
         vista.getBtnEliminar()
                 .addActionListener(
                         e -> eliminarIncidenteSeleccionado()
                 );
 
-
-        // -----------------------------------------------------
         // ACTUALIZAR
-        // -----------------------------------------------------
 
         vista.getBtnActualizar()
                 .addActionListener(
@@ -224,20 +274,25 @@ public class IncidentesPanelController {
                 );
     }
 
-
     // =========================================================
     // GUARDAR
     // =========================================================
 
     private void guardar() {
 
-        if (incidenteIdEdicion != null) {
-            try {
-                validarPermisoEdicion();
-            } catch (Exception ex) {
-                mostrarError(ex.getMessage());
-                return;
-            }
+        // Validar siempre, tanto al registrar
+        // como al modificar un incidente.
+        //
+        // Antes solo se validaba si el incidente
+        // estaba en modo edición.
+
+        try {
+            validarPermisoEdicion();
+
+        } catch (Exception ex) {
+
+            mostrarError(ex.getMessage());
+            return;
         }
 
         if (incidenteIdEdicion == null) {
@@ -250,7 +305,6 @@ public class IncidentesPanelController {
         }
     }
 
-
     // =========================================================
     // REGISTRAR INCIDENTE
     // =========================================================
@@ -259,6 +313,12 @@ public class IncidentesPanelController {
 
         try {
 
+            // Seguridad adicional:
+            // impedir registros de clientes incluso
+            // si se llama directamente a este método.
+
+            validarPermisoEdicion();
+
             String envioId =
                     (String) vista
                             .getComboEnvio()
@@ -266,24 +326,14 @@ public class IncidentesPanelController {
 
             validarEnvioPropio(envioId);
 
-
             String tipo =
-                    vista
-                            .getTxtTipo()
-                            .getText();
-
+                    vista.getTxtTipo().getText();
 
             String severidad =
-                    vista
-                            .getTxtSeveridad()
-                            .getText();
-
+                    vista.getTxtSeveridad().getText();
 
             String descripcion =
-                    vista
-                            .getTxtDescripcion()
-                            .getText();
-
+                    vista.getTxtDescripcion().getText();
 
             mongo.crearIncidente(
                     envioId,
@@ -292,7 +342,6 @@ public class IncidentesPanelController {
                     descripcion
             );
 
-
             JOptionPane.showMessageDialog(
                     vista,
                     "Incidente registrado correctamente.",
@@ -300,20 +349,15 @@ public class IncidentesPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             cancelarEdicion();
-
+            configurarPermisos();
             cargarIncidentes();
-
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // EDITAR INCIDENTE SELECCIONADO
@@ -323,7 +367,9 @@ public class IncidentesPanelController {
 
         try {
             validarPermisoEdicion();
+
         } catch (Exception ex) {
+
             mostrarError(ex.getMessage());
             return;
         }
@@ -331,7 +377,6 @@ public class IncidentesPanelController {
         int fila =
                 vista.getTablaIncidentes()
                         .getSelectedRow();
-
 
         if (fila == -1) {
 
@@ -345,7 +390,6 @@ public class IncidentesPanelController {
             return;
         }
 
-
         try {
 
             String id =
@@ -356,82 +400,55 @@ public class IncidentesPanelController {
                             )
                             .toString();
 
-
             Document incidente =
-                    mongo.buscarIncidentePorId(
-                            id
-                    );
-
+                    mongo.buscarIncidentePorId(id);
 
             Object envioIdValor = incidente.get("envio_id");
+
             String envioId = envioIdValor == null
                     ? null
                     : envioIdValor.toString();
 
-
             if (envioId != null) {
 
                 vista.getComboEnvio()
-                        .setSelectedItem(
-                                envioId
-                        );
+                        .setSelectedItem(envioId);
             }
-
 
             vista.getTxtTipo()
                     .setText(
-                            incidente.getString(
-                                    "tipo"
-                            )
+                            incidente.getString("tipo")
                     );
-
 
             vista.getTxtSeveridad()
                     .setText(
-                            incidente.getString(
-                                    "severidad"
-                            )
+                            incidente.getString("severidad")
                     );
-
 
             String estado =
-                    incidente.getString(
-                            "estado"
-                    );
-
+                    incidente.getString("estado");
 
             if (estado != null) {
 
                 vista.getComboEstado()
-                        .setSelectedItem(
-                                estado
-                        );
+                        .setSelectedItem(estado);
             }
-
 
             vista.getTxtDescripcion()
                     .setText(
-                            incidente.getString(
-                                    "descripcion"
-                            )
+                            incidente.getString("descripcion")
                     );
 
-
-            incidenteIdEdicion =
-                    id;
-
+            incidenteIdEdicion = id;
 
             vista.modoEditar();
-
+            configurarPermisos();
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // MODIFICAR INCIDENTE
@@ -448,30 +465,19 @@ public class IncidentesPanelController {
                             .getComboEnvio()
                             .getSelectedItem();
 
-
             String tipo =
-                    vista
-                            .getTxtTipo()
-                            .getText();
-
+                    vista.getTxtTipo().getText();
 
             String severidad =
-                    vista
-                            .getTxtSeveridad()
-                            .getText();
-
+                    vista.getTxtSeveridad().getText();
 
             String estado =
                     (String) vista
                             .getComboEstado()
                             .getSelectedItem();
 
-
             String descripcion =
-                    vista
-                            .getTxtDescripcion()
-                            .getText();
-
+                    vista.getTxtDescripcion().getText();
 
             mongo.modificarIncidente(
                     incidenteIdEdicion,
@@ -482,7 +488,6 @@ public class IncidentesPanelController {
                     descripcion
             );
 
-
             JOptionPane.showMessageDialog(
                     vista,
                     "Incidente modificado correctamente.",
@@ -490,20 +495,15 @@ public class IncidentesPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             cancelarEdicion();
-
+            configurarPermisos();
             cargarIncidentes();
-
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // ELIMINAR INCIDENTE SELECCIONADO
@@ -513,7 +513,9 @@ public class IncidentesPanelController {
 
         try {
             validarPermisoEliminar();
+
         } catch (Exception ex) {
+
             mostrarError(ex.getMessage());
             return;
         }
@@ -521,7 +523,6 @@ public class IncidentesPanelController {
         int fila =
                 vista.getTablaIncidentes()
                         .getSelectedRow();
-
 
         if (fila == -1) {
 
@@ -535,7 +536,6 @@ public class IncidentesPanelController {
             return;
         }
 
-
         String id =
                 vista.getModeloTabla()
                         .getValueAt(
@@ -543,7 +543,6 @@ public class IncidentesPanelController {
                                 0
                         )
                         .toString();
-
 
         int respuesta =
                 JOptionPane.showConfirmDialog(
@@ -554,19 +553,13 @@ public class IncidentesPanelController {
                         JOptionPane.WARNING_MESSAGE
                 );
 
-
         if (respuesta != JOptionPane.YES_OPTION) {
-
             return;
         }
 
-
         try {
 
-            mongo.eliminarIncidente(
-                    id
-            );
-
+            mongo.eliminarIncidente(id);
 
             JOptionPane.showMessageDialog(
                     vista,
@@ -575,24 +568,18 @@ public class IncidentesPanelController {
                     JOptionPane.INFORMATION_MESSAGE
             );
 
-
             if (id.equals(incidenteIdEdicion)) {
-
                 cancelarEdicion();
+                configurarPermisos();
             }
-
 
             cargarIncidentes();
 
-
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // CANCELAR EDICIÓN
@@ -600,9 +587,7 @@ public class IncidentesPanelController {
 
     private void cancelarEdicion() {
 
-        incidenteIdEdicion =
-                null;
-
+        incidenteIdEdicion = null;
 
         vista.limpiarFormulario();
 
@@ -611,7 +596,6 @@ public class IncidentesPanelController {
         vista.getTablaIncidentes()
                 .clearSelection();
     }
-
 
     // =========================================================
     // ACTUALIZAR
@@ -622,22 +606,22 @@ public class IncidentesPanelController {
         try {
 
             cargarUsuarioActual();
-            configurarPermisos();
+
+            // Primero restablecemos el formulario.
+            // Después volvemos a aplicar permisos
+            // para que el cliente siga sin poder editar.
+
             cancelarEdicion();
+            configurarPermisos();
 
             cargarEnvios();
-
             cargarIncidentes();
-
 
         } catch (Exception ex) {
 
-            mostrarError(
-                    ex.getMessage()
-            );
+            mostrarError(ex.getMessage());
         }
     }
-
 
     // =========================================================
     // CARGAR ENVÍOS
@@ -648,38 +632,42 @@ public class IncidentesPanelController {
         vista.getComboEnvio()
                 .removeAllItems();
 
-
         List<String> ids;
 
         idsEnviosCliente.clear();
 
         if ("CLIENTE".equals(rolActual)) {
+
             ids = new ArrayList<>();
 
-            for (Document envio : mongo.buscarEnviosPorCliente(clienteIdActual)) {
+            // Solo obtener los envíos
+            // asociados al cliente autenticado.
+
+            for (Document envio :
+                    mongo.buscarEnviosPorCliente(clienteIdActual)) {
+
                 Object id = envio.get("_id");
 
                 if (id != null) {
+
                     String idTexto = id.toString();
+
                     ids.add(idTexto);
                     idsEnviosCliente.add(idTexto);
                 }
             }
 
         } else {
+
             ids = mongo.obtenerIdsEnvios();
         }
-
 
         for (String id : ids) {
 
             vista.getComboEnvio()
-                    .addItem(
-                            id
-                    );
+                    .addItem(id);
         }
     }
-
 
     // =========================================================
     // CARGAR INCIDENTES
@@ -688,60 +676,59 @@ public class IncidentesPanelController {
     private void cargarIncidentes() {
 
         vista.getModeloTabla()
-                .setRowCount(
-                        0
-                );
-
+                .setRowCount(0);
 
         List<Document> incidentes;
 
         if ("CLIENTE".equals(rolActual)) {
+
             incidentes = new ArrayList<>();
 
+            // El cliente solo ve los incidentes
+            // vinculados a sus propios envíos.
+
             for (String envioId : idsEnviosCliente) {
-                incidentes.addAll(mongo.buscarIncidentesPorEnvio(envioId));
+
+                incidentes.addAll(
+                        mongo.buscarIncidentesPorEnvio(envioId)
+                );
             }
 
         } else {
+
+            // Administrador y operador
+            // pueden consultar todos los incidentes.
+
             incidentes = mongo.listarIncidentes();
         }
-
 
         SimpleDateFormat formatoFecha =
                 new SimpleDateFormat(
                         "dd/MM/yyyy HH:mm"
                 );
 
-
         for (Document incidente : incidentes) {
 
             ObjectId id =
-                    incidente.getObjectId(
-                            "_id"
-                    );
+                    incidente.getObjectId("_id");
 
+            Object envioIdValor =
+                    incidente.get("envio_id");
 
-            Object envioIdValor = incidente.get("envio_id");
-            String envioId = envioIdValor == null ? null : envioIdValor.toString();
-
+            String envioId = envioIdValor == null
+                    ? null
+                    : envioIdValor.toString();
 
             Date fecha =
-                    incidente.getDate(
-                            "fecha"
-                    );
+                    incidente.getDate("fecha");
 
-
-            String fechaFormateada =
-                    "";
+            String fechaFormateada = "";
 
             if (fecha != null) {
 
                 fechaFormateada =
-                        formatoFecha.format(
-                                fecha
-                        );
+                        formatoFecha.format(fecha);
             }
-
 
             vista.getModeloTabla()
                     .addRow(
@@ -756,34 +743,23 @@ public class IncidentesPanelController {
 
                                     fechaFormateada,
 
-                                    incidente.getString(
-                                            "tipo"
-                                    ),
+                                    incidente.getString("tipo"),
 
-                                    incidente.getString(
-                                            "severidad"
-                                    ),
+                                    incidente.getString("severidad"),
 
-                                    incidente.getString(
-                                            "estado"
-                                    ),
+                                    incidente.getString("estado"),
 
-                                    incidente.getString(
-                                            "descripcion"
-                                    )
+                                    incidente.getString("descripcion")
                             }
                     );
         }
     }
 
-
     // =========================================================
     // MOSTRAR ERROR
     // =========================================================
 
-    private void mostrarError(
-            String mensaje
-    ) {
+    private void mostrarError(String mensaje) {
 
         JOptionPane.showMessageDialog(
                 vista,
